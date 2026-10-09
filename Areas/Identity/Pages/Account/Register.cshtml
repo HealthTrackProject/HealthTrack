@@ -1,0 +1,118 @@
+﻿@page
+@model RegisterModel
+@{
+    ViewData["Title"] = "Register";
+}
+
+<div class="container-fluid p-0">
+    <div class="row g-0" style="min-height: 100vh;">
+
+        <!-- Left Side: Register Form -->
+        <div class="col-lg-5 col-md-6 d-flex align-items-center justify-content-center bg-white">
+            <div class="register-form-container w-100" style="max-width: 400px; padding: 20px;">
+
+                <!-- Logo & Header -->
+                <div class="text-center mb-4">
+                    <div class="d-flex align-items-center justify-content-center mb-3">
+                        <i class="bi bi-activity text-success fs-1 me-2"></i>
+                        <h3 class="fw-bold mb-0 text-success">HealthTrack</h3>
+                    </div>
+                    <h2 class="fw-bold fs-3 text-dark mb-1">Create Account</h2>
+                    <p class="text-muted small">Join HealthTrack and start your journey</p>
+                </div>
+
+                <!-- Register Form -->
+                <form id="registerForm" asp-route-returnUrl="@Model.ReturnUrl" method="post">
+                    <div asp-validation-summary="ModelOnly" class="text-danger small mb-3" role="alert"></div>
+
+                    <!-- Full Name Input -->
+                    <div class="input-group mb-3">
+                        <span class="input-group-text bg-light border-end-0 text-muted"><i class="bi bi-person"></i></span>
+                        <input asp-for="Input.FullName" class="form-control bg-light border-start-0 ps-0" autocomplete="name" aria-required="true" placeholder="Full Name" />
+                        <span asp-validation-for="Input.FullName" class="text-danger small w-100 mt-1"></span>
+                    </div>
+
+                    <!-- Email Input -->
+                    <div class="input-group mb-3">
+                        <span class="input-group-text bg-light border-end-0 text-muted"><i class="bi bi-envelope"></i></span>
+                        <input asp-for="Input.Email" class="form-control bg-light border-start-0 ps-0" autocomplete="username" aria-required="true" placeholder="Email address" />
+                        <span asp-validation-for="Input.Email" class="text-danger small w-100 mt-1"></span>
+                    </div>
+
+                    <!-- Password Input -->
+                    <div class="input-group mb-3">
+                        <span class="input-group-text bg-light border-end-0 text-muted"><i class="bi bi-lock"></i></span>
+                        <input asp-for="Input.Password" id="passwordInput" class="form-control bg-light border-start-0 border-end-0 ps-0" autocomplete="new-password" aria-required="true" placeholder="Password" />
+                        <span class="input-group-text bg-light border-start-0 text-muted" style="cursor: pointer;" onclick="togglePassword()">
+                            <i class="bi bi-eye-slash" id="toggleIcon"></i>
+                        </span>
+                        <span asp-validation-for="Input.Password" class="text-danger small w-100 mt-1"></span>
+                    </div>
+
+                    <!-- Hidden Confirm Password (Required by backend model, hidden from UI) -->
+                    <input type="hidden" asp-for="Input.ConfirmPassword" id="confirmPasswordInput" />
+
+                    <!-- Role Selection -->
+                    <div class="mb-4">
+                        <label class="form-label text-muted small mb-1">Select Role</label>
+                        <select asp-for="Input.Role" asp-items="@Model.RoleList" class="form-select bg-light border" style="border-radius: 8px;">
+                            <option value="">-- Select Role --</option>
+                        </select>
+                        <span asp-validation-for="Input.Role" class="text-danger small"></span>
+                    </div>
+
+                    <!-- Submit Button -->
+                    <button id="registerSubmit" type="submit" class="w-100 btn text-white fw-bold py-2 mb-4" style="background-color: #0F6B3F; border-radius: 8px;">
+                        Register
+                    </button>
+
+                    <!-- Login Link -->
+                    <div class="text-center small text-muted">
+                        Already have an account?
+                        <a asp-page="./Login" asp-route-returnUrl="@Model.ReturnUrl" class="text-success fw-bold text-decoration-none">Login</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Right Side: Image & Overlay Text -->
+        <div class="col-lg-7 col-md-6 d-none d-md-block position-relative p-0">
+            <!-- Replace the background-image URL below with your actual image path -->
+            <div class="h-100 w-100" style="background-image: url('https://images.unsplash.com/photo-1581009146145-b5ef050c2e1e?q=80&w=2070&auto=format&fit=crop'); background-size: cover; background-position: center;">
+                <!-- Dark overlay for better text readability -->
+                <div class="h-100 w-100 d-flex align-items-end" style="background: linear-gradient(to top, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0) 50%);">
+                    <div class="text-white p-5 mb-5">
+                        <h1 class="fw-bold display-5 mb-3">Track.<br>Plan.<br>Achieve.</h1>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+
+    <!-- JavaScript to toggle password visibility and sync hidden confirm password -->
+    <script>
+        function togglePassword() {
+            var passwordInput = document.getElementById("passwordInput");
+            var toggleIcon = document.getElementById("toggleIcon");
+            if (passwordInput.type === "password") {
+                passwordInput.type = "text";
+                toggleIcon.classList.remove("bi-eye-slash");
+                toggleIcon.classList.add("bi-eye");
+            } else {
+                passwordInput.type = "password";
+                toggleIcon.classList.remove("bi-eye");
+                toggleIcon.classList.add("bi-eye-slash");
+            }
+        }
+
+        // Automatically sync the visible password to the hidden confirm password field
+        document.getElementById('passwordInput').addEventListener('input', function() {
+            document.getElementById('confirmPasswordInput').value = this.value;
+        });
+    </script>
+}
