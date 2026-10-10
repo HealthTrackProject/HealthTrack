@@ -1,0 +1,197 @@
+﻿@{
+    Layout = "~/Views/Shared/_ClientLayout.cshtml";
+    ViewData["Title"] = "Client Dashboard";
+    ViewData["Heading"] = "Welcome, Client";
+    ViewData["ActivePage"] = "Dashboard";
+}
+
+<section class="welcome-section">
+    <div>
+        <h2>Your Health Overview</h2>
+        <p>Keep moving forward. Every healthy choice matters.</p>
+    </div>
+
+    <div class="today-label">
+        <i class="bi bi-calendar3"></i>
+        @DateTime.Now.ToString("dd MMM yyyy")
+    </div>
+</section>
+
+<!-- HEALTH STATISTICS -->
+<section class="stats-grid">
+
+    <article class="stat-card blue">
+        <div class="stat-icon">
+            <i class="bi bi-person-standing"></i>
+        </div>
+        <h3>72 kg</h3>
+        <p>Current Weight</p>
+    </article>
+
+    <article class="stat-card green">
+        <div class="stat-icon">
+            <i class="bi bi-clipboard2-check"></i>
+        </div>
+        <h3>23.5</h3>
+        <p>Body Mass Index (BMI)</p>
+    </article>
+
+    <article class="stat-card orange">
+        <div class="stat-icon">
+            <i class="bi bi-activity"></i>
+        </div>
+        <h3>1850</h3>
+        <p>Calories / Day</p>
+    </article>
+
+    <article class="stat-card purple">
+        <div class="stat-icon">
+            <i class="bi bi-hand-thumbs-up"></i>
+        </div>
+        <h3>5</h3>
+        <p>Workouts / Week</p>
+    </article>
+
+</section>
+
+<!-- ACTIVITIES AND PROGRESS -->
+<section class="dashboard-grid">
+
+    <!-- UPCOMING ACTIVITIES -->
+    <article class="content-card">
+        <div class="card-header">
+            <h3>Upcoming Activities</h3>
+            <i class="bi bi-three-dots"></i>
+        </div>
+
+        <div class="activity-list">
+
+            <div class="activity-item">
+                <div class="activity-icon blue">
+                    <i class="bi bi-bicycle"></i>
+                </div>
+                <div>
+                    <h4>Workout - Full Body</h4>
+                    <p>Today, 6:00 PM</p>
+                </div>
+            </div>
+
+            <div class="activity-item">
+                <div class="activity-icon orange">
+                    <i class="bi bi-egg-fried"></i>
+                </div>
+                <div>
+                    <h4>Diet Plan - Lunch</h4>
+                    <p>Today, 1:00 PM</p>
+                </div>
+            </div>
+
+            <div class="activity-item">
+                <div class="activity-icon purple">
+                    <i class="bi bi-calendar-event"></i>
+                </div>
+                <div>
+                    <h4>Appointment with Trainer</h4>
+                    <p>Tomorrow, 10:00 AM</p>
+                </div>
+            </div>
+
+        </div>
+    </article>
+
+    <!-- WEIGHT PROGRESS -->
+    <!-- WEIGHT PROGRESS -->
+    <article class="content-card">
+        <div class="card-header">
+            <h3>Weight Progress</h3>
+
+            <select class="card-select" aria-label="Select progress period">
+                <option>Last 6 Months</option>
+                <option>Last 3 Months</option>
+                <option>Last 12 Months</option>
+            </select>
+        </div>
+
+        <div class="chart-container">
+            <svg class="weight-chart"
+                 viewBox="0 0 340 230"
+                 preserveAspectRatio="none"
+                 role="img"
+                 aria-label="Weight progress from January to June">
+
+                <defs>
+                    <linearGradient id="weightFill"
+                                    x1="0" y1="0"
+                                    x2="0" y2="1">
+                        <stop offset="0%"
+                              stop-color="#20bd79"
+                              stop-opacity="0.25" />
+                        <stop offset="100%"
+                              stop-color="#20bd79"
+                              stop-opacity="0.01" />
+                    </linearGradient>
+                </defs>
+
+                <!-- Horizontal grid lines -->
+                <line class="chart-grid-line"
+                      x1="38" y1="20" x2="330" y2="20" />
+                <line class="chart-grid-line"
+                      x1="38" y1="75" x2="330" y2="75" />
+                <line class="chart-grid-line"
+                      x1="38" y1="130" x2="330" y2="130" />
+                <line class="chart-grid-line"
+                      x1="38" y1="185" x2="330" y2="185" />
+
+                <!-- Weight labels -->
+                <text class="chart-label" x="4" y="24">80</text>
+                <text class="chart-label" x="4" y="79">75</text>
+                <text class="chart-label" x="4" y="134">70</text>
+                <text class="chart-label" x="4" y="189">65</text>
+
+                <!-- Area below the graph -->
+                <path d="M38,48
+                L96,70
+                L154,92
+                L212,103
+                L270,125
+                L330,136
+                L330,185
+                L38,185 Z"
+                      fill="url(#weightFill)" />
+
+                <!-- Six-month weight progress -->
+                <polyline class="chart-line"
+                          points="38,48 96,70 154,92 212,103 270,125 330,136" />
+
+                <!-- Latest weight point -->
+                <circle cx="330" cy="136" r="4"
+                        fill="#20bd79" />
+            </svg>
+        </div>
+
+        <!-- Six months -->
+        <div class="chart-months">
+            <span>Jan</span>
+            <span>Feb</span>
+            <span>Mar</span>
+            <span>Apr</span>
+            <span>May</span>
+            <span>Jun</span>
+        </div>
+
+        <div class="chart-data-list">
+            <div><span>January</span><strong>78 kg</strong></div>
+            <div><span>February</span><strong>76 kg</strong></div>
+            <div><span>March</span><strong>74 kg</strong></div>
+            <div><span>April</span><strong>73 kg</strong></div>
+            <div><span>May</span><strong>71 kg</strong></div>
+            <div><span>June</span><strong>70 kg</strong></div>
+        </div>
+
+        <p class="chart-summary">
+            <i class="bi bi-arrow-down-right"></i>
+            Sample data for UI demonstration
+        </p>
+    </article>
+
+</section>
