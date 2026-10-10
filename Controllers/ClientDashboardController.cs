@@ -9,5 +9,10 @@ namespace HealthTrack.Controllers
         {
             return View();
         }
+
+        public IActionResult HealthRecords()
+        {
+            return View();
+        }
     }
 }
