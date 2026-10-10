@@ -56,17 +56,21 @@
                     <span>Diet</span>
                 </a>
 
-                <a asp-controller="Appointments" asp-action="Index"
-                   class="side-link">
-                    <i class="bi bi-calendar3"></i>
-                    <span>Appointments</span>
+                <a asp-controller="ClientDashboard"
+                 asp-action="Appointments"
+                class="side-link @(ViewData["ActivePage"]?.ToString() == "Appointments" ? "active" : "")">
+                <i class="bi bi-calendar3"></i>
+                <span>Appointments</span>
                 </a>
 
-                <a asp-controller="Progress" asp-action="Index"
-                   class="side-link">
+                
+                <a asp-controller="ClientDashboard"
+                   asp-action="Progress"
+                   class="side-link @(ViewData["ActivePage"]?.ToString() == "Progress" ? "active" : "")">
                     <i class="bi bi-graph-up-arrow"></i>
                     <span>Progress</span>
                 </a>
+
 
                 <a asp-controller="Notifications" asp-action="Index"
                    class="side-link">

@@ -1,0 +1,262 @@
+﻿@{
+    Layout = "~/Views/Shared/_ClientLayout.cshtml";
+    ViewData["Title"] = "Appointments";
+    ViewData["Heading"] = "My Appointments";
+    ViewData["ActivePage"] = "Appointments";
+}
+
+<div class="client-appointments">
+
+    <div class="client-appointments-header">
+        <h2>My Appointments</h2>
+
+        <button type="button"
+                class="ca-request-btn"
+                id="caRequestBtn">
+            <i class="bi bi-plus-lg"></i>
+            Request Appointment
+        </button>
+    </div>
+
+    <div class="ca-card">
+
+        <div class="ca-tabs">
+            <button type="button"
+                    class="ca-tab active"
+                    data-tab="upcoming">
+                Upcoming
+            </button>
+
+            <button type="button"
+                    class="ca-tab"
+                    data-tab="past">
+                Past Appointments
+            </button>
+        </div>
+
+        <div class="ca-table-wrapper">
+            <table class="ca-table">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Time</th>
+                        <th>Trainer</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+
+                <tbody id="caUpcoming">
+                    <tr>
+                        <td>10 Apr 2025</td>
+                        <td>10:00 AM</td>
+                        <td>John Silva</td>
+                        <td>
+                            <span class="ca-status approved">
+                                Approved
+                            </span>
+                        </td>
+                        <td>
+                            <button type="button"
+                                    class="ca-action view"
+                                    data-view="John Silva | 10 Apr 2025 | 10:00 AM | Approved">
+                                View
+                            </button>
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <td>15 Apr 2025</td>
+                        <td>2:00 PM</td>
+                        <td>Sarah Perera</td>
+                        <td>
+                            <span class="ca-status pending">
+                                Pending
+                            </span>
+                        </td>
+                        <td>
+                            <button type="button"
+                                    class="ca-action cancel"
+                                    data-cancel>
+                                Cancel
+                            </button>
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <td>22 Apr 2025</td>
+                        <td>11:00 AM</td>
+                        <td>John Silva</td>
+                        <td>
+                            <span class="ca-status approved">
+                                Approved
+                            </span>
+                        </td>
+                        <td>
+                            <button type="button"
+                                    class="ca-action view"
+                                    data-view="John Silva | 22 Apr 2025 | 11:00 AM | Approved">
+                                View
+                            </button>
+                        </td>
+                    </tr>
+                </tbody>
+
+                <tbody id="caPast" hidden>
+                    <tr>
+                        <td>20 Mar 2025</td>
+                        <td>9:00 AM</td>
+                        <td>Sarah Perera</td>
+                        <td>
+                            <span class="ca-status approved">
+                                Approved
+                            </span>
+                        </td>
+                        <td>
+                            <button type="button"
+                                    class="ca-action view"
+                                    data-view="Sarah Perera | 20 Mar 2025 | 9:00 AM | Approved">
+                                View
+                            </button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="ca-empty" id="caEmpty" hidden>
+            <i class="bi bi-calendar-x"></i>
+            <h3>No appointments found</h3>
+            <p>Your appointments will appear here.</p>
+        </div>
+
+        <div class="ca-footer">
+            <span id="caSummary">Showing 3 appointments</span>
+            <span><i class="bi bi-heart-pulse"></i> HealthTrack</span>
+        </div>
+    </div>
+</div>
+
+<!-- Frontend preview modal -->
+<div class="ca-modal" id="caModal" hidden>
+    <div class="ca-modal-content">
+        <button type="button"
+                class="ca-modal-close"
+                id="caModalClose"
+                aria-label="Close">
+            &times;
+        </button>
+
+        <div class="ca-modal-icon">
+            <i class="bi bi-calendar-check"></i>
+        </div>
+
+        <h3 id="caModalTitle">Appointment Details</h3>
+        <p id="caModalText"></p>
+        <button type="button"
+                class="ca-request-btn"
+                id="caModalOk">
+            Close
+        </button>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        (() => {
+            const upcoming = document.getElementById("caUpcoming");
+            const past = document.getElementById("caPast");
+            const tabs = document.querySelectorAll(".ca-tab");
+            const empty = document.getElementById("caEmpty");
+            const summary = document.getElementById("caSummary");
+            const modal = document.getElementById("caModal");
+            const modalTitle = document.getElementById("caModalTitle");
+            const modalText = document.getElementById("caModalText");
+
+            let activeTab = "upcoming";
+
+            function showTab(tab) {
+                activeTab = tab;
+
+                tabs.forEach(button => {
+                    button.classList.toggle(
+                        "active",
+                        button.dataset.tab === tab
+                    );
+                });
+
+                upcoming.hidden = tab !== "upcoming";
+                past.hidden = tab !== "past";
+
+                const body = tab === "upcoming" ? upcoming : past;
+                const count = body.querySelectorAll("tr").length;
+
+                empty.hidden = count > 0;
+                summary.textContent =
+                    `Showing ${count} ${tab === "upcoming" ? "upcoming" : "past"} appointments`;
+            }
+
+            function openModal(title, text) {
+                modalTitle.textContent = title;
+                modalText.textContent = text;
+                modal.hidden = false;
+            }
+
+            function closeModal() {
+                modal.hidden = true;
+            }
+
+            tabs.forEach(button => {
+                button.addEventListener("click", () => {
+                    showTab(button.dataset.tab);
+                });
+            });
+
+            document.addEventListener("click", event => {
+                const viewButton = event.target.closest("[data-view]");
+                const cancelButton = event.target.closest("[data-cancel]");
+
+                if (viewButton) {
+                    openModal(
+                        "Appointment Details",
+                        viewButton.dataset.view
+                    );
+                }
+
+                if (cancelButton) {
+                    const row = cancelButton.closest("tr");
+
+                    if (!confirm("Remove this sample appointment from the list?")) {
+                        return;
+                    }
+
+                    // Frontend preview only: does not change the database.
+                    row.remove();
+                    showTab(activeTab);
+                }
+            });
+
+            document.getElementById("caRequestBtn")
+                .addEventListener("click", () => {
+                    openModal(
+                        "Request Appointment",
+                        "The appointment request form can be added here. This design preview does not submit or save bookings."
+                    );
+                });
+
+            document.getElementById("caModalClose")
+                .addEventListener("click", closeModal);
+
+            document.getElementById("caModalOk")
+                .addEventListener("click", closeModal);
+
+            modal.addEventListener("click", event => {
+                if (event.target === modal) {
+                    closeModal();
+                }
+            });
+
+            showTab("upcoming");
+        })();
+    </script>
+}

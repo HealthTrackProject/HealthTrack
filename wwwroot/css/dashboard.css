@@ -50,14 +50,24 @@ button {
 /* SIDEBAR */
 
 .sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
     width: 245px;
     min-width: 245px;
-    min-height: 100vh;
+    height: 100vh;
+    height: 100dvh;
     display: flex;
     flex-direction: column;
     padding: 25px 15px 20px;
+    box-sizing: border-box;
     color: #dce8ed;
-    background: linear-gradient( 180deg, var(--sidebar-start), var(--sidebar-end) );
+    background: linear-gradient(180deg, var(--sidebar-start), var(--sidebar-end));
+    /* Keep the sidebar fixed and prevent its own scrollbar */
+    overflow: hidden;
+    overscroll-behavior: none;
+    z-index: 1000;
 }
 
 .brand {
@@ -84,6 +94,8 @@ button {
 
 .sidebar-menu {
     flex: 1;
+    min-height: 0;
+    overflow: hidden;
 }
 
 .menu-label {
@@ -135,9 +147,10 @@ button {
 /* MAIN PANEL */
 
 .main-panel {
-    flex: 1;
+    width: calc(100% - 245px);
     min-width: 0;
     min-height: 100vh;
+    margin-left: 245px;
 }
 
 /* TOPBAR */
@@ -400,24 +413,27 @@ button {
     font-size: 12px;
 }
 
-/* WEIGHT CHART */
 
-.chart-summary {
-    color: var(--muted);
-    font-size: 11px;
-}
+/* =====================================
+   WEIGHT PROGRESS CHART - FIXED LAYOUT
+===================================== */
 
 .chart-container {
-    width: 60%;
-    min-height: 20px;
+    position: relative;
+    width: 100%;
+    min-width: 0;
+    height: 250px;
+    margin: 0;
+    padding: 8px 0 0;
+    box-sizing: border-box;
 }
 
 .weight-chart {
     display: block;
     width: 100%;
-    height: auto;
+    height: 100%;
+    margin: 0;
     overflow: visible;
-    margin-left:95px;
 }
 
 .chart-grid-line {
@@ -439,11 +455,66 @@ button {
 }
 
 .chart-months {
-    display: flex;
-    justify-content: space-between;
-    padding: 0px 0px 10px 150px;
+    display: grid;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    width: 100%;
+    gap: 0;
+    padding: 10px 0;
+    margin: 0;
+    box-sizing: border-box;
     color: var(--muted);
-    font-size: 12px;
+    font-size: 11px;
+    text-align: center;
+}
+
+.chart-data-list {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 10px;
+    margin-top: 12px;
+    padding-top: 14px;
+    border-top: 1px solid var(--border);
+}
+
+    .chart-data-list > div {
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+        padding: 10px;
+        border-radius: 7px;
+        background: #f6fafb;
+    }
+
+    .chart-data-list span {
+        color: var(--muted);
+        font-size: 11px;
+    }
+
+    .chart-data-list strong {
+        color: #183447;
+        font-size: 13px;
+        font-weight: 700;
+    }
+
+.chart-summary {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    margin-top: 14px;
+    color: var(--muted);
+    font-size: 11px;
+}
+
+    .chart-summary i {
+        color: #20bd79;
+    }
+
+/* Keep the chart card within the dashboard grid */
+.dashboard-grid > .content-card {
+    min-width: 0;
+    width: 100%;
+    box-sizing: border-box;
+    overflow: hidden;
 }
 
 /* RESPONSIVE */
@@ -462,10 +533,15 @@ button {
     }
 }
 
-@media (max-width: 1100px) {
+@media (min-width: 701px) and (max-width: 1100px) {
     .sidebar {
         width: 215px;
         min-width: 215px;
+    }
+
+    .main-panel {
+        width: calc(100% - 215px);
+        margin-left: 215px;
     }
 
     .page-content {
@@ -501,6 +577,7 @@ button {
 
     .main-panel {
         width: 100%;
+        margin-left: 0;
     }
 
     .topbar {
@@ -997,5 +1074,575 @@ button {
     .health-summary-card {
         break-inside: avoid;
         box-shadow: none;
+    }
+}
+
+/* =========================================
+   CLIENT APPOINTMENTS PAGE
+   Uses the existing Client Layout/sidebar
+========================================= */
+
+.client-appointments {
+    width: 100%;
+    min-width: 0;
+    color: #183447;
+}
+
+.client-appointments-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 14px;
+    margin-bottom: 22px;
+}
+
+    .client-appointments-header h2 {
+        margin: 0;
+        font-size: 23px;
+        font-weight: 700;
+    }
+
+.ca-request-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    padding: 9px 13px;
+    border: 1px solid #008f78;
+    border-radius: 6px;
+    background: #008f78;
+    color: white;
+    font-size: 11px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background .2s ease;
+}
+
+    .ca-request-btn:hover {
+        background: #006b5b;
+        border-color: #006b5b;
+    }
+
+.ca-card {
+    width: 100%;
+    overflow: hidden;
+    border: 1px solid #e0eaf0;
+    border-radius: 10px;
+    background: white;
+    box-shadow: 0 3px 12px rgba(19, 55, 72, .035);
+}
+
+.ca-tabs {
+    display: flex;
+    align-items: center;
+    gap: 22px;
+    padding: 0 18px;
+    border-bottom: 1px solid #e0eaf0;
+}
+
+.ca-tab {
+    padding: 13px 4px 11px;
+    border: 0;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -1px;
+    background: transparent;
+    color: #718494;
+    font-size: 11px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+    .ca-tab:hover,
+    .ca-tab.active {
+        color: #008f78;
+    }
+
+    .ca-tab.active {
+        border-bottom-color: #008f78;
+    }
+
+.ca-table-wrapper {
+    width: 100%;
+    overflow-x: auto;
+}
+
+.ca-table {
+    width: 100%;
+    min-width: 570px;
+    border-collapse: collapse;
+    text-align: left;
+}
+
+    .ca-table thead {
+        background: #f6f9fb;
+    }
+
+    .ca-table th {
+        padding: 12px 13px;
+        border-bottom: 1px solid #e0eaf0;
+        color: #526b7b;
+        font-size: 10px;
+        font-weight: 700;
+        white-space: nowrap;
+    }
+
+    .ca-table td {
+        padding: 12px 13px;
+        border-bottom: 1px solid #edf2f5;
+        color: #344e61;
+        font-size: 10px;
+        white-space: nowrap;
+    }
+
+    .ca-table tbody tr:last-child td {
+        border-bottom: 0;
+    }
+
+    .ca-table tbody tr:hover {
+        background: #f9fcfd;
+    }
+
+.ca-status {
+    display: inline-block;
+    padding: 5px 7px;
+    border-radius: 5px;
+    font-size: 9px;
+    font-weight: 700;
+}
+
+    .ca-status.approved {
+        background: #dff6e9;
+        color: #128052;
+    }
+
+    .ca-status.pending {
+        background: #fff0d1;
+        color: #a86a08;
+    }
+
+    .ca-status.cancelled {
+        background: #edf1f5;
+        color: #64748b;
+    }
+
+    .ca-status.rejected {
+        background: #ffebeb;
+        color: #c0392b;
+    }
+
+.ca-action {
+    padding: 5px 9px;
+    border: 1px solid;
+    border-radius: 5px;
+    background: white;
+    font-size: 10px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+    .ca-action.view {
+        border-color: #008f78;
+        color: #008f78;
+    }
+
+        .ca-action.view:hover {
+            background: #e8f8f2;
+        }
+
+    .ca-action.cancel {
+        border-color: #f0aaa5;
+        color: #d64545;
+    }
+
+        .ca-action.cancel:hover {
+            background: #fff0ef;
+        }
+
+.ca-empty {
+    padding: 35px 15px;
+    text-align: center;
+    color: #718494;
+}
+
+    .ca-empty[hidden],
+    .ca-table tbody[hidden],
+    .ca-modal[hidden] {
+        display: none !important;
+    }
+
+    .ca-empty > i {
+        font-size: 28px;
+        color: #008f78;
+    }
+
+    .ca-empty h3 {
+        margin: 10px 0 5px;
+        color: #183447;
+        font-size: 15px;
+    }
+
+    .ca-empty p {
+        font-size: 11px;
+    }
+
+.ca-footer {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 12px 15px;
+    border-top: 1px solid #edf2f5;
+    color: #718494;
+    font-size: 10px;
+}
+
+.ca-modal {
+    position: fixed;
+    z-index: 2000;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    background: rgba(12, 35, 48, .45);
+}
+
+.ca-modal-content {
+    position: relative;
+    width: 100%;
+    max-width: 390px;
+    padding: 28px;
+    border-radius: 13px;
+    background: white;
+    text-align: center;
+    box-shadow: 0 15px 45px rgba(0, 0, 0, .16);
+}
+
+.ca-modal-close {
+    position: absolute;
+    top: 8px;
+    right: 12px;
+    border: 0;
+    background: transparent;
+    color: #718494;
+    font-size: 25px;
+    cursor: pointer;
+}
+
+.ca-modal-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 48px;
+    height: 48px;
+    margin: 0 auto 14px;
+    border-radius: 12px;
+    background: #e8f8f2;
+    color: #008f78;
+    font-size: 23px;
+}
+
+.ca-modal-content h3 {
+    margin-bottom: 12px;
+    font-size: 18px;
+}
+
+.ca-modal-content p {
+    margin-bottom: 20px;
+    color: #718494;
+    font-size: 12px;
+    line-height: 1.7;
+    overflow-wrap: anywhere;
+}
+
+@media (max-width: 700px) {
+    .client-appointments-header h2 {
+        font-size: 20px;
+    }
+
+    .ca-tabs {
+        gap: 15px;
+        padding: 0 12px;
+    }
+
+    .ca-footer {
+        flex-wrap: wrap;
+    }
+}
+
+/* HealthTrack Progress Page */
+
+.ht-progress {
+    width: 100%;
+    min-width: 0;
+    color: #183447;
+}
+
+.ht-progress-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 20px;
+}
+
+    .ht-progress-header h2 {
+        margin: 0;
+        font-size: 22px;
+        font-weight: 750;
+    }
+
+    .ht-progress-header p {
+        margin: 5px 0 0;
+        color: #8291a1;
+        font-size: 11px;
+    }
+
+.ht-period-select {
+    padding: 8px 10px;
+    border: 1px solid #dfe8ed;
+    border-radius: 6px;
+    background: white;
+    color: #344e61;
+    font-size: 10px;
+    cursor: pointer;
+}
+
+.ht-progress-cards {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 12px;
+    margin-bottom: 18px;
+}
+
+.ht-stat-card {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
+    padding: 14px 12px;
+    border: 1px solid transparent;
+    border-radius: 9px;
+}
+
+.weight-card {
+    background: #edf5ff;
+    border-color: #e2edfc;
+}
+
+.bmi-card {
+    background: #e9f8f1;
+    border-color: #dff2e9;
+}
+
+.calories-card {
+    background: #fff5e6;
+    border-color: #f9edda;
+}
+
+.workouts-card {
+    background: #f2edff;
+    border-color: #eae2ff;
+}
+
+.ht-stat-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 31px;
+    height: 31px;
+    flex-shrink: 0;
+    border-radius: 8px;
+    background: rgba(255, 255, 255, .75);
+    font-size: 14px;
+}
+
+.weight-card .ht-stat-icon {
+    color: #2879dc;
+}
+
+.bmi-card .ht-stat-icon {
+    color: #07956c;
+}
+
+.calories-card .ht-stat-icon {
+    color: #ed9b18;
+}
+
+.workouts-card .ht-stat-icon {
+    color: #8554e8;
+}
+
+.ht-stat-card span {
+    display: block;
+    margin-bottom: 4px;
+    color: #64798a;
+    font-size: 10px;
+    white-space: nowrap;
+}
+
+.ht-stat-card strong {
+    display: block;
+    color: #20394d;
+    font-size: 15px;
+    font-weight: 750;
+}
+
+.ht-progress-panel {
+    overflow: hidden;
+    border: 1px solid #e3ebf0;
+    border-radius: 10px;
+    background: white;
+    box-shadow: 0 3px 12px rgba(19, 55, 72, .025);
+}
+
+.ht-progress-tabs {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    padding: 0 16px;
+    border-bottom: 1px solid #e7edf1;
+}
+
+.ht-progress-tab {
+    padding: 13px 5px 11px;
+    border: 0;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -1px;
+    background: transparent;
+    color: #718494;
+    font-size: 11px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+    .ht-progress-tab.active {
+        border-bottom-color: #0ca77c;
+        color: #078b6d;
+    }
+
+.ht-chart-container {
+    position: relative;
+    height: 245px;
+    padding: 18px 18px 8px;
+}
+
+.ht-chart-summary {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 18px 15px;
+    color: #8291a1;
+    font-size: 10px;
+}
+
+.ht-chart-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: #0ca77c;
+}
+
+.ht-progress-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 15px;
+    margin-top: 18px;
+    padding: 18px;
+    border: 1px solid #e3ebf0;
+    border-radius: 10px;
+    background: white;
+}
+
+    .ht-progress-info h3 {
+        margin: 0 0 6px;
+        font-size: 13px;
+        font-weight: 700;
+    }
+
+        .ht-progress-info h3 i {
+            margin-right: 5px;
+            color: #078b6d;
+        }
+
+    .ht-progress-info p {
+        margin: 0;
+        color: #8291a1;
+        font-size: 10px;
+    }
+
+.ht-progress-info-value {
+    text-align: right;
+}
+
+    .ht-progress-info-value span {
+        display: block;
+        margin-bottom: 5px;
+        color: #8291a1;
+        font-size: 10px;
+    }
+
+    .ht-progress-info-value strong {
+        color: #078b6d;
+        font-size: 17px;
+    }
+
+.ht-progress-note {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    margin-top: 12px;
+    color: #8291a1;
+    font-size: 10px;
+    line-height: 1.6;
+}
+
+@media (max-width: 900px) {
+    .ht-progress-cards {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 500px) {
+    .ht-progress-header {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .ht-progress-cards {
+        gap: 8px;
+    }
+
+    .ht-stat-card {
+        padding: 10px 8px;
+        gap: 7px;
+    }
+
+        .ht-stat-card strong {
+            font-size: 13px;
+        }
+
+        .ht-stat-card span {
+            font-size: 9px;
+            white-space: normal;
+        }
+
+    .ht-stat-icon {
+        width: 27px;
+        height: 27px;
+    }
+
+    .ht-chart-container {
+        height: 210px;
+        padding: 12px;
+    }
+
+    .ht-progress-info {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .ht-progress-info-value {
+        text-align: left;
     }
 }
