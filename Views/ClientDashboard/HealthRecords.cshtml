@@ -1,0 +1,350 @@
+﻿
+@{
+    Layout = "~/Views/Shared/_ClientLayout.cshtml";
+    ViewData["Title"] = "Health Records";
+    ViewData["Heading"] = "Health Records";
+    ViewData["ActivePage"] = "HealthRecords";
+}
+
+<section class="health-page">
+
+    <!-- PAGE HEADER -->
+    <div class="health-page-header">
+        <div>
+            <h2>My Health Records</h2>
+            <p>Track your health information and monitor your progress.</p>
+        </div>
+
+        <button type="button" class="health-primary-button"
+                onclick="window.print()">
+            <i class="bi bi-printer"></i>
+            Print Records
+        </button>
+    </div>
+
+    <!-- HEALTH SUMMARY -->
+    <section class="health-summary-grid">
+
+        <article class="health-summary-card weight">
+            <div class="health-summary-icon">
+                <i class="bi bi-person-standing"></i>
+            </div>
+            <p>Current Weight</p>
+            <h3>72 <span>kg</span></h3>
+            <small><i class="bi bi-graph-down"></i> Sample value</small>
+        </article>
+
+        <article class="health-summary-card height">
+            <div class="health-summary-icon">
+                <i class="bi bi-rulers"></i>
+            </div>
+            <p>Height</p>
+            <h3>175 <span>cm</span></h3>
+            <small>Sample value</small>
+        </article>
+
+        <article class="health-summary-card bmi">
+            <div class="health-summary-icon">
+                <i class="bi bi-clipboard2-pulse"></i>
+            </div>
+            <p>Body Mass Index</p>
+            <h3>23.5</h3>
+            <small>Sample value</small>
+        </article>
+
+        <article class="health-summary-card heart">
+            <div class="health-summary-icon">
+                <i class="bi bi-heart-pulse"></i>
+            </div>
+            <p>Heart Rate</p>
+            <h3>72 <span>bpm</span></h3>
+            <small>Sample value</small>
+        </article>
+
+    </section>
+
+    <!-- ADD HEALTH RECORD -->
+    <section class="health-panel">
+
+        <div class="health-panel-header">
+            <div>
+                <h3>Add Health Record</h3>
+                <p>Enter your latest health measurements.</p>
+            </div>
+            <i class="bi bi-file-earmark-medical"></i>
+        </div>
+
+        <form id="healthRecordForm">
+
+            <div class="health-form-grid">
+
+                <div class="health-form-group">
+                    <label for="recordDate">Record Date</label>
+                    <input type="date" id="recordDate" required />
+                </div>
+
+                <div class="health-form-group">
+                    <label for="weight">Weight (kg)</label>
+                    <input type="number" id="weight"
+                           min="1" max="500" step="0.1"
+                           placeholder="e.g. 72.0" required />
+                </div>
+
+                <div class="health-form-group">
+                    <label for="height">Height (cm)</label>
+                    <input type="number" id="height"
+                           min="30" max="300" step="0.1"
+                           placeholder="e.g. 175" required />
+                </div>
+
+                <div class="health-form-group">
+                    <label for="bloodPressure">Blood Pressure</label>
+                    <input type="text" id="bloodPressure"
+                           pattern="[0-9]{2,3}/[0-9]{2,3}"
+                           placeholder="e.g. 120/80" />
+                </div>
+
+                <div class="health-form-group">
+                    <label for="heartRate">Heart Rate (bpm)</label>
+                    <input type="number" id="heartRate"
+                           min="1" max="300"
+                           placeholder="e.g. 72" />
+                </div>
+
+                <div class="health-form-group">
+                    <label for="caloriesBurned">Calories Burned</label>
+                    <input type="number" id="caloriesBurned"
+                           min="0" max="50000"
+                           placeholder="e.g. 350" />
+                </div>
+
+                <div class="health-form-group full-width">
+                    <label for="healthNotes">Health Notes</label>
+                    <textarea id="healthNotes" rows="3"
+                              maxlength="1000"
+                              placeholder="Enter additional health notes..."></textarea>
+                </div>
+
+            </div>
+
+            <div class="bmi-preview">
+                <i class="bi bi-info-circle"></i>
+                <span id="bmiMessage">
+                    Enter your weight and height to calculate BMI.
+                </span>
+                <strong id="bmiValue"></strong>
+            </div>
+
+            <div class="health-form-actions">
+                <button type="reset" class="health-secondary-button">
+                    Clear Form
+                </button>
+
+                <button type="submit" class="health-primary-button">
+                    <i class="bi bi-plus-lg"></i>
+                    Add Record
+                </button>
+            </div>
+
+        </form>
+    </section>
+
+    <!-- HEALTH HISTORY -->
+    <section class="health-panel history-panel">
+
+        <div class="health-panel-header">
+            <div>
+                <h3>Health History</h3>
+                <p>Your recorded health measurements.</p>
+            </div>
+
+            <span class="record-count" id="recordCount">3 Records</span>
+        </div>
+
+        <div class="health-table-wrapper">
+            <table class="health-table">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Weight</th>
+                        <th>Height</th>
+                        <th>BMI</th>
+                        <th>Blood Pressure</th>
+                        <th>Heart Rate</th>
+                        <th>Calories</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+
+                <tbody id="healthRecordsBody">
+                    <tr>
+                        <td>2026-10-09</td>
+                        <td>72 kg</td>
+                        <td>175 cm</td>
+                        <td>23.5</td>
+                        <td>120/80</td>
+                        <td>72 bpm</td>
+                        <td>350</td>
+                        <td><span class="record-status">Sample</span></td>
+                    </tr>
+
+                    <tr>
+                        <td>2026-09-09</td>
+                        <td>73 kg</td>
+                        <td>175 cm</td>
+                        <td>23.8</td>
+                        <td>118/78</td>
+                        <td>74 bpm</td>
+                        <td>320</td>
+                        <td><span class="record-status">Sample</span></td>
+                    </tr>
+
+                    <tr>
+                        <td>2026-08-09</td>
+                        <td>74 kg</td>
+                        <td>175 cm</td>
+                        <td>24.2</td>
+                        <td>120/80</td>
+                        <td>75 bpm</td>
+                        <td>300</td>
+                        <td><span class="record-status">Sample</span></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <p class="health-table-note">
+            <i class="bi bi-info-circle"></i>
+            These are demonstration records. Newly added records stay in this
+            page only until it is refreshed.
+        </p>
+
+    </section>
+
+</section>
+
+@section Scripts {
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+
+            const form = document.getElementById("healthRecordForm");
+            const weightInput = document.getElementById("weight");
+            const heightInput = document.getElementById("height");
+            const bmiValue = document.getElementById("bmiValue");
+            const bmiMessage = document.getElementById("bmiMessage");
+            const recordsBody = document.getElementById("healthRecordsBody");
+            const recordCount = document.getElementById("recordCount");
+
+            document.getElementById("recordDate").value =
+                new Date().toLocaleDateString("en-CA");
+
+            function calculateBMI() {
+                const weight = Number(weightInput.value);
+                const heightCm = Number(heightInput.value);
+
+                if (weight > 0 && heightCm > 0) {
+                    const heightM = heightCm / 100;
+                    const bmi = weight / (heightM * heightM);
+
+                    bmiValue.textContent = "BMI: " + bmi.toFixed(1);
+                    bmiMessage.textContent =
+                        "Calculated from the entered weight and height.";
+                } else {
+                    bmiValue.textContent = "";
+                    bmiMessage.textContent =
+                        "Enter your weight and height to calculate BMI.";
+                }
+            }
+
+            weightInput.addEventListener("input", calculateBMI);
+            heightInput.addEventListener("input", calculateBMI);
+
+            form.addEventListener("submit", function (event) {
+                event.preventDefault();
+
+                if (!form.reportValidity()) {
+                    return;
+                }
+
+                const weight = Number(weightInput.value);
+                const height = Number(heightInput.value);
+                const date = document.getElementById("recordDate").value;
+                const pressure =
+                    document.getElementById("bloodPressure").value.trim();
+                const heartRate =
+                    document.getElementById("heartRate").value;
+                const calories =
+                    document.getElementById("caloriesBurned").value;
+
+                const bmi = weight / Math.pow(height / 100, 2);
+
+                const row = document.createElement("tr");
+
+                const values = [
+                    date,
+                    weight.toFixed(1) + " kg",
+                    height.toFixed(1) + " cm",
+                    bmi.toFixed(1),
+                    pressure || "—",
+                    heartRate ? heartRate + " bpm" : "—",
+                    calories || "—"
+                ];
+
+                values.forEach(function (value) {
+                    const cell = document.createElement("td");
+                    cell.textContent = value;
+                    row.appendChild(cell);
+                });
+
+                const actionCell = document.createElement("td");
+                const deleteButton = document.createElement("button");
+
+                deleteButton.type = "button";
+                deleteButton.className = "health-delete-button";
+                deleteButton.textContent = "Remove";
+
+                deleteButton.addEventListener("click", function () {
+                    row.remove();
+                    updateCount();
+                });
+
+                actionCell.appendChild(deleteButton);
+                row.appendChild(actionCell);
+
+                recordsBody.prepend(row);
+                updateCount();
+
+                form.reset();
+                document.getElementById("recordDate").value =
+                    new Date().toLocaleDateString("en-CA");
+
+                calculateBMI();
+            });
+
+            function updateCount() {
+                const count = recordsBody.querySelectorAll("tr").length;
+                recordCount.textContent =
+                    count + (count === 1 ? " Record" : " Records");
+            }
+
+            // Add remove buttons to the demonstration records.
+            recordsBody.querySelectorAll("tr").forEach(function (row) {
+                const actionCell = row.lastElementChild;
+                const button = document.createElement("button");
+
+                button.type = "button";
+                button.className = "health-delete-button";
+                button.textContent = "Remove";
+
+                button.addEventListener("click", function () {
+                    row.remove();
+                    updateCount();
+                });
+
+                actionCell.replaceChildren(button);
+            });
+
+            updateCount();
+        });
+    </script>
+}
