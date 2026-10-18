@@ -1,0 +1,58 @@
+﻿@{
+    Layout = "~/Views/Shared/_ClientLayout.cshtml";
+    ViewData["Title"] = "Diet";
+    ViewData["Heading"] = "Diet";
+    ViewData["ActivePage"] = "Diet";
+
+    // without changing the Controller, UI the data here
+    var mockDietPlan = new[]
+    {
+        new { Name = "Breakfast", Time = "7:00 AM", Food = "Oatmeal, Banana, Almonds", Calories = "350 cal", ImageUrl = "https://images.unsplash.com/photo-1517673132405-a56a62b18caf?w=100&h=100&fit=crop" },
+        new { Name = "Lunch", Time = "12:00 PM", Food = "Grilled Chicken, Brown Rice, Salad", Calories = "550 cal", ImageUrl = "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=100&h=100&fit=crop" },
+        new { Name = "Dinner", Time = "7:00 PM", Food = "Fish, Vegetables, Quinoa", Calories = "450 cal", ImageUrl = "https://images.unsplash.com/photo-1467003909585-2f8a72700288?w=100&h=100&fit=crop" },
+        new { Name = "Snacks", Time = "4:00 PM", Food = "Greek Yogurt, Nuts", Calories = "200 cal", ImageUrl = "https://images.unsplash.com/photo-1488477181946-6428a0291777?w=100&h=100&fit=crop" }
+    };
+}
+
+<section class="health-page">
+
+    <!-- PAGE HEADER -->
+    <div class="health-page-header">
+        <div>
+            <h2>My Diet Plan</h2>
+            <p>Track your daily meals and calorie intake.</p>
+        </div>
+
+        <button type="button" class="health-primary-button">
+            <i class="bi bi-plus-lg"></i>
+            Log Meal
+        </button>
+    </div>
+
+    <!-- TABS -->
+    <div class="plan-tabs">
+        <button class="tab-btn active">Today's Plan</button>
+        <button class="tab-btn">Meal History</button>
+    </div>
+
+    <!-- DIET LIST -->
+    <div class="diet-list">
+        @foreach (var meal in mockDietPlan)
+        {
+            <div class="diet-item">
+                <img src="@meal.ImageUrl" alt="@meal.Name" class="diet-image" />
+                <div class="diet-info">
+                    <h4>@meal.Name</h4>
+                    <p>@meal.Time</p>
+                </div>
+                <div class="diet-foods">
+                    @meal.Food
+                </div>
+                <div class="diet-calories">
+                    @meal.Calories
+                </div>
+            </div>
+        }
+    </div>
+
+</section>

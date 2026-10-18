@@ -1,0 +1,59 @@
+﻿@{
+    Layout = "~/Views/Shared/_ClientLayout.cshtml";
+    ViewData["Title"] = "Workout";
+    ViewData["Heading"] = "Workout";
+    ViewData["ActivePage"] = "Workout";
+
+    // without changing the Controller, UI the data here
+    var mockWorkoutPlan = new[]
+    {
+        new { Day = "Monday", MuscleGroup = "Chest & Arms", Exercises = "Push-ups, Bench Press, Bicep Curls" },
+        new { Day = "Tuesday", MuscleGroup = "Legs", Exercises = "Squats, Lunges, Leg Press" },
+        new { Day = "Wednesday", MuscleGroup = "Cardio", Exercises = "Running, Cycling, HIIT" },
+        new { Day = "Thursday", MuscleGroup = "Back & Shoulders", Exercises = "Deadlifts, Shoulder Press" },
+        new { Day = "Friday", MuscleGroup = "Full Body", Exercises = "Circuit Training" }
+    };
+}
+
+<section class="health-page">
+
+    <!-- PAGE HEADER -->
+    <div class="health-page-header">
+        <div>
+            <h2>My Workout Plan</h2>
+            <p>Track your exercises and stay active.</p>
+        </div>
+
+        <button type="button" class="health-primary-button">
+            <i class="bi bi-plus-lg"></i>
+            Log Workout
+        </button>
+    </div>
+
+    <!-- TABS -->
+    <div class="plan-tabs">
+        <button class="tab-btn active">Current Plan</button>
+        <button class="tab-btn">Workout History</button>
+    </div>
+
+    <!-- WORKOUT LIST -->
+    <div class="workout-list">
+        @foreach (var day in mockWorkoutPlan)
+        {
+            <div class="workout-item">
+                <div class="workout-color-bar"></div>
+                <div class="workout-content">
+                    <div class="workout-day-info">
+                        <h4>@day.Day</h4>
+                        <p>@day.MuscleGroup</p>
+                    </div>
+                    <div class="workout-exercises">
+                        @day.Exercises
+                    </div>
+                    <a href="#" class="btn-view">View</a>
+                </div>
+            </div>
+        }
+    </div>
+
+</section>
