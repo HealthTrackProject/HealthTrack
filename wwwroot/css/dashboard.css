@@ -1,5 +1,4 @@
-﻿
-/* =========================================
+﻿/* =========================================
    HEALTHTRACK - REUSABLE DASHBOARD LAYOUT
 ========================================= */
 
@@ -23,9 +22,10 @@
 html,
 body {
     width: 100%;
-    min-height: 100%;
+    height: 100%; /* Changed from min-height to height */
     font-family: Arial, Helvetica, sans-serif;
     color: var(--text);
+    overflow: hidden; /* Prevent whole page scroll */
 }
 
 body {
@@ -44,7 +44,8 @@ button {
 .dashboard-shell {
     display: flex;
     width: 100%;
-    min-height: 100vh;
+    height: 100vh; /* Changed to 100vh */
+    overflow: hidden; /* Added to contain layout */
 }
 
 /* SIDEBAR */
@@ -64,7 +65,6 @@ button {
     box-sizing: border-box;
     color: #dce8ed;
     background: linear-gradient(180deg, var(--sidebar-start), var(--sidebar-end));
-    /* Keep the sidebar fixed and prevent its own scrollbar */
     overflow: hidden;
     overscroll-behavior: none;
     z-index: 1000;
@@ -149,14 +149,18 @@ button {
 .main-panel {
     width: calc(100% - 245px);
     min-width: 0;
-    min-height: 100vh;
+    height: 100vh; /* Changed to 100vh */
     margin-left: 245px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden; /* Prevent main panel from scrolling */
 }
 
 /* TOPBAR */
 
 .topbar {
     min-height: 83px;
+    flex-shrink: 0; /* Prevent topbar from shrinking */
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -229,6 +233,8 @@ button {
     max-width: 1600px;
     margin: 0 auto;
     padding: 25px 28px 35px;
+    flex: 1;
+    overflow-y: auto; /* ONLY this part scrolls */
 }
 
 /* WELCOME SECTION */
@@ -1079,7 +1085,6 @@ button {
 
 /* =========================================
    CLIENT APPOINTMENTS PAGE
-   Uses the existing Client Layout/sidebar
 ========================================= */
 
 .client-appointments {
@@ -1649,7 +1654,7 @@ button {
 
 
 /* ========================================
-   HEALTH RECORDS PAGE
+   HEALTH RECORDS PAGE (DUPLICATE)
 ======================================== */
 
 .health-page {
@@ -2271,4 +2276,146 @@ button {
     color: #183447;
     min-width: 80px;
     text-align: right;
+}
+
+/* ========================================
+   NOTIFICATIONS PAGE
+======================================== */
+.notification-list {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.notification-item {
+    display: flex;
+    gap: 15px;
+    padding: 18px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: #f9fcfd;
+    transition: background 0.2s, transform 0.2s;
+}
+
+    .notification-item:hover {
+        background: #f0faf6;
+        transform: translateX(5px);
+    }
+
+.notification-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 45px;
+    height: 45px;
+    border-radius: 50%;
+    font-size: 20px;
+    flex-shrink: 0;
+}
+
+    /* Notification Icon Colors */
+    .notification-icon.blue {
+        background: #e9f3ff;
+        color: #1687f8;
+    }
+
+    .notification-icon.green {
+        background: #e8f8f0;
+        color: #14ad6d;
+    }
+
+    .notification-icon.orange {
+        background: #fff5e7;
+        color: #fa9419;
+    }
+
+.notification-content {
+    flex: 1;
+}
+
+.notification-title-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 6px;
+}
+
+    .notification-title-row h4 {
+        font-size: 15px;
+        color: var(--text);
+        margin: 0;
+    }
+
+    .notification-title-row span {
+        font-size: 11px;
+        color: var(--muted);
+        white-space: nowrap;
+    }
+
+.notification-content p {
+    font-size: 13px;
+    color: var(--muted);
+    line-height: 1.5;
+    margin: 0;
+}
+
+/* ========================================
+   MY PROFILE PAGE
+======================================== */
+.profile-header {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    margin-bottom: 20px;
+}
+
+.profile-avatar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 85px;
+    height: 85px;
+    border-radius: 50%;
+    background: var(--primary);
+    color: white;
+    font-size: 45px;
+    flex-shrink: 0;
+}
+
+.profile-info h3 {
+    font-size: 24px;
+    color: var(--text);
+    margin-bottom: 5px;
+}
+
+.profile-info p {
+    font-size: 14px;
+    color: var(--muted);
+    margin-bottom: 10px;
+}
+
+.profile-role {
+    display: inline-block;
+    padding: 5px 14px;
+    background: #e8f8f0;
+    color: var(--primary-dark);
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+}
+
+.profile-divider {
+    border: 0;
+    border-top: 1px solid var(--border);
+    margin: 25px 0;
+}
+
+/* Read-only input fields for profile */
+.form-control.bg-light {
+    background-color: #f5f9fc;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    cursor: not-allowed;
+    font-weight: 500;
 }

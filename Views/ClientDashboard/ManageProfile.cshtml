@@ -1,0 +1,49 @@
+﻿@model HealthTrack.Models.ApplicationUser
+@{
+    Layout = "~/Views/Shared/_ClientLayout.cshtml";
+    ViewData["Title"] = "My Profile";
+    ViewData["Heading"] = "My Profile";
+    ViewData["ActivePage"] = "MyProfile";
+}
+
+<section class="health-page">
+    <div class="health-page-header">
+        <div>
+            <h2>My Profile</h2>
+            <p>Manage your personal information and account settings.</p>
+        </div>
+        <button type="button" class="health-primary-button">
+            <i class="bi bi-pencil-square"></i> Edit Profile
+        </button>
+    </div>
+
+    <div class="health-panel">
+        <div class="profile-header">
+            <div class="profile-avatar">
+                <i class="bi bi-person-fill"></i>
+            </div>
+            <div class="profile-info">
+                <h3>@Model.FullName</h3>
+                <p><i class="bi bi-envelope"></i> @Model.Email</p>
+                <span class="profile-role">@ViewBag.Role</span>
+            </div>
+        </div>
+
+        <hr class="profile-divider" />
+
+        <div class="health-form-grid">
+            <div class="health-form-group">
+                <label>Full Name</label>
+                <input type="text" value="@Model.FullName" readonly class="form-control bg-light" />
+            </div>
+            <div class="health-form-group">
+                <label>Email Address</label>
+                <input type="email" value="@Model.Email" readonly class="form-control bg-light" />
+            </div>
+            <div class="health-form-group">
+                <label>Phone Number</label>
+                <input type="text" value="@(Model.PhoneNumber ?? "Not provided")" readonly class="form-control bg-light" />
+            </div>
+        </div>
+    </div>
+</section>
