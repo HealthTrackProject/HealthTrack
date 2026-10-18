@@ -6,7 +6,7 @@ namespace HealthTrack.Views.ClientDashboard
 {
     public class DietModel : PageModel
     {
-        public List<Meal> TodayPlan { get; set; }
+        public List<Meal> TodayPlan { get; set; } = new List<Meal>();
 
         public void OnGet()
         {

@@ -1,16 +1,12 @@
-﻿
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewData["Title"] - HealthTrack</title>
 
-    <link rel="stylesheet"
-          href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
-
-    <link rel="stylesheet"
-          href="@Url.Content("~/css/dashboard.css")" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
+    <link rel="stylesheet" href="@Url.Content("~/css/dashboard.css")" />
 
     @await RenderSectionAsync("Styles", required: false)
 </head>
@@ -35,17 +31,14 @@
                     <span>Dashboard</span>
                 </a>
 
-                
-                <a asp-controller="ClientDashboard"
-                   asp-action="HealthRecords"
+                <a asp-controller="ClientDashboard" asp-action="HealthRecords"
                    class="side-link @(ViewData["ActivePage"]?.ToString() == "HealthRecords" ? "active" : "")">
                     <i class="bi bi-clipboard2-pulse"></i>
                     <span>Health Records</span>
                 </a>
 
-
                 <a asp-controller="ClientDashboard" asp-action="Workout"
-                   class="side-link @(ViewData["ActivePage"]?.ToString() == "Workout" ? "active" : "")">    
+                   class="side-link @(ViewData["ActivePage"]?.ToString() == "Workout" ? "active" : "")">
                     <i class="bi bi-activity"></i>
                     <span>Workout</span>
                 </a>
@@ -56,36 +49,31 @@
                     <span>Diet</span>
                 </a>
 
-                <a asp-controller="Appointments" asp-action="Index"
-                   class="side-link">
+                <a asp-controller="ClientDashboard" asp-action="Appointments"
+                   class="side-link @(ViewData["ActivePage"]?.ToString() == "Appointments" ? "active" : "")">
                     <i class="bi bi-calendar3"></i>
                     <span>Appointments</span>
                 </a>
 
-                <a asp-controller="Progress" asp-action="Index"
-                   class="side-link">
+                <a asp-controller="ClientDashboard" asp-action="Progress"
+                   class="side-link @(ViewData["ActivePage"]?.ToString() == "Progress" ? "active" : "")">
                     <i class="bi bi-graph-up-arrow"></i>
                     <span>Progress</span>
                 </a>
 
-                <a asp-controller="Notifications" asp-action="Index"
-                   class="side-link">
+                <a asp-controller="Notifications" asp-action="Index" class="side-link">
                     <i class="bi bi-bell"></i>
                     <span>Notifications</span>
                 </a>
 
-                <a asp-controller="ManageProfile" asp-action="Index"
-                   class="side-link">
+                <a asp-controller="ManageProfile" asp-action="Index" class="side-link">
                     <i class="bi bi-person"></i>
                     <span>My Profile</span>
                 </a>
             </div>
 
             <div class="sidebar-bottom">
-                <form asp-area="Identity"
-                      asp-page="/Account/Logout"
-                      asp-route-returnUrl="@Url.Action("Index", "Home")"
-                      method="post">
+                <form asp-area="Identity" asp-page="/Account/Logout" asp-route-returnUrl="@Url.Action("Index", "Home")" method="post">
                     <button type="submit" class="side-link logout-link">
                         <i class="bi bi-power"></i>
                         <span>Logout</span>
@@ -100,10 +88,7 @@
             <!-- TOPBAR -->
             <header class="topbar">
                 <div class="topbar-left">
-                    <button type="button"
-                            class="menu-toggle"
-                            id="menuToggle"
-                            aria-label="Toggle sidebar">
+                    <button type="button" class="menu-toggle" id="menuToggle" aria-label="Toggle sidebar">
                         <i class="bi bi-list"></i>
                     </button>
 
@@ -114,10 +99,7 @@
                 </div>
 
                 <div class="topbar-right">
-                    <a asp-controller="Notifications"
-                       asp-action="Index"
-                       class="notification-button"
-                       aria-label="Notifications">
+                    <a asp-controller="Notifications" asp-action="Index" class="notification-button" aria-label="Notifications">
                         <i class="bi bi-bell"></i>
                     </a>
 
@@ -136,12 +118,12 @@
     </div>
 
     <script>
-        const menuToggle = document.getElementById("menuToggle");
-        const sidebar = document.getElementById("sidebar");
+            const menuToggle = document.getElementById("menuToggle");
+            const sidebar = document.getElementById("sidebar");
 
-        menuToggle?.addEventListener("click", function () {
-            sidebar.classList.toggle("sidebar-open");
-        });
+            menuToggle?.addEventListener("click", function () {
+                sidebar.classList.toggle("sidebar-open");
+            });
     </script>
 
     @await RenderSectionAsync("Scripts", required: false)
