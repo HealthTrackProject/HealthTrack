@@ -14,6 +14,16 @@ namespace HealthTrack.Controllers
         {
             return View();
         }
+        public IActionResult Workout()
+        {
+            return View();
+        }
+        public IActionResult Diet()
+        {
+            return View();
+        }
+
+     
         public IActionResult Appointments()
         {
             return View();
