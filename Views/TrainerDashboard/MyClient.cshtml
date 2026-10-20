@@ -1,0 +1,134 @@
+﻿@{
+    Layout = "~/Views/Shared/_TrainerLayout.cshtml";
+    ViewData["Title"] = "My Clients";
+    ViewData["Heading"] = "Manage Clients";
+    ViewData["ActivePage"] = "MyClients"; // Sidebar active state
+}
+
+<div class="trainer-page-header">
+    <h2>My Clients</h2>
+    <button type="button" class="health-primary-button">
+        <i class="bi bi-plus-lg"></i> Add Client
+    </button>
+</div>
+
+<!-- Search Bar -->
+<div class="search-container">
+    <i class="bi bi-search"></i>
+    <input type="text" placeholder="Search clients..." />
+</div>
+
+<!-- Clients Table -->
+<div class="client-table-wrapper">
+    <table class="client-table">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Progress</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- Row 1 -->
+            <tr>
+                <td>
+                    <div class="table-user-info">
+                        <img src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100&h=100&fit=crop" alt="Kamal" class="table-avatar" />
+                        <div>
+                            <h4>Kamal Perera</h4>
+                            <p>Client</p>
+                        </div>
+                    </div>
+                </td>
+                <td style="font-size: 13px; color: var(--muted);">kamal@gmail.com</td>
+                <td>
+                    <div class="progress-cell">
+                        <div class="progress-bar-bg">
+                            <div class="progress-bar-fill" style="width: 70%;"></div>
+                        </div>
+                        <span class="progress-text">70%</span>
+                    </div>
+                </td>
+                <td>
+                    <button class="btn-view-outline">View</button>
+                </td>
+            </tr>
+
+            <!-- Row 2 -->
+            <tr>
+                <td>
+                    <div class="table-user-info">
+                        <img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&fit=crop" alt="Nimali" class="table-avatar" />
+                        <div>
+                            <h4>Nimali Silva</h4>
+                            <p>Client</p>
+                        </div>
+                    </div>
+                </td>
+                <td style="font-size: 13px; color: var(--muted);">nimali@gmail.com</td>
+                <td>
+                    <div class="progress-cell">
+                        <div class="progress-bar-bg">
+                            <div class="progress-bar-fill" style="width: 50%;"></div>
+                        </div>
+                        <span class="progress-text">50%</span>
+                    </div>
+                </td>
+                <td>
+                    <button class="btn-view-outline">View</button>
+                </td>
+            </tr>
+
+            <!-- Row 3 -->
+            <tr>
+                <td>
+                    <div class="table-user-info">
+                        <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop" alt="Sahan" class="table-avatar" />
+                        <div>
+                            <h4>Sahan Fernando</h4>
+                            <p>Client</p>
+                        </div>
+                    </div>
+                </td>
+                <td style="font-size: 13px; color: var(--muted);">sahan@gmail.com</td>
+                <td>
+                    <div class="progress-cell">
+                        <div class="progress-bar-bg">
+                            <div class="progress-bar-fill" style="width: 80%;"></div>
+                        </div>
+                        <span class="progress-text">80%</span>
+                    </div>
+                </td>
+                <td>
+                    <button class="btn-view-outline">View</button>
+                </td>
+            </tr>
+
+            <!-- Row 4 -->
+            <tr>
+                <td>
+                    <div class="table-user-info">
+                        <img src="https://images.unsplash.com/photo-1599566150163-29194dcaad36?w=100&h=100&fit=crop" alt="Tharushi" class="table-avatar" />
+                        <div>
+                            <h4>Tharushi Dias</h4>
+                            <p>Client</p>
+                        </div>
+                    </div>
+                </td>
+                <td style="font-size: 13px; color: var(--muted);">tharushi@gmail.com</td>
+                <td>
+                    <div class="progress-cell">
+                        <div class="progress-bar-bg">
+                            <div class="progress-bar-fill" style="width: 60%;"></div>
+                        </div>
+                        <span class="progress-text">60%</span>
+                    </div>
+                </td>
+                <td>
+                    <button class="btn-view-outline">View</button>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</div>
