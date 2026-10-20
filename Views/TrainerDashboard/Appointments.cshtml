@@ -1,4 +1,151 @@
-﻿@page
-@model HealthTrack.Views.TrainerDashboard.AppointmentsModel
-@{
+﻿@{
+    Layout = "~/Views/Shared/_TrainerLayout.cshtml";
+    ViewData["Title"] = "Appointments";
+    ViewData["Heading"] = "Appointments";
+    ViewData["ActivePage"] = "Appointments"; // Sidebar active state
+}
+
+<div class="trainer-page-header">
+    <h2>Client Appointments</h2>
+</div>
+
+<!-- Tabs -->
+<div class="trainer-tabs">
+    <button class="trainer-tab active" data-target="pendingTab">Pending</button>
+    <button class="trainer-tab" data-target="approvedTab">Approved</button>
+    <button class="trainer-tab" data-target="cancelledTab">Cancelled</button>
+</div>
+
+<!-- TABLES CONTAINER -->
+<div class="client-table-wrapper">
+
+    <!-- 1. PENDING TABLE -->
+    <table class="client-table" id="pendingTab">
+        <thead>
+            <tr>
+                <th>Date</th>
+                <th>Time</th>
+                <th>Client</th>
+                <th>Status</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>10 Apr 2025</td>
+                <td>10:00 AM</td>
+                <td>Kamal Perera</td>
+                <td><span class="badge badge-pending">Pending</span></td>
+                <td>
+                    <div class="action-buttons">
+                        <button class="btn-sm btn-approve">Approve</button>
+                        <button class="btn-sm btn-cancel">Cancel</button>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <td>12 Apr 2025</td>
+                <td>2:00 PM</td>
+                <td>Nimali Silva</td>
+                <td><span class="badge badge-pending">Pending</span></td>
+                <td>
+                    <div class="action-buttons">
+                        <button class="btn-sm btn-approve">Approve</button>
+                        <button class="btn-sm btn-cancel">Cancel</button>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <td>20 Apr 2025</td>
+                <td>3:00 PM</td>
+                <td>Tharushi Dias</td>
+                <td><span class="badge badge-pending">Pending</span></td>
+                <td>
+                    <div class="action-buttons">
+                        <button class="btn-sm btn-approve">Approve</button>
+                        <button class="btn-sm btn-cancel">Cancel</button>
+                    </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+
+    <!-- 2. APPROVED TABLE (Hidden by default) -->
+    <table class="client-table" id="approvedTab" style="display: none;">
+        <thead>
+            <tr>
+                <th>Date</th>
+                <th>Time</th>
+                <th>Client</th>
+                <th>Status</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>15 Apr 2025</td>
+                <td>11:00 AM</td>
+                <td>Sahan Fernando</td>
+                <td><span class="badge badge-approved">Approved</span></td>
+                <td>
+                    <div class="action-buttons">
+                        <button class="btn-sm btn-view">View</button>
+                    </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+
+    <!-- 3. CANCELLED TABLE (Hidden by default) -->
+    <table class="client-table" id="cancelledTab" style="display: none;">
+        <thead>
+            <tr>
+                <th>Date</th>
+                <th>Time</th>
+                <th>Client</th>
+                <th>Status</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>05 Apr 2025</td>
+                <td>9:00 AM</td>
+                <td>Kamal Perera</td>
+                <td><span class="badge badge-cancelled">Cancelled</span></td>
+                <td>
+                    <div class="action-buttons">
+                        <button class="btn-sm btn-view">View</button>
+                    </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const tabs = document.querySelectorAll(".trainer-tab");
+            const tables = document.querySelectorAll(".client-table");
+
+            tabs.forEach(tab => {
+                tab.addEventListener("click", function () {
+                    // 1. Remove active class from all tabs
+                    tabs.forEach(t => t.classList.remove("active"));
+
+                    // 2. Add active class to clicked tab
+                    this.classList.add("active");
+
+                    // 3. Hide all tables
+                    tables.forEach(table => table.style.display = "none");
+
+                    // 4. Show the targeted table
+                    const targetId = this.getAttribute("data-target");
+                    document.getElementById(targetId).style.display = "table";
+                });
+            });
+        });
+    </script>
 }
