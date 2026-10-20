@@ -4,7 +4,7 @@
     ViewData["Heading"] = "Workout";
     ViewData["ActivePage"] = "Workout";
 
-    // without changing the Controller, UI the data here
+    // Current Plan Mock Data
     var mockWorkoutPlan = new[]
     {
         new { Day = "Monday", MuscleGroup = "Chest & Arms", Exercises = "Push-ups, Bench Press, Bicep Curls" },
@@ -12,6 +12,13 @@
         new { Day = "Wednesday", MuscleGroup = "Cardio", Exercises = "Running, Cycling, HIIT" },
         new { Day = "Thursday", MuscleGroup = "Back & Shoulders", Exercises = "Deadlifts, Shoulder Press" },
         new { Day = "Friday", MuscleGroup = "Full Body", Exercises = "Circuit Training" }
+    };
+
+    // Workout History Mock Data
+    var mockHistoryPlan = new[]
+    {
+        new { Date = "10 Oct 2026", MuscleGroup = "Chest & Arms", Exercises = "Push-ups (3x15), Dumbbell Press (3x12)" },
+        new { Date = "08 Oct 2026", MuscleGroup = "Legs", Exercises = "Squats (4x10), Calf Raises (3x20)" }
     };
 }
 
@@ -24,7 +31,7 @@
             <p>Track your exercises and stay active.</p>
         </div>
 
-        <button type="button" class="health-primary-button">
+        <button type="button" class="health-primary-button" id="logWorkoutBtn">
             <i class="bi bi-plus-lg"></i>
             Log Workout
         </button>
@@ -32,12 +39,12 @@
 
     <!-- TABS -->
     <div class="plan-tabs">
-        <button class="tab-btn active">Current Plan</button>
-        <button class="tab-btn">Workout History</button>
+        <button class="tab-btn active" data-tab="current">Current Plan</button>
+        <button class="tab-btn" data-tab="history">Workout History</button>
     </div>
 
-    <!-- WORKOUT LIST -->
-    <div class="workout-list">
+    <!-- CURRENT WORKOUT LIST -->
+    <div class="workout-list" id="currentPlanList">
         @foreach (var day in mockWorkoutPlan)
         {
             <div class="workout-item">
@@ -50,10 +57,118 @@
                     <div class="workout-exercises">
                         @day.Exercises
                     </div>
-                    <a href="#" class="btn-view">View</a>
+                    <button type="button" class="btn-view" data-view="@day.Day - @day.MuscleGroup: @day.Exercises">View</button>
+                </div>
+            </div>
+        }
+    </div>
+
+    <!-- WORKOUT HISTORY LIST (Initially hidden) -->
+    <div class="workout-list" id="historyList" style="display: none;">
+        @foreach (var history in mockHistoryPlan)
+        {
+            <div class="workout-item" style="border-left: 4px solid #a0aec0;">
+                <div class="workout-color-bar" style="background: #a0aec0;"></div>
+                <div class="workout-content">
+                    <div class="workout-day-info">
+                        <h4>@history.Date</h4>
+                        <p>@history.MuscleGroup</p>
+                    </div>
+                    <div class="workout-exercises">
+                        @history.Exercises
+                    </div>
+                    <button type="button" class="btn-view" style="background: #718494;" data-view="@history.Date - @history.MuscleGroup: @history.Exercises">View</button>
                 </div>
             </div>
         }
     </div>
 
 </section>
+
+<!-- MODAL (Same design as Appointments) -->
+<div class="ca-modal" id="caModal" hidden>
+    <div class="ca-modal-content">
+        <button type="button" class="ca-modal-close" id="caModalClose" aria-label="Close">
+            &times;
+        </button>
+
+        <div class="ca-modal-icon">
+            <i class="bi bi-activity"></i>
+        </div>
+
+        <h3 id="caModalTitle">Workout Details</h3>
+        <p id="caModalText"></p>
+        <button type="button" class="ca-request-btn" id="caModalOk">
+            Close
+        </button>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        (() => {
+            const tabs = document.querySelectorAll(".tab-btn");
+            const currentList = document.getElementById("currentPlanList");
+            const historyList = document.getElementById("historyList");
+
+            const modal = document.getElementById("caModal");
+            const modalTitle = document.getElementById("caModalTitle");
+            const modalText = document.getElementById("caModalText");
+
+            // Tab Switching Logic (Using style.display instead of hidden attribute)
+            tabs.forEach(button => {
+                button.addEventListener("click", () => {
+                    tabs.forEach(t => t.classList.remove("active"));
+                    button.classList.add("active");
+
+                    const tabName = button.dataset.tab;
+
+                    if (tabName === "current") {
+                        currentList.style.display = "flex";
+                        historyList.style.display = "none";
+                    } else {
+                        currentList.style.display = "none";
+                        historyList.style.display = "flex";
+                    }
+                });
+            });
+
+            // Modal Functions
+            function openModal(title, text) {
+                modalTitle.textContent = title;
+                modalText.textContent = text;
+                modal.hidden = false;
+            }
+
+            function closeModal() {
+                modal.hidden = true;
+            }
+
+            // Event Listener for View Buttons
+            document.addEventListener("click", event => {
+                const viewButton = event.target.closest("[data-view]");
+                if (viewButton) {
+                    openModal("Workout Details", viewButton.dataset.view);
+                }
+            });
+
+            // Event Listener for "Log Workout" Button
+            document.getElementById("logWorkoutBtn").addEventListener("click", () => {
+                openModal(
+                    "Log Workout",
+                    "The workout logging form can be added here. This design preview does not submit or save data."
+                );
+            });
+
+            // Close Modal Events
+            document.getElementById("caModalClose").addEventListener("click", closeModal);
+            document.getElementById("caModalOk").addEventListener("click", closeModal);
+
+            modal.addEventListener("click", event => {
+                if (event.target === modal) {
+                    closeModal();
+                }
+            });
+        })();
+    </script>
+}

@@ -4,13 +4,21 @@
     ViewData["Heading"] = "Diet";
     ViewData["ActivePage"] = "Diet";
 
-    // without changing the Controller, UI the data here
+    // Today's Plan Mock Data
     var mockDietPlan = new[]
     {
         new { Name = "Breakfast", Time = "7:00 AM", Food = "Oatmeal, Banana, Almonds", Calories = "350 cal", ImageUrl = "https://images.unsplash.com/photo-1517673132405-a56a62b18caf?w=100&h=100&fit=crop" },
         new { Name = "Lunch", Time = "12:00 PM", Food = "Grilled Chicken, Brown Rice, Salad", Calories = "550 cal", ImageUrl = "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=100&h=100&fit=crop" },
         new { Name = "Dinner", Time = "7:00 PM", Food = "Fish, Vegetables, Quinoa", Calories = "450 cal", ImageUrl = "https://images.unsplash.com/photo-1467003909585-2f8a72700288?w=100&h=100&fit=crop" },
         new { Name = "Snacks", Time = "4:00 PM", Food = "Greek Yogurt, Nuts", Calories = "200 cal", ImageUrl = "https://images.unsplash.com/photo-1488477181946-6428a0291777?w=100&h=100&fit=crop" }
+    };
+
+    // Meal History Mock Data
+    var mockMealHistory = new[]
+    {
+        new { Date = "15 Oct 2026", Name = "Breakfast", Food = "Eggs, Toast, Avocado", Calories = "400 cal" },
+        new { Date = "15 Oct 2026", Name = "Lunch", Food = "Beef Stir Fry, Rice", Calories = "600 cal" },
+        new { Date = "14 Oct 2026", Name = "Dinner", Food = "Pasta, Tomato Sauce, Chicken", Calories = "650 cal" }
     };
 }
 
@@ -23,7 +31,7 @@
             <p>Track your daily meals and calorie intake.</p>
         </div>
 
-        <button type="button" class="health-primary-button">
+        <button type="button" class="health-primary-button" id="logMealBtn">
             <i class="bi bi-plus-lg"></i>
             Log Meal
         </button>
@@ -31,15 +39,17 @@
 
     <!-- TABS -->
     <div class="plan-tabs">
-        <button class="tab-btn active">Today's Plan</button>
-        <button class="tab-btn">Meal History</button>
+        <button class="tab-btn active" data-tab="today">Today's Plan</button>
+        <button class="tab-btn" data-tab="history">Meal History</button>
     </div>
 
-    <!-- DIET LIST -->
-    <div class="diet-list">
+    <!-- TODAY'S PLAN LIST -->
+    <div class="diet-list" id="todayPlanList">
         @foreach (var meal in mockDietPlan)
         {
-            <div class="diet-item">
+            var mealDetails = $"{meal.Name} ({meal.Time}): {meal.Food} - {meal.Calories}";
+
+            <div class="diet-item" style="cursor: pointer;" data-view="@mealDetails">
                 <img src="@meal.ImageUrl" alt="@meal.Name" class="diet-image" />
                 <div class="diet-info">
                     <h4>@meal.Name</h4>
@@ -55,4 +65,115 @@
         }
     </div>
 
+    <!-- MEAL HISTORY LIST -->
+    <div class="diet-list" id="mealHistoryList" style="display: none;">
+        @foreach (var history in mockMealHistory)
+        {
+            var historyDetails = $"{history.Date} - {history.Name}: {history.Food} ({history.Calories})";
+
+            <div class="diet-item" style="cursor: pointer; border-left: 4px solid #a0aec0;" data-view="@historyDetails">
+                <div class="diet-info" style="min-width: 150px;">
+                    <h4 style="color: #718494;">@history.Date</h4>
+                    <p>@history.Name</p>
+                </div>
+                <div class="diet-foods">
+                    @history.Food
+                </div>
+                <div class="diet-calories">
+                    @history.Calories
+                </div>
+            </div>
+        }
+    </div>
+
 </section>
+
+<!-- MODAL (Same design as Appointments/Workout) -->
+<div class="ca-modal" id="caModal" hidden>
+    <div class="ca-modal-content">
+        <button type="button" class="ca-modal-close" id="caModalClose" aria-label="Close">
+            &times;
+        </button>
+
+        <div class="ca-modal-icon">
+            <i class="bi bi-egg-fried"></i>
+        </div>
+
+        <h3 id="caModalTitle">Meal Details</h3>
+        <p id="caModalText"></p>
+        <button type="button" class="ca-request-btn" id="caModalOk">
+            Close
+        </button>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        (() => {
+            const tabs = document.querySelectorAll(".tab-btn");
+            const todayList = document.getElementById("todayPlanList");
+            const historyList = document.getElementById("mealHistoryList");
+
+            const modal = document.getElementById("caModal");
+            const modalTitle = document.getElementById("caModalTitle");
+            const modalText = document.getElementById("caModalText");
+
+            // Tab Switching Logic
+            tabs.forEach(button => {
+                button.addEventListener("click", () => {
+                    tabs.forEach(t => t.classList.remove("active"));
+                    button.classList.add("active");
+
+                    const tabName = button.dataset.tab;
+
+                    if (tabName === "today") {
+                        todayList.style.display = "flex";
+                        historyList.style.display = "none";
+                    } else {
+                        todayList.style.display = "none";
+                        historyList.style.display = "flex";
+                    }
+                });
+            });
+
+            // Modal Functions
+            function openModal(title, text) {
+                modalTitle.textContent = title;
+                modalText.textContent = text;
+                modal.hidden = false;
+            }
+
+            function closeModal() {
+                modal.hidden = true;
+            }
+
+            // Event Listener for Clicking a Meal (Today or History)
+            document.addEventListener("click", event => {
+                const dietItem = event.target.closest(".diet-item");
+
+                // If a diet item is clicked, show details
+                if (dietItem && dietItem.dataset.view) {
+                    openModal("Meal Details", dietItem.dataset.view);
+                }
+            });
+
+            // Event Listener for "Log Meal" Button
+            document.getElementById("logMealBtn").addEventListener("click", () => {
+                openModal(
+                    "Log Meal",
+                    "The meal logging form can be added here. This design preview does not submit or save data."
+                );
+            });
+
+            // Close Modal Events
+            document.getElementById("caModalClose").addEventListener("click", closeModal);
+            document.getElementById("caModalOk").addEventListener("click", closeModal);
+
+            modal.addEventListener("click", event => {
+                if (event.target === modal) {
+                    closeModal();
+                }
+            });
+        })();
+    </script>
+}

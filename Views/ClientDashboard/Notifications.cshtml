@@ -1,0 +1,36 @@
+﻿@model IEnumerable<HealthTrack.Controllers.NotificationItem>
+@{
+    Layout = "~/Views/Shared/_ClientLayout.cshtml";
+    ViewData["Title"] = "Notifications";
+    ViewData["Heading"] = "Notifications";
+    ViewData["ActivePage"] = "Notifications";
+}
+
+<section class="health-page">
+    <div class="health-page-header">
+        <div>
+            <h2>Your Notifications</h2>
+            <p>Stay updated with your health journey.</p>
+        </div>
+    </div>
+
+    <div class="health-panel">
+        <div class="notification-list">
+            @foreach (var item in Model)
+            {
+                <div class="notification-item">
+                    <div class="notification-icon @item.Color">
+                        <i class="bi @item.Icon"></i>
+                    </div>
+                    <div class="notification-content">
+                        <div class="notification-title-row">
+                            <h4>@item.Title</h4>
+                            <span>@item.Time</span>
+                        </div>
+                        <p>@item.Message</p>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</section>
