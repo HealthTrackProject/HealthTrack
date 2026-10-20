@@ -654,3 +654,160 @@ button {
         border-color: var(--primary);
         color: var(--primary);
     }
+
+/* =========================================
+   TRAINER - WORKOUT PLAN PAGE
+========================================= */
+
+.workout-form-container {
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 30px;
+    box-shadow: 0 3px 12px rgba(19, 55, 72, 0.035);
+}
+
+.form-group-row {
+    display: flex;
+    align-items: flex-start;
+    margin-bottom: 20px;
+    gap: 20px;
+}
+
+    .form-group-row label {
+        width: 150px;
+        font-size: 14px;
+        font-weight: 600;
+        color: var(--text);
+        padding-top: 12px;
+        flex-shrink: 0;
+    }
+
+    .form-group-row .form-control {
+        flex: 1;
+        padding: 12px 15px;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        font-size: 14px;
+        outline: none;
+        font-family: inherit;
+        transition: border-color 0.2s;
+    }
+
+        .form-group-row .form-control:focus {
+            border-color: var(--primary);
+        }
+
+    .form-group-row textarea.form-control {
+        resize: vertical;
+        min-height: 80px;
+    }
+
+/* Schedule Section */
+.schedule-section {
+    margin-top: 30px;
+}
+
+.schedule-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 15px;
+    background: #f8fcfd;
+    border: 1px solid var(--border);
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 15px;
+}
+
+.schedule-day-info {
+    width: 150px;
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding-top: 8px;
+}
+
+    .schedule-day-info strong {
+        font-size: 14px;
+        color: var(--text);
+        margin-bottom: 4px;
+    }
+
+    .schedule-day-info span {
+        font-size: 12px;
+        color: var(--muted);
+    }
+
+.schedule-item textarea.form-control {
+    flex: 1;
+    padding: 10px;
+    border: 1px solid #dce6ed;
+    border-radius: 6px;
+    font-size: 13px;
+    background: white;
+    resize: vertical;
+    min-height: 60px;
+}
+
+.btn-delete-day {
+    background: transparent;
+    border: none;
+    color: #e74c3c;
+    font-size: 18px;
+    cursor: pointer;
+    padding: 10px;
+    margin-top: 5px;
+    transition: color 0.2s;
+}
+
+    .btn-delete-day:hover {
+        color: #c0392b;
+    }
+
+/* Buttons specific to this page */
+/* Add Day / Add Meal Button */
+.btn-add-day {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 16px;
+    background: white;
+    border: 1px solid var(--primary); /* Changed to Blue */
+    color: var(--primary); /* Changed to Blue */
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    margin-top: 10px;
+}
+
+    .btn-add-day:hover {
+        background: #e3f2fd; /* Light Blue Hover */
+    }
+
+/* Save Plan Button */
+.form-actions-bottom {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 30px;
+    padding-top: 20px;
+    border-top: 1px solid var(--border);
+}
+
+.btn-save-plan {
+    background: var(--primary); /* Changed to Blue */
+    color: white;
+    border: none;
+    padding: 12px 40px;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+    .btn-save-plan:hover {
+        background: var(--primary-dark); /* Darker Blue on Hover */
+    }

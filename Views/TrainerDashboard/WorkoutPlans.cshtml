@@ -1,4 +1,111 @@
-﻿@page
-@model HealthTrack.Views.TrainerDashboard.WorkoutPlansModel
-@{
+﻿@{
+    Layout = "~/Views/Shared/_TrainerLayout.cshtml";
+    ViewData["Title"] = "Workout Plans";
+    ViewData["Heading"] = "Workout Plans";
+    ViewData["ActivePage"] = "WorkoutPlans";
+}
+
+<div class="trainer-page-header">
+    <h2>Create Workout Plan</h2>
+</div>
+
+<div class="workout-form-container">
+    <form action="#" method="post">
+
+        <!-- Select Client -->
+        <div class="form-group-row">
+            <label>Select Client</label>
+            <select class="form-control">
+                <option value="">-- Select a Client --</option>
+                <option value="1">Kamal Perera</option>
+                <option value="2">Nimali Silva</option>
+                <option value="3">Sahan Fernando</option>
+            </select>
+        </div>
+
+        <!-- Plan Name -->
+        <div class="form-group-row">
+            <label>Plan Name</label>
+            <input type="text" class="form-control" placeholder="e.g. Weight Loss Plan" />
+        </div>
+
+        <!-- Description -->
+        <div class="form-group-row">
+            <label>Description</label>
+            <textarea class="form-control" rows="3" placeholder="e.g. Full body workout for weight loss"></textarea>
+        </div>
+
+        <!-- Schedule Section -->
+        <div class="schedule-section">
+            <div class="form-group-row">
+                <label>Schedule</label>
+                <div style="flex: 1;">
+                    <div id="schedule-container">
+
+                        <!-- Day 1 (Default Row) -->
+                        <div class="schedule-item">
+                            <div class="schedule-day-info">
+                                <strong>Day 1 - Monday</strong>
+                                <span>Chest & Arms</span>
+                            </div>
+                            <textarea class="form-control" rows="2">Push-ups, Bench Press, Bicep Curls</textarea>
+                            <button type="button" class="btn-delete-day" onclick="this.parentElement.remove()">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </div>
+
+                    </div>
+
+                    <!-- Add Day Button -->
+                    <button type="button" class="btn-add-day" id="addDayBtn">
+                        <i class="bi bi-plus"></i> Add Day
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Save Button -->
+        <div class="form-actions-bottom">
+            <button type="submit" class="btn-save-plan">Save Plan</button>
+        </div>
+
+    </form>
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            let dayCount = 1; // Starting from Day 1
+            const addDayBtn = document.getElementById("addDayBtn");
+            const scheduleContainer = document.getElementById("schedule-container");
+            const daysOfWeek = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+
+            addDayBtn.addEventListener("click", function () {
+                if (dayCount >= 7) {
+                    alert("You can only add up to 7 days.");
+                    return;
+                }
+
+                const nextDayName = daysOfWeek[dayCount];
+                dayCount++;
+
+                // Create new schedule item HTML
+                const newRow = document.createElement("div");
+                newRow.className = "schedule-item";
+                newRow.innerHTML = `
+                    <div class="schedule-day-info">
+                        <strong>Day ${dayCount} - ${nextDayName}</strong>
+                        <span>Muscle Group</span>
+                    </div>
+                    <textarea class="form-control" rows="2" placeholder="Enter exercises..."></textarea>
+                    <button type="button" class="btn-delete-day" onclick="this.parentElement.remove(); dayCount--;">
+                        <i class="bi bi-trash"></i>
+                    </button>
+                `;
+
+                // Append to container
+                scheduleContainer.appendChild(newRow);
+            });
+        });
+    </script>
 }
