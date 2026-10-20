@@ -4,27 +4,24 @@
     ViewData["Heading"] = "Diet";
     ViewData["ActivePage"] = "Diet";
 
-    // Today's Plan Mock Data
     var mockDietPlan = new[]
     {
-        new { Name = "Breakfast", Time = "7:00 AM", Food = "Oatmeal, Banana, Almonds", Calories = "350 cal", ImageUrl = "https://images.unsplash.com/photo-1517673132405-a56a62b18caf?w=100&h=100&fit=crop" },
-        new { Name = "Lunch", Time = "12:00 PM", Food = "Grilled Chicken, Brown Rice, Salad", Calories = "550 cal", ImageUrl = "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=100&h=100&fit=crop" },
-        new { Name = "Dinner", Time = "7:00 PM", Food = "Fish, Vegetables, Quinoa", Calories = "450 cal", ImageUrl = "https://images.unsplash.com/photo-1467003909585-2f8a72700288?w=100&h=100&fit=crop" },
-        new { Name = "Snacks", Time = "4:00 PM", Food = "Greek Yogurt, Nuts", Calories = "200 cal", ImageUrl = "https://images.unsplash.com/photo-1488477181946-6428a0291777?w=100&h=100&fit=crop" }
+        new { Name = "Breakfast", Time = "7:00 AM", Food = "Oatmeal, Banana, Almonds", Calories = 350, ImageUrl = "https://images.unsplash.com/photo-1517673132405-a56a62b18caf?w=200&h=200&fit=crop" },
+        new { Name = "Lunch", Time = "12:00 PM", Food = "Grilled Chicken, Brown Rice, Salad", Calories = 550, ImageUrl = "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=200&h=200&fit=crop" },
+        new { Name = "Dinner", Time = "7:00 PM", Food = "Fish, Vegetables, Quinoa", Calories = 450, ImageUrl = "https://images.unsplash.com/photo-1467003909585-2f8a72700288?w=200&h=200&fit=crop" },
+        new { Name = "Snacks", Time = "4:00 PM", Food = "Greek Yogurt, Nuts", Calories = 200, ImageUrl = "https://images.unsplash.com/photo-1488477181946-6428a0291777?w=200&h=200&fit=crop" }
     };
 
-    // Meal History Mock Data
     var mockMealHistory = new[]
     {
-        new { Date = "15 Oct 2026", Name = "Breakfast", Food = "Eggs, Toast, Avocado", Calories = "400 cal" },
-        new { Date = "15 Oct 2026", Name = "Lunch", Food = "Beef Stir Fry, Rice", Calories = "600 cal" },
-        new { Date = "14 Oct 2026", Name = "Dinner", Food = "Pasta, Tomato Sauce, Chicken", Calories = "650 cal" }
+        new { Date = "15 Oct 2026", Name = "Breakfast", Food = "Eggs, Toast, Avocado", Calories = 400 },
+        new { Date = "15 Oct 2026", Name = "Lunch", Food = "Beef Stir Fry, Rice", Calories = 600 },
+        new { Date = "14 Oct 2026", Name = "Dinner", Food = "Pasta, Tomato Sauce, Chicken", Calories = 650 }
     };
 }
 
-<section class="health-page">
+<section class="health-page diet-page">
 
-    <!-- PAGE HEADER -->
     <div class="health-page-header">
         <div>
             <h2>My Diet Plan</h2>
@@ -37,143 +34,488 @@
         </button>
     </div>
 
-    <!-- TABS -->
-    <div class="plan-tabs">
-        <button class="tab-btn active" data-tab="today">Today's Plan</button>
-        <button class="tab-btn" data-tab="history">Meal History</button>
+    <div class="plan-tabs" role="tablist" aria-label="Diet plans">
+        <button type="button" class="tab-btn active"
+                data-tab="today" role="tab" aria-selected="true">
+            Today's Plan
+        </button>
+        <button type="button" class="tab-btn"
+                data-tab="history" role="tab" aria-selected="false">
+            Meal History
+        </button>
     </div>
 
-    <!-- TODAY'S PLAN LIST -->
     <div class="diet-list" id="todayPlanList">
         @foreach (var meal in mockDietPlan)
         {
-            var mealDetails = $"{meal.Name} ({meal.Time}): {meal.Food} - {meal.Calories}";
+            <article class="diet-item"
+                     data-meal-name="@meal.Name"
+                     data-meal-time="@meal.Time"
+                     data-meal-food="@meal.Food"
+                     data-meal-calories="@meal.Calories"
+                     data-meal-date="@DateTime.Today.ToString("yyyy-MM-dd")"
+                     data-meal-image="@meal.ImageUrl"
+                     tabindex="0"
+                     role="button"
+                     aria-label="View @meal.Name details">
 
-            <div class="diet-item" style="cursor: pointer;" data-view="@mealDetails">
-                <img src="@meal.ImageUrl" alt="@meal.Name" class="diet-image" />
+                <img src="@meal.ImageUrl"
+                     alt="@meal.Name"
+                     class="diet-image"
+                     loading="lazy" />
+
                 <div class="diet-info">
                     <h4>@meal.Name</h4>
-                    <p>@meal.Time</p>
+                    <p><i class="bi bi-clock"></i> @meal.Time</p>
                 </div>
-                <div class="diet-foods">
-                    @meal.Food
-                </div>
+
+                <div class="diet-foods">@meal.Food</div>
+
                 <div class="diet-calories">
-                    @meal.Calories
+                    <strong>@meal.Calories</strong>
+                    <span>kcal</span>
                 </div>
-            </div>
+
+                <button type="button" class="diet-view-btn"
+                        data-meal-view aria-label="View @meal.Name">
+                    View
+                </button>
+            </article>
         }
     </div>
 
-    <!-- MEAL HISTORY LIST -->
-    <div class="diet-list" id="mealHistoryList" style="display: none;">
-        @foreach (var history in mockMealHistory)
+    <div class="diet-list" id="mealHistoryList" hidden>
+        @foreach (var meal in mockMealHistory)
         {
-            var historyDetails = $"{history.Date} - {history.Name}: {history.Food} ({history.Calories})";
+            <article class="diet-item diet-history-item"
+                     data-meal-name="@meal.Name"
+                     data-meal-time="Not specified"
+                     data-meal-food="@meal.Food"
+                     data-meal-calories="@meal.Calories"
+                     data-meal-date="@meal.Date"
+                     tabindex="0"
+                     role="button"
+                     aria-label="View @meal.Name history">
 
-            <div class="diet-item" style="cursor: pointer; border-left: 4px solid #a0aec0;" data-view="@historyDetails">
-                <div class="diet-info" style="min-width: 150px;">
-                    <h4 style="color: #718494;">@history.Date</h4>
-                    <p>@history.Name</p>
+                <div class="diet-history-date">
+                    <i class="bi bi-calendar3"></i>
+                    <span>@meal.Date</span>
                 </div>
-                <div class="diet-foods">
-                    @history.Food
+
+                <div class="diet-info">
+                    <h4>@meal.Name</h4>
+                    <p>Meal history</p>
                 </div>
+
+                <div class="diet-foods">@meal.Food</div>
+
                 <div class="diet-calories">
-                    @history.Calories
+                    <strong>@meal.Calories</strong>
+                    <span>kcal</span>
                 </div>
-            </div>
+
+                <button type="button" class="diet-view-btn"
+                        data-meal-view>
+                    View
+                </button>
+            </article>
         }
+    </div>
+
+    <div class="diet-empty-state" id="dietEmptyState" hidden>
+        <i class="bi bi-egg-fried"></i>
+        <h3>No meals logged yet</h3>
+        <p>Use the Log Meal button to add your first meal.</p>
     </div>
 
 </section>
 
-<!-- MODAL (Same design as Appointments/Workout) -->
-<div class="ca-modal" id="caModal" hidden>
-    <div class="ca-modal-content">
-        <button type="button" class="ca-modal-close" id="caModalClose" aria-label="Close">
+<!-- Shared modal: meal details and Log Meal form -->
+<div class="ca-modal diet-modal" id="dietModal" hidden>
+    <section class="ca-modal-content diet-modal-content"
+             role="dialog" aria-modal="true"
+             aria-labelledby="dietModalTitle">
+
+        <button type="button" class="ca-modal-close"
+                id="dietModalClose" aria-label="Close dialog">
             &times;
         </button>
 
         <div class="ca-modal-icon">
-            <i class="bi bi-egg-fried"></i>
+            <i class="bi bi-egg-fried" id="dietModalIcon"></i>
         </div>
 
-        <h3 id="caModalTitle">Meal Details</h3>
-        <p id="caModalText"></p>
-        <button type="button" class="ca-request-btn" id="caModalOk">
-            Close
-        </button>
-    </div>
+        <h3 id="dietModalTitle">Meal Details</h3>
+        <p class="diet-modal-subtitle" id="dietModalSubtitle">
+            View your meal information.
+        </p>
+
+        <div id="dietModalBody"></div>
+
+        <div class="diet-modal-footer">
+            <button type="button" class="health-secondary-button"
+                    id="dietCancelBtn">
+                Cancel
+            </button>
+            <button type="button" class="health-primary-button"
+                    id="dietCloseBtn">
+                Close
+            </button>
+        </div>
+    </section>
 </div>
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/diet-page.css"
+          asp-append-version="true" />
+}
 
 @section Scripts {
     <script>
         (() => {
-            const tabs = document.querySelectorAll(".tab-btn");
+            const modal = document.getElementById("dietModal");
+            const modalTitle = document.getElementById("dietModalTitle");
+            const modalSubtitle = document.getElementById("dietModalSubtitle");
+            const modalBody = document.getElementById("dietModalBody");
+            const modalIcon = document.getElementById("dietModalIcon");
+            const closeX = document.getElementById("dietModalClose");
+            const cancelBtn = document.getElementById("dietCancelBtn");
+            const closeBtn = document.getElementById("dietCloseBtn");
+            const logBtn = document.getElementById("logMealBtn");
             const todayList = document.getElementById("todayPlanList");
             const historyList = document.getElementById("mealHistoryList");
+            const emptyState = document.getElementById("dietEmptyState");
+            const tabs = [...document.querySelectorAll(".diet-page .tab-btn")];
 
-            const modal = document.getElementById("caModal");
-            const modalTitle = document.getElementById("caModalTitle");
-            const modalText = document.getElementById("caModalText");
+            let previousFocus = null;
+            let activeTab = "today";
 
-            // Tab Switching Logic
-            tabs.forEach(button => {
-                button.addEventListener("click", () => {
-                    tabs.forEach(t => t.classList.remove("active"));
-                    button.classList.add("active");
+            const today = new Date();
+            const localDateTime = () => {
+                const local = new Date(Date.now() - today.getTimezoneOffset() * 60000);
+                return local.toISOString().slice(0, 16);
+            };
 
-                    const tabName = button.dataset.tab;
-
-                    if (tabName === "today") {
-                        todayList.style.display = "flex";
-                        historyList.style.display = "none";
-                    } else {
-                        todayList.style.display = "none";
-                        historyList.style.display = "flex";
-                    }
-                });
-            });
-
-            // Modal Functions
-            function openModal(title, text) {
+            function openModal(title, subtitle, content, mode) {
+                previousFocus = document.activeElement;
                 modalTitle.textContent = title;
-                modalText.textContent = text;
+                modalSubtitle.textContent = subtitle;
+                modalIcon.className = mode === "form"
+                    ? "bi bi-plus-circle"
+                    : "bi bi-egg-fried";
+                modalBody.replaceChildren();
+                modalBody.append(content);
+
+                modal.classList.toggle("is-form", mode === "form");
+                cancelBtn.hidden = mode !== "form";
+                closeBtn.textContent = mode === "form" ? "Cancel" : "Close";
                 modal.hidden = false;
+                document.body.classList.add("modal-open");
+
+                const firstInput = modal.querySelector(
+                    "input:not([type=hidden]), select, textarea, button"
+                );
+                firstInput?.focus();
             }
 
             function closeModal() {
                 modal.hidden = true;
+                document.body.classList.remove("modal-open");
+                modalBody.replaceChildren();
+                if (previousFocus && typeof previousFocus.focus === "function") {
+                    previousFocus.focus();
+                }
             }
 
-            // Event Listener for Clicking a Meal (Today or History)
-            document.addEventListener("click", event => {
-                const dietItem = event.target.closest(".diet-item");
+            function switchTab(tabName) {
+                activeTab = tabName;
+                const showToday = tabName === "today";
 
-                // If a diet item is clicked, show details
-                if (dietItem && dietItem.dataset.view) {
-                    openModal("Meal Details", dietItem.dataset.view);
-                }
-            });
+                todayList.hidden = !showToday;
+                historyList.hidden = showToday;
 
-            // Event Listener for "Log Meal" Button
-            document.getElementById("logMealBtn").addEventListener("click", () => {
+                tabs.forEach(tab => {
+                    const active = tab.dataset.tab === tabName;
+                    tab.classList.toggle("active", active);
+                    tab.setAttribute("aria-selected", String(active));
+                });
+
+                emptyState.hidden = showToday || historyList.children.length !== 0;
+            }
+
+            function addField(labelText, control, fullWidth = false) {
+                const wrapper = document.createElement("div");
+                wrapper.className = "diet-form-field" +
+                    (fullWidth ? " diet-field-full" : "");
+
+                const label = document.createElement("label");
+                label.htmlFor = control.id;
+                label.textContent = labelText;
+
+                wrapper.append(label, control);
+                return wrapper;
+            }
+
+            function makeInput(id, type, options = {}) {
+                const input = document.createElement("input");
+                input.id = id;
+                input.name = id;
+                input.type = type;
+
+                if (options.required) input.required = true;
+                if (options.min !== undefined) input.min = options.min;
+                if (options.max !== undefined) input.max = options.max;
+                if (options.value !== undefined) input.value = options.value;
+                if (options.placeholder) input.placeholder = options.placeholder;
+
+                return input;
+            }
+
+            function showLogMealForm() {
+                const form = document.createElement("form");
+                form.id = "dietLogForm";
+                form.className = "diet-form";
+
+                const type = document.createElement("select");
+                type.id = "dietMealType";
+                type.name = "type";
+                type.required = true;
+
+                [
+                    ["", "Select meal type"],
+                    ["Breakfast", "Breakfast"],
+                    ["Lunch", "Lunch"],
+                    ["Dinner", "Dinner"],
+                    ["Snack", "Snack"]
+                ].forEach(([value, label]) => {
+                    const option = document.createElement("option");
+                    option.value = value;
+                    option.textContent = label;
+                    type.append(option);
+                });
+
+                const food = document.createElement("textarea");
+                food.id = "dietMealFood";
+                food.name = "food";
+                food.rows = 3;
+                food.maxLength = 500;
+                food.required = true;
+                food.placeholder = "e.g. Rice, chicken and vegetables";
+
+                const calories = makeInput("dietMealCalories", "number", {
+                    required: true, min: 0, max: 20000, placeholder: "e.g. 450"
+                });
+
+                const date = makeInput("dietMealDate", "datetime-local", {
+                    required: true, value: localDateTime()
+                });
+
+                const grid = document.createElement("div");
+                grid.className = "diet-form-grid";
+                grid.append(
+                    addField("Meal type *", type),
+                    addField("Calories (kcal) *", calories),
+                    addField("Food description *", food, true),
+                    addField("Date and time *", date, true)
+                );
+
+                const note = document.createElement("p");
+                note.className = "diet-demo-note";
+                note.textContent =
+                    "Demo only: this entry appears in this page and is not saved to the database.";
+
+                const actions = document.createElement("div");
+                actions.className = "diet-form-actions";
+
+                const cancel = document.createElement("button");
+                cancel.type = "button";
+                cancel.className = "health-secondary-button";
+                cancel.textContent = "Cancel";
+                cancel.addEventListener("click", closeModal);
+
+                const save = document.createElement("button");
+                save.type = "submit";
+                save.className = "health-primary-button";
+                save.innerHTML = '<i class="bi bi-check-lg"></i> Add Meal';
+
+                actions.append(cancel, save);
+                form.append(grid, note, actions);
+
+                form.addEventListener("submit", event => {
+                    event.preventDefault();
+
+                    if (!form.reportValidity()) return;
+
+                    const selectedDate = new Date(date.value);
+                    if (Number.isNaN(selectedDate.getTime())) {
+                        date.setCustomValidity("Please select a valid date and time.");
+                        date.reportValidity();
+                        date.setCustomValidity("");
+                        return;
+                    }
+
+                    const entry = {
+                        name: type.value,
+                        time: selectedDate.toLocaleTimeString([], {
+                            hour: "2-digit", minute: "2-digit"
+                        }),
+                        food: food.value.trim(),
+                        calories: Number(calories.value),
+                        date: selectedDate.toLocaleDateString(undefined, {
+                            day: "2-digit", month: "short", year: "numeric"
+                        })
+                    };
+
+                    if (!entry.food || !entry.name ||
+                        !Number.isFinite(entry.calories) ||
+                        entry.calories < 0 || entry.calories > 20000) {
+                        form.reportValidity();
+                        return;
+                    }
+
+                    const card = document.createElement("article");
+                    card.className = "diet-item diet-history-item";
+                    card.dataset.mealName = entry.name;
+                    card.dataset.mealTime = entry.time;
+                    card.dataset.mealFood = entry.food;
+                    card.dataset.mealCalories = String(entry.calories);
+                    card.dataset.mealDate = entry.date;
+                    card.setAttribute("tabindex", "0");
+                    card.setAttribute("role", "button");
+                    card.setAttribute("aria-label", `View ${entry.name} history`);
+
+                    const dateBox = document.createElement("div");
+                    dateBox.className = "diet-history-date";
+                    const dateIcon = document.createElement("i");
+                    dateIcon.className = "bi bi-calendar3";
+                    const dateText = document.createElement("span");
+                    dateText.textContent = entry.date;
+                    dateBox.append(dateIcon, dateText);
+
+                    const info = document.createElement("div");
+                    info.className = "diet-info";
+                    const heading = document.createElement("h4");
+                    heading.textContent = entry.name;
+                    const sub = document.createElement("p");
+                    sub.textContent = entry.time;
+                    info.append(heading, sub);
+
+                    const foodText = document.createElement("div");
+                    foodText.className = "diet-foods";
+                    foodText.textContent = entry.food;
+
+                    const calorieBox = document.createElement("div");
+                    calorieBox.className = "diet-calories";
+                    const calorieValue = document.createElement("strong");
+                    calorieValue.textContent = String(entry.calories);
+                    const calorieUnit = document.createElement("span");
+                    calorieUnit.textContent = "kcal";
+                    calorieBox.append(calorieValue, calorieUnit);
+
+                    const view = document.createElement("button");
+                    view.type = "button";
+                    view.className = "diet-view-btn";
+                    view.dataset.mealView = "";
+                    view.textContent = "View";
+
+                    card.append(dateBox, info, foodText, calorieBox, view);
+                    historyList.prepend(card);
+
+                    switchTab("history");
+                    closeModal();
+                });
+
                 openModal(
                     "Log Meal",
-                    "The meal logging form can be added here. This design preview does not submit or save data."
+                    "Enter the details of the meal you want to record.",
+                    form,
+                    "form"
                 );
+            }
+
+            function showMealDetails(card) {
+                const details = document.createElement("div");
+                details.className = "diet-details";
+
+                const values = [
+                    ["Meal", card.dataset.mealName || "Not specified"],
+                    ["Date", card.dataset.mealDate || "Not specified"],
+                    ["Time", card.dataset.mealTime || "Not specified"],
+                    ["Calories", `${card.dataset.mealCalories || "0"} kcal`]
+                ];
+
+                values.forEach(([label, value]) => {
+                    const row = document.createElement("div");
+                    row.className = "diet-detail-row";
+
+                    const name = document.createElement("span");
+                    name.textContent = label;
+
+                    const text = document.createElement("strong");
+                    text.textContent = value;
+
+                    row.append(name, text);
+                    details.append(row);
+                });
+
+                const foodRow = document.createElement("div");
+                foodRow.className = "diet-detail-food";
+                const foodHeading = document.createElement("h4");
+                foodHeading.textContent = "Food description";
+                const foodText = document.createElement("p");
+                foodText.textContent = card.dataset.mealFood || "Not specified";
+                foodRow.append(foodHeading, foodText);
+                details.append(foodRow);
+
+                openModal(
+                    `${card.dataset.mealName || "Meal"} Details`,
+                    "Here are the details for this meal.",
+                    details,
+                    "details"
+                );
+            }
+
+            tabs.forEach(tab => {
+                tab.addEventListener("click", () => switchTab(tab.dataset.tab));
             });
 
-            // Close Modal Events
-            document.getElementById("caModalClose").addEventListener("click", closeModal);
-            document.getElementById("caModalOk").addEventListener("click", closeModal);
+            logBtn.addEventListener("click", showLogMealForm);
 
-            modal.addEventListener("click", event => {
-                if (event.target === modal) {
-                    closeModal();
+            document.addEventListener("click", event => {
+                const viewButton = event.target.closest("[data-meal-view]");
+                if (viewButton) {
+                    const card = viewButton.closest(".diet-item");
+                    if (card) showMealDetails(card);
+                    return;
+                }
+
+                const card = event.target.closest(".diet-item[data-meal-name]");
+                if (card && !event.target.closest("button")) {
+                    showMealDetails(card);
                 }
             });
+
+            document.addEventListener("keydown", event => {
+                const card = event.target.closest?.(".diet-item[data-meal-name]");
+                if (card && (event.key === "Enter" || event.key === " ")) {
+                    if (event.target === card) {
+                        event.preventDefault();
+                        showMealDetails(card);
+                    }
+                }
+
+                if (event.key === "Escape" && !modal.hidden) closeModal();
+            });
+
+            closeX.addEventListener("click", closeModal);
+            cancelBtn.addEventListener("click", closeModal);
+            closeBtn.addEventListener("click", closeModal);
+
+            modal.addEventListener("click", event => {
+                if (event.target === modal) closeModal();
+            });
+
+            switchTab("today");
         })();
     </script>
 }

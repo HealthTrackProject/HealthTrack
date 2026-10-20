@@ -1,4 +1,12 @@
-﻿<!DOCTYPE html>
+﻿@using Microsoft.AspNetCore.Identity
+@using HealthTrack.Models
+@inject UserManager<ApplicationUser> UserManager
+@{
+    var currentClient = await UserManager.GetUserAsync(User);
+    var clientDisplayName = !string.IsNullOrWhiteSpace(currentClient?.FullName) ? currentClient.FullName : (currentClient?.UserName ?? "Client");
+    var profileImage = string.IsNullOrWhiteSpace(currentClient?.ProfilePictureUrl) ? null : (currentClient.ProfilePictureUrl.StartsWith("http", StringComparison.OrdinalIgnoreCase) ? currentClient.ProfilePictureUrl : Url.Content("~/uploads/profiles/" + currentClient.ProfilePictureUrl));
+}
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="utf-8" />
@@ -24,7 +32,7 @@
             </a>
 
             <div class="sidebar-menu">
-                <p class="menu-label">MAIN MENU</p>
+                <p class="menu-label">CLIENT MENU</p>
 
                 <a asp-controller="ClientDashboard" asp-action="Index"
                    class="side-link @(ViewData["ActivePage"]?.ToString() == "Dashboard" ? "active" : "")">
@@ -62,14 +70,14 @@
                     <span>Progress</span>
                 </a>
 
-                <a asp-controller="ClientDashboard" asp-action="Notifications" 
-                    class="side-link @(ViewData["ActivePage"]?.ToString() == "Notifications" ? "active" : "")">
+                <a asp-controller="ClientDashboard" asp-action="Notifications"
+                   class="side-link @(ViewData["ActivePage"]?.ToString() == "Notifications" ? "active" : "")">
                     <i class="bi bi-bell"></i>
                     <span>Notifications</span>
                 </a>
 
-                <a asp-controller="ClientDashboard" asp-action="ManageProfile" 
-                    class="side-link @(ViewData["ActivePage"]?.ToString() == "ManageProfile" ? "active" : "")">
+                <a asp-controller="ClientDashboard" asp-action="ManageProfile"
+                   class="side-link @(ViewData["ActivePage"]?.ToString() == "ManageProfile" ? "active" : "")">
                     <i class="bi bi-person"></i>
                     <span>My Profile</span>
                 </a>
@@ -96,19 +104,30 @@
                     </button>
 
                     <div>
-                        <h1>@(ViewData["Heading"] ?? "Dashboard")</h1>
+                        <h1>
+                            Welcome Back @clientDisplayName 👋
+                        </h1>
                         <p class="topbar-subtitle">Your personal health space</p>
                     </div>
                 </div>
 
                 <div class="topbar-right">
-                    <a asp-controller="Notifications" asp-action="Index" class="notification-button" aria-label="Notifications">
+                    <div class="topbar-greeting">
+                        <small id="clientDateTime" aria-live="off">Loading date and time...</small>
+                    </div>
+                    <a asp-controller="ClientDashboard" asp-action="Notifications" class="notification-button" aria-label="Notifications" title="Notifications">
                         <i class="bi bi-bell"></i>
                     </a>
-
-                    <div class="user-avatar">
-                        <i class="bi bi-person-fill"></i>
-                    </div>
+                    <a asp-controller="ClientDashboard" asp-action="ManageProfile" class="user-profile-link" aria-label="Manage profile" title="My profile">
+                        @if (profileImage != null)
+                        {
+                            <img class="user-avatar-image" src="@profileImage" alt="Profile picture" />
+                        }
+                        else
+                        {
+                            <span class="user-avatar"><i class="bi bi-person-fill"></i></span>
+                        }
+                    </a>
                 </div>
             </header>
 
@@ -128,8 +147,23 @@
             const sidebar = document.getElementById("sidebar");
 
             menuToggle?.addEventListener("click", function () {
-                sidebar.classList.toggle("sidebar-open");
+                sidebar?.classList.toggle("sidebar-open");
+                document.body.classList.toggle("sidebar-visible");
             });
+
+            // Keep the date and time in the client's browser timezone.
+            const dateTimeElement = document.getElementById("clientDateTime");
+            function updateClientDateTime() {
+                if (!dateTimeElement) return;
+                const now = new Date();
+                dateTimeElement.textContent = now.toLocaleDateString(undefined, {
+                    weekday: "short", year: "numeric", month: "short", day: "numeric"
+                }) + " · " + now.toLocaleTimeString(undefined, {
+                    hour: "2-digit", minute: "2-digit"
+                });
+            }
+            updateClientDateTime();
+            window.setInterval(updateClientDateTime, 30000);
     </script>
 
     @await RenderSectionAsync("Scripts", required: false)

@@ -1,10 +1,9 @@
 ﻿@{
     Layout = "~/Views/Shared/_ClientLayout.cshtml";
     ViewData["Title"] = "Workout";
-    ViewData["Heading"] = "Workout";
+    ViewData["Heading"] = "Welcome Back";
     ViewData["ActivePage"] = "Workout";
 
-    // Current Plan Mock Data
     var mockWorkoutPlan = new[]
     {
         new { Day = "Monday", MuscleGroup = "Chest & Arms", Exercises = "Push-ups, Bench Press, Bicep Curls" },
@@ -14,17 +13,15 @@
         new { Day = "Friday", MuscleGroup = "Full Body", Exercises = "Circuit Training" }
     };
 
-    // Workout History Mock Data
     var mockHistoryPlan = new[]
     {
-        new { Date = "10 Oct 2026", MuscleGroup = "Chest & Arms", Exercises = "Push-ups (3x15), Dumbbell Press (3x12)" },
-        new { Date = "08 Oct 2026", MuscleGroup = "Legs", Exercises = "Squats (4x10), Calf Raises (3x20)" }
+        new { Date = "2026-10-10", Name = "Chest Workout", MuscleGroup = "Chest & Arms", Exercises = "Push-ups (3x15), Dumbbell Press (3x12)", Duration = 45, Calories = 250 },
+        new { Date = "2026-10-08", Name = "Leg Workout", MuscleGroup = "Legs", Exercises = "Squats (4x10), Calf Raises (3x20)", Duration = 40, Calories = 220 }
     };
 }
 
-<section class="health-page">
+<section class="health-page workout-page">
 
-    <!-- PAGE HEADER -->
     <div class="health-page-header">
         <div>
             <h2>My Workout Plan</h2>
@@ -37,137 +34,444 @@
         </button>
     </div>
 
-    <!-- TABS -->
     <div class="plan-tabs">
-        <button class="tab-btn active" data-tab="current">Current Plan</button>
-        <button class="tab-btn" data-tab="history">Workout History</button>
+        <button type="button" class="tab-btn active" data-tab="current">
+            Current Plan
+        </button>
+        <button type="button" class="tab-btn" data-tab="history">
+            Workout History
+        </button>
     </div>
 
-    <!-- CURRENT WORKOUT LIST -->
     <div class="workout-list" id="currentPlanList">
         @foreach (var day in mockWorkoutPlan)
         {
-            <div class="workout-item">
+            <article class="workout-item">
                 <div class="workout-color-bar"></div>
+
                 <div class="workout-content">
                     <div class="workout-day-info">
                         <h4>@day.Day</h4>
                         <p>@day.MuscleGroup</p>
                     </div>
-                    <div class="workout-exercises">
-                        @day.Exercises
-                    </div>
-                    <button type="button" class="btn-view" data-view="@day.Day - @day.MuscleGroup: @day.Exercises">View</button>
+
+                    <div class="workout-exercises">@day.Exercises</div>
+
+                    <button type="button"
+                            class="btn-view"
+                            data-view="true"
+                            data-name="@day.Day Workout"
+                            data-group="@day.MuscleGroup"
+                            data-date="@day.Day"
+                            data-exercises="@day.Exercises"
+                            data-duration=""
+                            data-calories="">
+                        View
+                    </button>
                 </div>
-            </div>
+            </article>
         }
     </div>
 
-    <!-- WORKOUT HISTORY LIST (Initially hidden) -->
-    <div class="workout-list" id="historyList" style="display: none;">
-        @foreach (var history in mockHistoryPlan)
+    <div class="workout-list" id="historyList" hidden>
+        @foreach (var workout in mockHistoryPlan)
         {
-            <div class="workout-item" style="border-left: 4px solid #a0aec0;">
-                <div class="workout-color-bar" style="background: #a0aec0;"></div>
+            <article class="workout-item workout-history-item">
+                <div class="workout-color-bar"></div>
+
                 <div class="workout-content">
                     <div class="workout-day-info">
-                        <h4>@history.Date</h4>
-                        <p>@history.MuscleGroup</p>
+                        <h4>@workout.Name</h4>
+                        <p>@workout.Date</p>
                     </div>
-                    <div class="workout-exercises">
-                        @history.Exercises
-                    </div>
-                    <button type="button" class="btn-view" style="background: #718494;" data-view="@history.Date - @history.MuscleGroup: @history.Exercises">View</button>
+
+                    <div class="workout-exercises">@workout.Exercises</div>
+
+                    <button type="button"
+                            class="btn-view"
+                            data-view="true"
+                            data-name="@workout.Name"
+                            data-group="@workout.MuscleGroup"
+                            data-date="@workout.Date"
+                            data-exercises="@workout.Exercises"
+                            data-duration="@workout.Duration"
+                            data-calories="@workout.Calories">
+                        View
+                    </button>
                 </div>
-            </div>
+            </article>
         }
     </div>
 
+    <p class="workout-empty-state" id="workoutEmptyState" hidden>
+        No workout history yet. Click <strong>Log Workout</strong> to record your first workout.
+    </p>
 </section>
 
-<!-- MODAL (Same design as Appointments) -->
-<div class="ca-modal" id="caModal" hidden>
-    <div class="ca-modal-content">
-        <button type="button" class="ca-modal-close" id="caModalClose" aria-label="Close">
-            &times;
+<!-- WORKOUT MODAL -->
+<div class="ca-modal" id="workoutModal" hidden>
+    <div class="ca-modal-content workout-modal-content"
+         role="dialog"
+         aria-modal="true"
+         aria-labelledby="workoutModalTitle">
+
+        <button type="button"
+                class="ca-modal-close"
+                id="workoutModalClose"
+                aria-label="Close popup">
+            <i class="bi bi-x-lg"></i>
         </button>
 
         <div class="ca-modal-icon">
             <i class="bi bi-activity"></i>
         </div>
 
-        <h3 id="caModalTitle">Workout Details</h3>
-        <p id="caModalText"></p>
-        <button type="button" class="ca-request-btn" id="caModalOk">
-            Close
-        </button>
+        <h3 id="workoutModalTitle">Log Workout</h3>
+
+        <p class="workout-modal-subtitle" id="workoutModalSubtitle">
+            Record your workout details below.
+        </p>
+
+        <!-- LOG FORM -->
+        <form id="workoutForm">
+            <div class="workout-form-grid">
+
+                <div class="workout-form-field">
+                    <label for="workoutName">Workout name <span>*</span></label>
+                    <input type="text"
+                           id="workoutName"
+                           name="workoutName"
+                           maxlength="100"
+                           placeholder="e.g. Morning workout"
+                           required />
+                </div>
+
+                <div class="workout-form-field">
+                    <label for="workoutGroup">Muscle group <span>*</span></label>
+                    <select id="workoutGroup" name="workoutGroup" required>
+                        <option value="">Select muscle group</option>
+                        <option value="Chest & Arms">Chest & Arms</option>
+                        <option value="Legs">Legs</option>
+                        <option value="Back & Shoulders">Back & Shoulders</option>
+                        <option value="Cardio">Cardio</option>
+                        <option value="Full Body">Full Body</option>
+                        <option value="Core">Core</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
+
+                <div class="workout-form-field workout-field-full">
+                    <label for="workoutExercises">Exercises <span>*</span></label>
+                    <textarea id="workoutExercises"
+                              name="workoutExercises"
+                              rows="3"
+                              maxlength="1000"
+                              placeholder="e.g. Push-ups 3x15, Squats 3x12"
+                              required></textarea>
+                </div>
+
+                <div class="workout-form-field">
+                    <label for="workoutDuration">Duration (minutes) <span>*</span></label>
+                    <input type="number"
+                           id="workoutDuration"
+                           name="workoutDuration"
+                           min="1"
+                           max="1440"
+                           placeholder="30"
+                           required />
+                </div>
+
+                <div class="workout-form-field">
+                    <label for="workoutCalories">Calories burned</label>
+                    <input type="number"
+                           id="workoutCalories"
+                           name="workoutCalories"
+                           min="0"
+                           max="100000"
+                           placeholder="Optional" />
+                </div>
+
+                <div class="workout-form-field workout-field-full">
+                    <label for="workoutDate">Workout date <span>*</span></label>
+                    <input type="date"
+                           id="workoutDate"
+                           name="workoutDate"
+                           required />
+                </div>
+            </div>
+
+            <div class="workout-form-error" id="workoutFormError" role="alert" hidden></div>
+
+            <div class="workout-modal-actions" id="workoutFormActions">
+                <button type="button"
+                        class="workout-secondary-button"
+                        id="workoutCancelBtn">
+                    Cancel
+                </button>
+
+                <button type="submit" class="health-primary-button">
+                    <i class="bi bi-check-lg"></i>
+                    Save Workout
+                </button>
+            </div>
+        </form>
+
+        <!-- DETAILS VIEW -->
+        <div id="workoutDetails" hidden>
+            <div class="workout-details-list">
+                <div>
+                    <span>Workout name</span>
+                    <strong id="detailName">—</strong>
+                </div>
+                <div>
+                    <span>Muscle group</span>
+                    <strong id="detailGroup">—</strong>
+                </div>
+                <div>
+                    <span>Date</span>
+                    <strong id="detailDate">—</strong>
+                </div>
+                <div>
+                    <span>Duration</span>
+                    <strong id="detailDuration">—</strong>
+                </div>
+                <div>
+                    <span>Calories burned</span>
+                    <strong id="detailCalories">—</strong>
+                </div>
+                <div class="workout-detail-exercises">
+                    <span>Exercises</span>
+                    <p id="detailExercises">—</p>
+                </div>
+            </div>
+
+            <div class="workout-modal-actions">
+                <button type="button"
+                        class="health-primary-button"
+                        id="workoutDetailsCloseBtn">
+                    Close
+                </button>
+            </div>
+        </div>
     </div>
 </div>
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/workout.css" asp-append-version="true" />
+}
 
 @section Scripts {
     <script>
         (() => {
-            const tabs = document.querySelectorAll(".tab-btn");
+            const modal = document.getElementById("workoutModal");
+            const form = document.getElementById("workoutForm");
             const currentList = document.getElementById("currentPlanList");
             const historyList = document.getElementById("historyList");
+            const emptyState = document.getElementById("workoutEmptyState");
 
-            const modal = document.getElementById("caModal");
-            const modalTitle = document.getElementById("caModalTitle");
-            const modalText = document.getElementById("caModalText");
+            const title = document.getElementById("workoutModalTitle");
+            const subtitle = document.getElementById("workoutModalSubtitle");
+            const details = document.getElementById("workoutDetails");
+            const formActions = document.getElementById("workoutFormActions");
+            const error = document.getElementById("workoutFormError");
 
-            // Tab Switching Logic (Using style.display instead of hidden attribute)
-            tabs.forEach(button => {
-                button.addEventListener("click", () => {
-                    tabs.forEach(t => t.classList.remove("active"));
-                    button.classList.add("active");
+            if (!modal || !form || !currentList || !historyList) return;
 
-                    const tabName = button.dataset.tab;
+            // Use local calendar date instead of UTC to avoid date shifting.
+            function getLocalDate() {
+                const now = new Date();
+                const offset = now.getTimezoneOffset() * 60000;
+                return new Date(now.getTime() - offset).toISOString().slice(0, 10);
+            }
 
-                    if (tabName === "current") {
-                        currentList.style.display = "flex";
-                        historyList.style.display = "none";
-                    } else {
-                        currentList.style.display = "none";
-                        historyList.style.display = "flex";
-                    }
-                });
-            });
-
-            // Modal Functions
-            function openModal(title, text) {
-                modalTitle.textContent = title;
-                modalText.textContent = text;
+            function openModal() {
                 modal.hidden = false;
+                document.body.classList.add("modal-open");
             }
 
             function closeModal() {
                 modal.hidden = true;
+                document.body.classList.remove("modal-open");
+                error.hidden = true;
             }
 
-            // Event Listener for View Buttons
-            document.addEventListener("click", event => {
-                const viewButton = event.target.closest("[data-view]");
-                if (viewButton) {
-                    openModal("Workout Details", viewButton.dataset.view);
-                }
-            });
+            function showLogForm() {
+                form.reset();
+                document.getElementById("workoutDate").value = getLocalDate();
 
-            // Event Listener for "Log Workout" Button
-            document.getElementById("logWorkoutBtn").addEventListener("click", () => {
-                openModal(
-                    "Log Workout",
-                    "The workout logging form can be added here. This design preview does not submit or save data."
-                );
-            });
+                title.textContent = "Log Workout";
+                subtitle.textContent = "Record your workout details below.";
 
-            // Close Modal Events
-            document.getElementById("caModalClose").addEventListener("click", closeModal);
-            document.getElementById("caModalOk").addEventListener("click", closeModal);
+                form.hidden = false;
+                details.hidden = true;
+                formActions.hidden = false;
+                error.hidden = true;
+
+                openModal();
+                document.getElementById("workoutName").focus();
+            }
+
+            function showDetails(workout) {
+                title.textContent = workout.name || "Workout Details";
+                subtitle.textContent = "Here are the details for this workout.";
+
+                document.getElementById("detailName").textContent = workout.name || "—";
+                document.getElementById("detailGroup").textContent = workout.group || "—";
+                document.getElementById("detailDate").textContent = workout.date || "—";
+                document.getElementById("detailDuration").textContent =
+                    workout.duration ? workout.duration + " minutes" : "Not specified";
+                document.getElementById("detailCalories").textContent =
+                    workout.calories ? workout.calories + " kcal" : "Not specified";
+                document.getElementById("detailExercises").textContent =
+                    workout.exercises || "Not specified";
+
+                form.hidden = true;
+                details.hidden = false;
+                formActions.hidden = true;
+
+                openModal();
+            }
+
+            function createHistoryItem(workout) {
+                const article = document.createElement("article");
+                article.className = "workout-item workout-history-item";
+
+                const bar = document.createElement("div");
+                bar.className = "workout-color-bar";
+
+                const content = document.createElement("div");
+                content.className = "workout-content";
+
+                const info = document.createElement("div");
+                info.className = "workout-day-info";
+
+                const heading = document.createElement("h4");
+                heading.textContent = workout.name;
+
+                const date = document.createElement("p");
+                date.textContent = workout.date;
+
+                info.append(heading, date);
+
+                const exercises = document.createElement("div");
+                exercises.className = "workout-exercises";
+                exercises.textContent = workout.exercises;
+
+                const viewButton = document.createElement("button");
+                viewButton.type = "button";
+                viewButton.className = "btn-view";
+                viewButton.textContent = "View";
+
+                // Keep the workout data in properties instead of injecting HTML.
+                viewButton._workout = workout;
+                viewButton.addEventListener("click", () => showDetails(workout));
+
+                content.append(info, exercises, viewButton);
+                article.append(bar, content);
+
+                return article;
+            }
+
+            document.getElementById("logWorkoutBtn")
+                ?.addEventListener("click", showLogForm);
+
+            document.getElementById("workoutModalClose")
+                ?.addEventListener("click", closeModal);
+
+            document.getElementById("workoutCancelBtn")
+                ?.addEventListener("click", closeModal);
+
+            document.getElementById("workoutDetailsCloseBtn")
+                ?.addEventListener("click", closeModal);
 
             modal.addEventListener("click", event => {
-                if (event.target === modal) {
-                    closeModal();
+                if (event.target === modal) closeModal();
+            });
+
+            document.addEventListener("keydown", event => {
+                if (event.key === "Escape" && !modal.hidden) closeModal();
+            });
+
+            document.querySelectorAll(".tab-btn").forEach(button => {
+                button.addEventListener("click", () => {
+                    document.querySelectorAll(".tab-btn")
+                        .forEach(tab => tab.classList.remove("active"));
+
+                    button.classList.add("active");
+
+                    const isHistory = button.dataset.tab === "history";
+                    currentList.hidden = isHistory;
+                    historyList.hidden = !isHistory;
+                    emptyState.hidden = !isHistory || historyList.children.length > 0;
+                });
+            });
+
+            document.querySelectorAll("#currentPlanList [data-view]").forEach(button => {
+                button.addEventListener("click", () => {
+                    showDetails({
+                        name: button.dataset.name,
+                        group: button.dataset.group,
+                        date: button.dataset.date,
+                        exercises: button.dataset.exercises,
+                        duration: button.dataset.duration,
+                        calories: button.dataset.calories
+                    });
+                });
+            });
+
+            document.querySelectorAll("#historyList [data-view]").forEach(button => {
+                button.addEventListener("click", () => {
+                    showDetails({
+                        name: button.dataset.name,
+                        group: button.dataset.group,
+                        date: button.dataset.date,
+                        exercises: button.dataset.exercises,
+                        duration: button.dataset.duration,
+                        calories: button.dataset.calories
+                    });
+                });
+            });
+
+            form.addEventListener("submit", event => {
+                event.preventDefault();
+
+                if (!form.reportValidity()) return;
+
+                const workout = {
+                    name: document.getElementById("workoutName").value.trim(),
+                    group: document.getElementById("workoutGroup").value,
+                    exercises: document.getElementById("workoutExercises").value.trim(),
+                    duration: Number(document.getElementById("workoutDuration").value),
+                    calories: document.getElementById("workoutCalories").value,
+                    date: document.getElementById("workoutDate").value
+                };
+
+                if (!workout.name || !workout.group || !workout.exercises || !workout.date) {
+                    error.textContent = "Please complete all required fields.";
+                    error.hidden = false;
+                    return;
                 }
+
+                if (!Number.isFinite(workout.duration) ||
+                    workout.duration < 1 ||
+                    workout.duration > 1440) {
+                    error.textContent = "Duration must be between 1 and 1440 minutes.";
+                    error.hidden = false;
+                    return;
+                }
+
+                // Add to the page's workout history.
+                // This is an in-memory demo; database persistence needs a backend endpoint.
+                historyList.prepend(createHistoryItem(workout));
+                historyList.hidden = false;
+                currentList.hidden = true;
+                emptyState.hidden = true;
+
+                document.querySelectorAll(".tab-btn")
+                    .forEach(tab => tab.classList.toggle("active", tab.dataset.tab === "history"));
+
+                closeModal();
+                form.reset();
             });
         })();
     </script>
