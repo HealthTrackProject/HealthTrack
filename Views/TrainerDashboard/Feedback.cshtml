@@ -1,4 +1,113 @@
-﻿@page
-@model HealthTrack.Views.TrainerDashboard.FeedbackModel
-@{
+﻿@{
+    Layout = "~/Views/Shared/_TrainerLayout.cshtml";
+    ViewData["Title"] = "Feedback";
+    ViewData["Heading"] = "Client Feedback";
+    ViewData["ActivePage"] = "Feedback"; // Sidebar active state
+}
+
+<div class="trainer-page-header">
+    <h2>Client Feedback</h2>
+</div>
+
+<div class="feedback-grid">
+
+    <!-- LEFT SIDE: Add Feedback Form -->
+    <div class="feedback-card">
+        <h3><i class="bi bi-chat-left-text-fill"></i> Give New Feedback</h3>
+
+        <form id="feedbackForm">
+            <div class="feedback-form-group">
+                <label>Select Client</label>
+                <select id="clientSelect" required>
+                    <option value="">-- Choose a Client --</option>
+                    <option value="Kamal Perera">Kamal Perera</option>
+                    <option value="Nimali Silva">Nimali Silva</option>
+                    <option value="Sahan Fernando">Sahan Fernando</option>
+                    <option value="Tharushi Dias">Tharushi Dias</option>
+                </select>
+            </div>
+
+            <div class="feedback-form-group">
+                <label>Feedback Message</label>
+                <textarea id="feedbackMessage" placeholder="E.g., Great progress on your weight loss goals this month. Keep up the consistency with your cardio sessions!" required></textarea>
+            </div>
+
+            <button type="submit" class="health-primary-button" style="width: 100%;">
+                <i class="bi bi-send-fill"></i> Submit Feedback
+            </button>
+        </form>
+    </div>
+
+    <!-- RIGHT SIDE: Recent Feedback List -->
+    <div class="feedback-card">
+        <h3><i class="bi bi-clock-history"></i> Recent Feedback</h3>
+
+        <div class="recent-feedback-list" id="feedbackList">
+
+            <!-- Sample Feedback Item 1 -->
+            <div class="feedback-item">
+                <div class="feedback-item-header">
+                    <h4>Nimali Silva</h4>
+                    <span>Today, 10:30 AM</span>
+                </div>
+                <p>Your diet plan adherence has been excellent. Let's increase the protein intake slightly for the upcoming week to support muscle recovery.</p>
+            </div>
+
+            <!-- Sample Feedback Item 2 -->
+            <div class="feedback-item">
+                <div class="feedback-item-header">
+                    <h4>Kamal Perera</h4>
+                    <span>Yesterday, 3:15 PM</span>
+                </div>
+                <p>Great job on completing the HIIT session. Remember to stretch properly afterward to avoid muscle soreness.</p>
+            </div>
+
+        </div>
+    </div>
+
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const form = document.getElementById("feedbackForm");
+            const clientSelect = document.getElementById("clientSelect");
+            const feedbackMessage = document.getElementById("feedbackMessage");
+            const feedbackList = document.getElementById("feedbackList");
+
+            form.addEventListener("submit", function (e) {
+                e.preventDefault(); // Prevent page reload
+
+                const clientName = clientSelect.value;
+                const message = feedbackMessage.value;
+
+                if (!clientName || !message) return;
+
+                // Get current time for display
+                const now = new Date();
+                const timeString = "Today, " + now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+                // Create new feedback HTML element
+                const newFeedback = document.createElement("div");
+                newFeedback.className = "feedback-item";
+                newFeedback.style.animation = "fadeIn 0.5s ease"; // Add a simple animation
+                newFeedback.innerHTML = `
+                    <div class="feedback-item-header">
+                        <h4>${clientName}</h4>
+                        <span>${timeString}</span>
+                    </div>
+                    <p>${message}</p>
+                `;
+
+                // Add to the top of the list
+                feedbackList.prepend(newFeedback);
+
+                // Reset form
+                form.reset();
+
+                // Show a quick success alert
+                alert("Feedback submitted successfully!");
+            });
+        });
+    </script>
 }

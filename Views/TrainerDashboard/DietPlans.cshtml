@@ -45,8 +45,12 @@
                         <!-- Breakfast (Default Row) -->
                         <div class="schedule-item">
                             <div class="schedule-day-info">
-                                <strong>Breakfast</strong>
-                                <span>8:00 AM</span>
+                                <!-- Added Image Here -->
+                                <img src="https://images.unsplash.com/photo-1517673132405-a56a62b18caf?w=100&h=100&fit=crop" class="meal-img" alt="Breakfast" />
+                                <div class="schedule-text">
+                                    <strong>Breakfast</strong>
+                                    <span>8:00 AM</span>
+                                </div>
                             </div>
                             <textarea class="form-control" rows="2">Oatmeal, Banana, Almonds</textarea>
                             <button type="button" class="btn-delete-day" onclick="this.parentElement.remove()">
@@ -57,8 +61,12 @@
                         <!-- Lunch (Default Row) -->
                         <div class="schedule-item">
                             <div class="schedule-day-info">
-                                <strong>Lunch</strong>
-                                <span>1:00 PM</span>
+                                <!-- Added Image Here -->
+                                <img src="https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=100&h=100&fit=crop" class="meal-img" alt="Lunch" />
+                                <div class="schedule-text">
+                                    <strong>Lunch</strong>
+                                    <span>1:00 PM</span>
+                                </div>
                             </div>
                             <textarea class="form-control" rows="2">Grilled Chicken, Brown Rice, Salad</textarea>
                             <button type="button" class="btn-delete-day" onclick="this.parentElement.remove()">
@@ -92,10 +100,10 @@
 
             // Standard meal types to cycle through
             const mealTypes = [
-                { name: "Snacks", time: "4:00 PM" },
-                { name: "Pre-Workout", time: "5:30 PM" },
-                { name: "Dinner", time: "8:00 PM" },
-                { name: "Late Night Snack", time: "10:00 PM" }
+                { name: "Snacks", time: "4:00 PM", img: "https://images.unsplash.com/photo-1488477181946-6428a0291777?w=100&h=100&fit=crop" },
+                { name: "Pre-Workout", time: "5:30 PM", img: "https://images.unsplash.com/photo-1579722820308-d74e571900a9?w=100&h=100&fit=crop" },
+                { name: "Dinner", time: "8:00 PM", img: "https://images.unsplash.com/photo-1467003909585-2f8a72700288?w=100&h=100&fit=crop" },
+                { name: "Late Night Snack", time: "10:00 PM", img: "https://images.unsplash.com/photo-1490645935967-10de6ba17061?w=100&h=100&fit=crop" }
             ];
             let mealIndex = 0;
 
@@ -108,13 +116,16 @@
                 const meal = mealTypes[mealIndex];
                 mealIndex++;
 
-                // Create new schedule item HTML
+                // Create new schedule item HTML (Includes Image)
                 const newRow = document.createElement("div");
                 newRow.className = "schedule-item";
                 newRow.innerHTML = `
                     <div class="schedule-day-info">
-                        <strong>${meal.name}</strong>
-                        <span>${meal.time}</span>
+                        <img src="${meal.img}" class="meal-img" alt="${meal.name}" />
+                        <div class="schedule-text">
+                            <strong>${meal.name}</strong>
+                            <span>${meal.time}</span>
+                        </div>
                     </div>
                     <textarea class="form-control" rows="2" placeholder="Enter meal details..."></textarea>
                     <button type="button" class="btn-delete-day" onclick="this.parentElement.remove(); mealIndex--;">
