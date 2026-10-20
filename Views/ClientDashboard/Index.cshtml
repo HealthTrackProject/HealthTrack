@@ -5,6 +5,7 @@
     ViewData["ActivePage"] = "Dashboard";
 }
 
+<!-- WELCOME SECTION -->
 <section class="welcome-section">
     <div>
         <h2>Your Health Overview</h2>
@@ -54,11 +55,11 @@
 
 </section>
 
-<!-- ACTIVITIES AND PROGRESS -->
+<!-- UPCOMING ACTIVITIES AND WEIGHT PROGRESS -->
 <section class="dashboard-grid">
 
     <!-- UPCOMING ACTIVITIES -->
-    <article class="content-card">
+    <article class="content-card activities-card">
         <div class="card-header">
             <h3>Upcoming Activities</h3>
             <i class="bi bi-three-dots"></i>
@@ -98,17 +99,117 @@
 
         </div>
     </article>
+    <!-- SECOND GRAPH: WEEKLY CALORIES BURNED -->
+    <section class="content-card calories-card">
+
+        <article class="content-card calories-card">
+
+            <div class="card-header">
+                <div>
+                    <h3>Weekly Calories Burned</h3>
+                    <p class="graph-subtitle">Your estimated daily activity</p>
+                </div>
+
+                <span class="graph-badge">
+                    <i class="bi bi-fire"></i> This Week
+                </span>
+            </div>
+
+            <div class="calories-summary">
+                <div>
+                    <span>Total This Week</span>
+                    <h2 id="weeklyCalories">2,400 <small>kcal</small></h2>
+                </div>
+
+                <div class="calories-summary-icon">
+                    <i class="bi bi-lightning-charge"></i>
+                </div>
+            </div>
+
+            <div class="calories-chart-container">
+                <svg class="calories-chart"
+                     viewBox="0 0 700 240"
+                     preserveAspectRatio="none"
+                     role="img"
+                     aria-label="Calories burned from Monday to Sunday">
+
+                    <defs>
+                        <linearGradient id="caloriesFill"
+                                        x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0%" stop-color="#1687f8"
+                                  stop-opacity="0.20" />
+                            <stop offset="100%" stop-color="#1687f8"
+                                  stop-opacity="0.01" />
+                        </linearGradient>
+                    </defs>
+
+                    <line class="calories-grid-line" x1="45" y1="30" x2="680" y2="30" />
+                    <line class="calories-grid-line" x1="45" y1="75" x2="680" y2="75" />
+                    <line class="calories-grid-line" x1="45" y1="120" x2="680" y2="120" />
+                    <line class="calories-grid-line" x1="45" y1="165" x2="680" y2="165" />
+                    <line class="calories-grid-line" x1="45" y1="210" x2="680" y2="210" />
+
+                    <text class="calories-axis-label" x="2" y="34">600</text>
+                    <text class="calories-axis-label" x="2" y="79">450</text>
+                    <text class="calories-axis-label" x="2" y="124">300</text>
+                    <text class="calories-axis-label" x="2" y="169">150</text>
+                    <text class="calories-axis-label" x="12" y="214">0</text>
+
+                    <path id="caloriesArea"
+                          d="M45,120 L151,150 L257,90 L363,135 L469,60 L575,105 L680,45 L680,210 L45,210 Z"
+                          fill="url(#caloriesFill)" />
+
+                    <polyline id="caloriesLine"
+                              class="calories-line"
+                              points="45,120 151,150 257,90 363,135 469,60 575,105 680,45" />
+
+                    <g id="caloriesPoints" fill="#1687f8">
+                        <circle cx="45" cy="120" r="5" />
+                        <circle cx="151" cy="150" r="5" />
+                        <circle cx="257" cy="90" r="5" />
+                        <circle cx="363" cy="135" r="5" />
+                        <circle cx="469" cy="60" r="5" />
+                        <circle cx="575" cy="105" r="5" />
+                        <circle cx="680" cy="45" r="5" />
+                    </g>
+                </svg>
+            </div>
+
+            <div class="calories-day-labels">
+                <span>Mon</span>
+                <span>Tue</span>
+                <span>Wed</span>
+                <span>Thu</span>
+                <span>Fri</span>
+                <span>Sat</span>
+                <span>Sun</span>
+            </div>
+
+            <div class="calories-legend">
+                <span class="legend-dot"></span>
+                Estimated calories burned per day
+            </div>
+
+            <p class="graph-disclaimer">
+                <i class="bi bi-info-circle"></i>
+                Sample data for UI demonstration. Actual results require recorded
+                activity data.
+            </p>
+
+        </article>
+
+    </section>
 
     <!-- WEIGHT PROGRESS -->
-    <!-- WEIGHT PROGRESS -->
-    <article class="content-card">
+    <article class="content-card weight-progress-card">
         <div class="card-header">
             <h3>Weight Progress</h3>
 
-            <select class="card-select" aria-label="Select progress period">
-                <option>Last 6 Months</option>
-                <option>Last 3 Months</option>
-                <option>Last 12 Months</option>
+            <select class="card-select" id="weightPeriod"
+                    aria-label="Select progress period">
+                <option value="6">Last 6 Months</option>
+                <option value="3">Last 3 Months</option>
+                <option value="12">Last 12 Months</option>
             </select>
         </div>
 
@@ -117,60 +218,42 @@
                  viewBox="0 0 340 230"
                  preserveAspectRatio="none"
                  role="img"
-                 aria-label="Weight progress from January to June">
+                 aria-label="Weight progress chart">
 
                 <defs>
                     <linearGradient id="weightFill"
-                                    x1="0" y1="0"
-                                    x2="0" y2="1">
-                        <stop offset="0%"
-                              stop-color="#20bd79"
+                                    x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stop-color="#20bd79"
                               stop-opacity="0.25" />
-                        <stop offset="100%"
-                              stop-color="#20bd79"
+                        <stop offset="100%" stop-color="#20bd79"
                               stop-opacity="0.01" />
                     </linearGradient>
                 </defs>
 
-                <!-- Horizontal grid lines -->
-                <line class="chart-grid-line"
-                      x1="38" y1="20" x2="330" y2="20" />
-                <line class="chart-grid-line"
-                      x1="38" y1="75" x2="330" y2="75" />
-                <line class="chart-grid-line"
-                      x1="38" y1="130" x2="330" y2="130" />
-                <line class="chart-grid-line"
-                      x1="38" y1="185" x2="330" y2="185" />
+                <line class="chart-grid-line" x1="38" y1="20" x2="330" y2="20" />
+                <line class="chart-grid-line" x1="38" y1="75" x2="330" y2="75" />
+                <line class="chart-grid-line" x1="38" y1="130" x2="330" y2="130" />
+                <line class="chart-grid-line" x1="38" y1="185" x2="330" y2="185" />
 
-                <!-- Weight labels -->
                 <text class="chart-label" x="4" y="24">80</text>
                 <text class="chart-label" x="4" y="79">75</text>
                 <text class="chart-label" x="4" y="134">70</text>
                 <text class="chart-label" x="4" y="189">65</text>
 
-                <!-- Area below the graph -->
-                <path d="M38,48
-                L96,70
-                L154,92
-                L212,103
-                L270,125
-                L330,136
-                L330,185
-                L38,185 Z"
+                <path id="weightArea"
+                      d="M38,48 L96,70 L154,92 L212,103 L270,125 L330,136 L330,185 L38,185 Z"
                       fill="url(#weightFill)" />
 
-                <!-- Six-month weight progress -->
-                <polyline class="chart-line"
+                <polyline id="weightLine"
+                          class="chart-line"
                           points="38,48 96,70 154,92 212,103 270,125 330,136" />
 
-                <!-- Latest weight point -->
-                <circle cx="330" cy="136" r="4"
-                        fill="#20bd79" />
+                <circle id="weightPoint" cx="330" cy="136"
+                        r="4" fill="#20bd79" />
             </svg>
         </div>
 
-        <!-- Six months -->
-        <div class="chart-months">
+        <div class="chart-months" id="chartMonths">
             <span>Jan</span>
             <span>Feb</span>
             <span>Mar</span>
@@ -179,7 +262,7 @@
             <span>Jun</span>
         </div>
 
-        <div class="chart-data-list">
+        <div class="chart-data-list" id="chartDataList">
             <div><span>January</span><strong>78 kg</strong></div>
             <div><span>February</span><strong>76 kg</strong></div>
             <div><span>March</span><strong>74 kg</strong></div>
@@ -193,5 +276,177 @@
             Sample data for UI demonstration
         </p>
     </article>
+    <!-- DAILY HEALTH TIPS -->
+    <article class="content-card health-tips-card">
+        <div class="card-header">
+                <h3><i class="bi bi-lightbulb"></i> Daily Health Tips</h3>
+            </div>
 
+            <div class="health-tip-item">
+                <div class="tip-icon green">
+                    <i class="bi bi-droplet"></i>
+                </div>
+                <div>
+                    <h4>Stay Hydrated</h4>
+                    <p>Drink water regularly throughout the day.</p>
+                </div>
+            </div>
+
+            <div class="health-tip-item">
+                <div class="tip-icon blue">
+                    <i class="bi bi-person-walking"></i>
+                </div>
+                <div>
+                    <h4>Keep Moving</h4>
+                    <p>Include regular physical activity in your routine.</p>
+                </div>
+            </div>
+
+            <div class="health-tip-item">
+                <div class="tip-icon orange">
+                    <i class="bi bi-egg-fried"></i>
+                </div>
+                <div>
+                    <h4>Eat Balanced Meals</h4>
+                    <p>Choose a variety of nutritious foods.</p>
+                </div>
+            </div>
+        </article>
 </section>
+
+
+
+@section Scripts {
+    <script>
+        (() => {
+            const periodSelect = document.getElementById("weightPeriod");
+            const monthsContainer = document.getElementById("chartMonths");
+            const dataContainer = document.getElementById("chartDataList");
+            const weightLine = document.getElementById("weightLine");
+            const weightArea = document.getElementById("weightArea");
+            const weightPoint = document.getElementById("weightPoint");
+
+            const monthlyWeights = [
+                { month: "January", short: "Jan", weight: 78 },
+                { month: "February", short: "Feb", weight: 76 },
+                { month: "March", short: "Mar", weight: 74 },
+                { month: "April", short: "Apr", weight: 73 },
+                { month: "May", short: "May", weight: 71 },
+                { month: "June", short: "Jun", weight: 70 },
+                { month: "July", short: "Jul", weight: 72 },
+                { month: "August", short: "Aug", weight: 71 },
+                { month: "September", short: "Sep", weight: 70 },
+                { month: "October", short: "Oct", weight: 69 },
+                { month: "November", short: "Nov", weight: 68 },
+                { month: "December", short: "Dec", weight: 68 }
+            ];
+
+            function renderWeightChart() {
+                if (!periodSelect || !monthsContainer || !dataContainer ||
+                    !weightLine || !weightArea || !weightPoint) return;
+
+                const selected = monthlyWeights.slice(-Number(periodSelect.value));
+                const left = 38, right = 330, top = 20, bottom = 185;
+
+                const points = selected.map((item, index) => {
+                    const x = selected.length === 1
+                        ? 184
+                        : left + index * (right - left) / (selected.length - 1);
+
+                    const y = bottom -
+                        ((item.weight - 65) / 15) * (bottom - top);
+
+                    return { ...item, x, y };
+                });
+
+                const first = points[0];
+                const last = points[points.length - 1];
+
+                weightLine.setAttribute(
+                    "points",
+                    points.map(p => `${p.x},${p.y}`).join(" ")
+                );
+
+                weightArea.setAttribute(
+                    "d",
+                    `M${first.x},${first.y} ` +
+                    points.slice(1).map(p => `L${p.x},${p.y}`).join(" ") +
+                    ` L${last.x},${bottom} L${first.x},${bottom} Z`
+                );
+
+                weightPoint.setAttribute("cx", last.x);
+                weightPoint.setAttribute("cy", last.y);
+
+                monthsContainer.innerHTML = points
+                    .map(p => `<span>${p.short}</span>`).join("");
+
+                monthsContainer.style.gridTemplateColumns =
+                    `repeat(${points.length}, minmax(0, 1fr))`;
+
+                dataContainer.innerHTML = points
+                    .map(p => `<div><span>${p.month}</span><strong>${p.weight} kg</strong></div>`)
+                    .join("");
+            }
+
+            if (periodSelect) {
+                periodSelect.addEventListener("change", renderWeightChart);
+                renderWeightChart();
+            }
+
+            const calorieData = [
+                { day: "Mon", calories: 300 },
+                { day: "Tue", calories: 200 },
+                { day: "Wed", calories: 400 },
+                { day: "Thu", calories: 250 },
+                { day: "Fri", calories: 500 },
+                { day: "Sat", calories: 350 },
+                { day: "Sun", calories: 550 }
+            ];
+
+            const calorieLine = document.getElementById("caloriesLine");
+            const calorieArea = document.getElementById("caloriesArea");
+            const caloriePoints = document.getElementById("caloriesPoints");
+            const weeklyCalories = document.getElementById("weeklyCalories");
+
+            if (calorieLine && calorieArea && caloriePoints && weeklyCalories) {
+                const left = 45, right = 680, top = 30, bottom = 210;
+                const maxCalories = 600;
+
+                const points = calorieData.map((item, index) => {
+                    const x = left + index * (right - left) /
+                        (calorieData.length - 1);
+                    const y = bottom -
+                        (item.calories / maxCalories) * (bottom - top);
+
+                    return { ...item, x, y };
+                });
+
+                const first = points[0];
+                const last = points[points.length - 1];
+
+                calorieLine.setAttribute(
+                    "points",
+                    points.map(p => `${p.x},${p.y}`).join(" ")
+                );
+
+                calorieArea.setAttribute(
+                    "d",
+                    `M${first.x},${first.y} ` +
+                    points.slice(1).map(p => `L${p.x},${p.y}`).join(" ") +
+                    ` L${last.x},${bottom} L${first.x},${bottom} Z`
+                );
+
+                caloriePoints.innerHTML = points.map(p =>
+                    `<circle cx="${p.x}" cy="${p.y}" r="5"></circle>`
+                ).join("");
+
+                const total = calorieData.reduce(
+                    (sum, item) => sum + item.calories, 0
+                );
+
+                weeklyCalories.innerHTML =
+                    `${total.toLocaleString()} <small>kcal</small>`;
+            }
+        })();
+    </script>
+}

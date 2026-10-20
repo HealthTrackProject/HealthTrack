@@ -23,9 +23,9 @@ html,
 body {
     width: 100%;
     height: 100%; /* Changed from min-height to height */
+    margin:0;
     font-family: Arial, Helvetica, sans-serif;
     color: var(--text);
-    overflow: hidden; /* Prevent whole page scroll */
 }
 
 body {
@@ -44,8 +44,9 @@ button {
 .dashboard-shell {
     display: flex;
     width: 100%;
-    height: 100vh; /* Changed to 100vh */
     overflow: hidden; /* Added to contain layout */
+    height: 100dvh;
+    overflow: hidden;
 }
 
 /* SIDEBAR */
@@ -146,12 +147,16 @@ button {
 
 /* MAIN PANEL */
 
+
 .main-panel {
+    display: flex;
     width: calc(100% - 245px);
     min-width: 0;
     height: 100vh; /* Changed to 100vh */
-    margin-left: 245px;
+    height: 100dvh;
+    min-height: 0;
     display: flex;
+    margin-left: 245px;
     flex-direction: column;
     overflow: hidden; /* Prevent main panel from scrolling */
 }
@@ -229,12 +234,19 @@ button {
 /* PAGE CONTENT */
 
 .page-content {
+    flex: 1 1 auto;
     width: 100%;
-    max-width: 1600px;
-    margin: 0 auto;
+    max-width: none;
+    margin: 0;
+    height: auto;
     padding: 25px 28px 35px;
-    flex: 1;
-    overflow-y: auto; /* ONLY this part scrolls */
+    min-height: 0; /* CRITICAL: Allows flex child to shrink so scrollbar appears */
+    min-width: 0;
+    overscroll-behavior-y: contain;
+    -webkit-overflow-scrolling: touch;
+    overflow-y: auto; /* Adds the scrollbar */
+    overflow-x: hidden; /* Fixes horizontal overflow */
+    box-sizing: border-box;
 }
 
 /* WELCOME SECTION */
@@ -333,10 +345,45 @@ button {
 
 .dashboard-grid {
     display: grid;
-    grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.05fr);
-    gap: 18px;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    grid-template-areas:
+        "activities weight"
+        "calories tips";
+    gap: 20px;
     align-items: start;
 }
+
+    /* Upcoming Activities - top left */
+    .dashboard-grid > .activities-card {
+        grid-column: 1;
+        grid-row: 1;
+    }
+    /* Weekly Calories Burned fills the empty left-side space */
+    .dashboard-grid > .calories-card {
+        grid-column: 1;
+        grid-row: 2;
+        align-self: start;
+        margin-top: 0;
+    }
+
+    /* Weight Progress stays on the right */
+    .dashboard-grid > .weight-progress-card {
+        grid-column: 2;
+        grid-row: 1 / span 2;
+    }
+    .dashboard-grid > .health-tips-card {
+        grid-column: 2;
+        grid-row: 2;
+        align-self: center;
+        margin-top: 280px;
+    }
+    /* Prevent cards from stretching */
+    .dashboard-grid > .content-card {
+        height: fit-content;
+        min-height: 0;
+        align-self: start;
+        box-sizing: border-box;
+    }
 
 .content-card {
     min-width: 0;
@@ -517,10 +564,285 @@ button {
 
 /* Keep the chart card within the dashboard grid */
 .dashboard-grid > .content-card {
-    min-width: 0;
     width: 100%;
+    min-width: 0;
     box-sizing: border-box;
-    overflow: hidden;
+}
+
+
+/* ========================================
+   CLIENT DASHBOARD - SECOND GRAPH
+======================================== */
+
+.dashboard-extra-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    width: 100%;
+    margin-top: 20px;
+    margin-bottom: 25px;
+}
+
+.calories-card {
+    width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    background: #fff;
+    box-shadow: 0 3px 12px rgba(19, 55, 72, 0.035);
+}
+
+    .calories-card .card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 20px;
+    }
+
+        .calories-card .card-header h3 {
+            margin: 0;
+            color: #183447;
+            font-size: 18px;
+            font-weight: 700;
+        }
+
+.graph-subtitle {
+    margin: 6px 0 0;
+    color: #71879a;
+    font-size: 12px;
+}
+
+.graph-badge {
+    padding: 8px 11px;
+    border-radius: 8px;
+    background: #eaf4ff;
+    color: #1687f8;
+    font-size: 12px;
+    white-space: nowrap;
+}
+
+.calories-summary {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    padding: 15px;
+    margin-bottom: 15px;
+    border-radius: 10px;
+    background: #f6fafb;
+}
+
+    .calories-summary span {
+        color: #71879a;
+        font-size: 12px;
+    }
+
+    .calories-summary h2 {
+        margin: 6px 0 0;
+        color: #183447;
+        font-size: 27px;
+        font-weight: 700;
+    }
+
+        .calories-summary h2 small {
+            color: #71879a;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+.calories-summary-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 45px;
+    height: 45px;
+    border-radius: 12px;
+    background: #e8f2ff;
+    color: #1687f8;
+    font-size: 22px;
+}
+
+/* Calories chart sizing */
+.calories-chart-container {
+    width: 100%;
+    height: 190px;
+    min-width: 0;
+}
+
+.calories-chart {
+    display: block;
+    width: 100%;
+    height: 100%;
+}
+
+.calories-grid-line {
+    stroke: #e9eff3;
+    stroke-width: 1;
+}
+
+.calories-axis-label {
+    fill: #7b8c99;
+    font-size: 12px;
+}
+
+.calories-line {
+    fill: none;
+    stroke: #1687f8;
+    stroke-width: 3;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+.calories-chart circle {
+    stroke: #fff;
+    stroke-width: 2;
+}
+
+.calories-day-labels {
+    display: grid;
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+    gap: 0;
+    padding-left: 35px;
+    margin-top: 5px;
+    color: #71879a;
+    font-size: 12px;
+    text-align: center;
+}
+
+.calories-legend {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 18px;
+    color: #71879a;
+    font-size: 12px;
+}
+
+.legend-dot {
+    width: 9px;
+    height: 9px;
+    flex-shrink: 0;
+    border-radius: 50%;
+    background: #1687f8;
+}
+
+.graph-disclaimer {
+    display: flex;
+    align-items: flex-start;
+    gap: 7px;
+    margin: 14px 0 0;
+    color: #71879a;
+    font-size: 11px;
+    line-height: 1.5;
+}
+
+    .graph-disclaimer i {
+        color: #1687f8;
+    }
+
+/* ADDITIONAL DASHBOARD CONTENT */
+
+.dashboard-bottom-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 18px;
+    margin-top: 20px;
+    margin-bottom: 25px;
+}
+
+.health-tips-card {
+    min-width: 0;
+    padding: 22px;
+    border: 1px solid #dce8ef;
+    border-radius: 14px;
+    background: #fff;
+}
+
+.health-tip-item {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-top: 18px;
+}
+
+    .health-tip-item h4 {
+        margin: 0 0 5px;
+        color: #183447;
+        font-size: 14px;
+    }
+
+    .health-tip-item p {
+        margin: 0;
+        color: #71879a;
+        font-size: 12px;
+        line-height: 1.6;
+    }
+
+.tip-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    font-size: 18px;
+}
+
+    .tip-icon.green {
+        background: #e5f8ef;
+        color: #20bd79;
+    }
+
+    .tip-icon.blue {
+        background: #e9f3ff;
+        color: #1687f8;
+    }
+
+    .tip-icon.orange {
+        background: #fff3e3;
+        color: #fb981e;
+    }
+
+/* KEEP CONTENT CLEAR OF FOOTER */
+
+
+@media (max-width: 1100px) {
+    .dashboard-grid {
+        grid-template-columns: minmax(0, 1fr);
+        grid-template-rows: auto;
+    }
+
+        .dashboard-grid > article:first-child,
+        .dashboard-grid > article.calories-card,
+        .dashboard-grid > article.weight-progress-card {
+            grid-column: 1;
+            grid-row: auto;
+        }
+}
+
+@media (max-width: 700px) {
+    .calories-card,
+    .health-tips-card {
+        padding: 15px;
+    }
+
+        .calories-card .card-header h3 {
+            font-size: 16px;
+        }
+
+    .calories-chart-container {
+        height: 190px;
+    }
+
+    .calories-summary h2 {
+        font-size: 23px;
+    }
+
+    .calories-day-labels {
+        font-size: 10px;
+    }
 }
 
 /* RESPONSIVE */
@@ -674,14 +996,12 @@ button {
 
     .health-page-header h2 {
         margin-bottom: 7px;
-        color: var(--text);
-        font-size: 25px;
+        font-size: 24px;
     }
 
     .health-page-header p {
         color: var(--muted);
         font-size: 14px;
-        line-height: 1.6;
     }
 
 .health-primary-button,
@@ -1103,9 +1423,12 @@ button {
 }
 
     .client-appointments-header h2 {
-        margin: 0;
-        font-size: 23px;
-        font-weight: 700;
+        margin-bottom: 7px;
+        font-size: 24px;
+    }
+    .client-appointments-header p {
+        color: var(--muted);
+        font-size: 14px;
     }
 
 .ca-request-btn {
@@ -1394,15 +1717,13 @@ button {
 }
 
     .ht-progress-header h2 {
-        margin: 0;
-        font-size: 22px;
-        font-weight: 750;
+        font-size: 24px;
+        margin-bottom: 7px;
     }
 
     .ht-progress-header p {
-        margin: 5px 0 0;
-        color: #8291a1;
-        font-size: 11px;
+        color: var(--muted);
+        font-size: 14px;
     }
 
 .ht-period-select {
@@ -1484,7 +1805,7 @@ button {
     display: block;
     margin-bottom: 4px;
     color: #64798a;
-    font-size: 10px;
+    font-size: 12px;
     white-space: nowrap;
 }
 
@@ -1677,14 +1998,12 @@ button {
 
     .health-page-header h2 {
         margin-bottom: 7px;
-        color: var(--text);
-        font-size: 25px;
+        font-size: 24px;
     }
 
     .health-page-header p {
         color: var(--muted);
         font-size: 14px;
-        line-height: 1.6;
     }
 
 .health-primary-button,
@@ -2153,16 +2472,13 @@ button {
     }
 
         .workout-page .health-page-header h2 {
-            margin: 0 0 8px;
-            color: #183447;
-            font-size: 28px;
-            font-weight: 700;
+            margin-bottom: 7px;
+            font-size: 22px;
         }
 
         .workout-page .health-page-header p {
-            margin: 0;
-            color: #718494;
-            font-size: 15px;
+            color: var(--muted);
+            font-size: 14px;
         }
 
     .workout-page .health-primary-button,
@@ -2721,17 +3037,13 @@ body.modal-open {
     }
 
         .diet-page .health-page-header h2 {
-            margin: 0 0 8px;
-            color: #183447;
-            font-size: 28px;
-            font-weight: 700;
+            margin-bottom: 7px;
+            font-size: 22px;
         }
 
         .diet-page .health-page-header p {
-            margin: 0;
-            color: #718494;
-            font-size: 15px;
-            line-height: 1.6;
+            color: var(--muted);
+            font-size: 14px;
         }
 
     .diet-page .health-primary-button,
