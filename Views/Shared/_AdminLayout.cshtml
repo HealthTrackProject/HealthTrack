@@ -1,0 +1,112 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - HealthTrack Admin</title>
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/AdminDashboard.css" />
+    <link rel="stylesheet" href="~/css/site.css" />
+
+    @await RenderSectionAsync("Styles", required: false)
+</head>
+<body>
+    <div class="dashboard-shell">
+
+        <!-- SIDEBAR -->
+        <aside class="sidebar" id="sidebar">
+            <!-- Fixed: Changed logo icon to heart-pulse and linked to Home -->
+            <a asp-controller="Home" asp-action="Index" class="brand">
+                <span class="brand-icon">
+                    <i class="bi bi-heart-pulse-fill"></i>
+                </span>
+                <span>HealthTrack</span>
+            </a>
+
+            <div class="sidebar-menu">
+                <p class="menu-label">ADMIN MENU</p>
+
+                <a asp-controller="AdminDashboard" asp-action="Index" class="side-link @(ViewData["ActivePage"]?.ToString() == "Dashboard" ? "active" : "")">
+                    <i class="bi bi-grid-1x2-fill"></i> <span>Dashboard</span>
+                </a>
+                <a asp-controller="AdminDashboard" asp-action="ManageUser" class="side-link @(ViewData["ActivePage"]?.ToString() == "ManageUser" ? "active" : "")">
+                    <i class="bi bi-people-fill"></i> <span>Manage Users</span>
+                </a>
+                <a asp-controller="AdminDashboard" asp-action="ManageClient" class="side-link @(ViewData["ActivePage"]?.ToString() == "ManageClient" ? "active" : "")">
+                    <i class="bi bi-person-badge-fill"></i> <span>Manage Clients</span>
+                </a>
+                <a asp-controller="AdminDashboard" asp-action="ManageTrainers" class="side-link @(ViewData["ActivePage"]?.ToString() == "ManageTrainers" ? "active" : "")">
+                    <i class="bi bi-person-video3"></i> <span>Manage Trainers</span>
+                </a>
+                <a asp-controller="AdminDashboard" asp-action="Appointments" class="side-link @(ViewData["ActivePage"]?.ToString() == "Appointments" ? "active" : "")">
+                    <i class="bi bi-calendar-check-fill"></i> <span>Appointments</span>
+                </a>
+                <a asp-controller="AdminDashboard" asp-action="Reports" class="side-link @(ViewData["ActivePage"]?.ToString() == "Reports" ? "active" : "")">
+                    <i class="bi bi-file-earmark-bar-graph-fill"></i> <span>Reports</span>
+                </a>
+                <a asp-controller="AdminDashboard" asp-action="SystemSettings" class="side-link @(ViewData["ActivePage"]?.ToString() == "SystemSettings" ? "active" : "")">
+                    <i class="bi bi-gear-fill"></i> <span>System Settings</span>
+                </a>
+                <a asp-controller="AdminDashboard" asp-action="Notifications" class="side-link @(ViewData["ActivePage"]?.ToString() == "Notifications" ? "active" : "")">
+                    <i class="bi bi-bell-fill"></i> <span>Notifications</span>
+                </a>
+                <a asp-controller="AdminDashboard" asp-action="MyProfile" class="side-link @(ViewData["ActivePage"]?.ToString() == "MyProfile" ? "active" : "")">
+                    <i class="bi bi-person-circle"></i> <span>My Profile</span>
+                </a>
+            </div>
+
+            <div class="sidebar-bottom">
+                <form asp-area="Identity" asp-page="/Account/Logout" asp-route-returnUrl="@Url.Action("Index", "Home")" method="post">
+                    <button type="submit" class="side-link logout-link">
+                        <i class="bi bi-box-arrow-right"></i> <span>Logout</span>
+                    </button>
+                </form>
+            </div>
+        </aside>
+
+        <!-- MAIN CONTENT -->
+        <div class="main-panel">
+            <header class="topbar">
+                <div class="topbar-left">
+                    <div>
+                        <h1>@(ViewData["Heading"] ?? "Admin Panel")</h1>
+                        <p class="topbar-subtitle">System Management</p>
+                    </div>
+                </div>
+
+                <div class="topbar-right">
+                    <a asp-controller="AdminDashboard" asp-action="Notifications" class="notification-button">
+                        <i class="bi bi-bell"></i>
+                    </a>
+                    <!-- Fixed: Changed top right icon to User Profile -->
+                    <a asp-controller="AdminDashboard" asp-action="MyProfile" class="user-avatar">
+                        <i class="bi bi-person-fill"></i>
+                    </a>
+                </div>
+            </header>
+
+            <main class="page-content">
+                @RenderBody()
+            </main>
+
+            <partial name="_Footer" />
+        </div>
+    </div>
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Optional: Add the mobile sidebar toggle if needed
+        const menuToggle = document.getElementById("menuToggle");
+        const sidebar = document.getElementById("sidebar");
+        if (menuToggle && sidebar) {
+        menuToggle.addEventListener("click", function () {
+        sidebar.classList.toggle("sidebar-open");
+        });
+        }
+    </script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>
