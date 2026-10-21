@@ -1,4 +1,142 @@
-﻿@page
-@model HealthTrack.Views.AdminDashboard.AppointmentsModel
-@{
+﻿@{
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+    ViewData["Title"] = "Appointments";
+    ViewData["Heading"] = "Appointments";
+    ViewData["ActivePage"] = "Appointments";
+}
+
+<div class="trainer-page-header">
+    <h2>All Appointments</h2>
+    <button class="health-primary-button">
+        <i class="bi bi-calendar-plus"></i> New Appointment
+    </button>
+</div>
+
+<!-- FILTER TABS -->
+<div class="appointment-tabs">
+    <button class="appointment-tab active" data-filter="all">All</button>
+    <button class="appointment-tab" data-filter="pending">Pending</button>
+    <button class="appointment-tab" data-filter="approved">Approved</button>
+    <button class="appointment-tab" data-filter="cancelled">Cancelled</button>
+</div>
+
+<!-- APPOINTMENTS TABLE -->
+<div class="client-table-wrapper">
+    <table class="client-table">
+        <thead>
+            <tr>
+                <th>Client</th>
+                <th>Trainer</th>
+                <th>Date & Time</th>
+                <th>Status</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody id="appointmentsTableBody">
+
+            <!-- Row 1: Pending -->
+            <tr data-status="pending">
+                <td>
+                    <div class="table-user-info">
+                        <img src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100&h=100&fit=crop" class="table-avatar" alt="Kamal" />
+                        <h4>Kamal Perera</h4>
+                    </div>
+                </td>
+                <td>John Silva</td>
+                <td>10 Apr 2025, 10:00 AM</td>
+                <td><span class="badge badge-pending">Pending</span></td>
+                <td>
+                    <div class="action-buttons">
+                        <button class="btn-approve">Approve</button>
+                        <button class="btn-cancel">Cancel</button>
+                    </div>
+                </td>
+            </tr>
+
+            <!-- Row 2: Approved -->
+            <tr data-status="approved">
+                <td>
+                    <div class="table-user-info">
+                        <img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&fit=crop" class="table-avatar" alt="Nimali" />
+                        <h4>Nimali Silva</h4>
+                    </div>
+                </td>
+                <td>Sarah Perera</td>
+                <td>12 Apr 2025, 2:00 PM</td>
+                <td><span class="badge badge-approved">Approved</span></td>
+                <td>
+                    <div class="action-buttons">
+                        <button class="btn-view-outline">View</button>
+                    </div>
+                </td>
+            </tr>
+
+            <!-- Row 3: Cancelled -->
+            <tr data-status="cancelled">
+                <td>
+                    <div class="table-user-info">
+                        <img src="https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?w=100&h=100&fit=crop" class="table-avatar" alt="Tharushi" />
+                        <h4>Tharushi Dias</h4>
+                    </div>
+                </td>
+                <td>Mike Johnson</td>
+                <td>15 Apr 2025, 11:00 AM</td>
+                <td><span class="badge badge-cancelled">Cancelled</span></td>
+                <td>
+                    <div class="action-buttons">
+                        <button class="btn-view-outline">View</button>
+                    </div>
+                </td>
+            </tr>
+
+            <!-- Row 4: Pending -->
+            <tr data-status="pending">
+                <td>
+                    <div class="table-user-info">
+                        <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop" class="table-avatar" alt="Sahan" />
+                        <h4>Sahan Fernando</h4>
+                    </div>
+                </td>
+                <td>Sarah Perera</td>
+                <td>18 Apr 2025, 9:00 AM</td>
+                <td><span class="badge badge-pending">Pending</span></td>
+                <td>
+                    <div class="action-buttons">
+                        <button class="btn-approve">Approve</button>
+                        <button class="btn-cancel">Cancel</button>
+                    </div>
+                </td>
+            </tr>
+
+        </tbody>
+    </table>
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const tabs = document.querySelectorAll(".appointment-tab");
+            const tableRows = document.querySelectorAll("#appointmentsTableBody tr");
+
+            // Tab Filtering Logic
+            tabs.forEach(tab => {
+                tab.addEventListener("click", function () {
+                    // Update active tab styling
+                    tabs.forEach(t => t.classList.remove("active"));
+                    this.classList.add("active");
+
+                    const filterValue = this.getAttribute("data-filter");
+
+                    // Show/hide rows based on data-status
+                    tableRows.forEach(row => {
+                        if (filterValue === "all" || row.getAttribute("data-status") === filterValue) {
+                            row.style.display = ""; // Show
+                        } else {
+                            row.style.display = "none"; // Hide
+                        }
+                    });
+                });
+            });
+        });
+    </script>
 }

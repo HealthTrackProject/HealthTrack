@@ -1,4 +1,78 @@
-﻿@page
-@model HealthTrack.Views.AdminDashboard.NotificationsModel
-@{
+﻿@{
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+    ViewData["Title"] = "Notifications";
+    ViewData["Heading"] = "Notifications";
+    ViewData["ActivePage"] = "Notifications";
 }
+
+<div class="health-page-header">
+    <div>
+        <h2>System Notifications</h2>
+        <p>Stay updated with system activities, new registrations, and alerts.</p>
+    </div>
+    <button class="health-primary-button" style="font-size: 12px; padding: 8px 14px;">
+        <i class="bi bi-check2-all"></i> Mark all as read
+    </button>
+</div>
+
+<div class="client-table-wrapper" style="padding: 20px;">
+    <div class="notification-list">
+
+        <!-- Notification 1 -->
+        <div class="notification-item">
+            <div class="notification-icon purple">
+                <i class="bi bi-person-plus-fill"></i>
+            </div>
+            <div class="notification-content">
+                <div class="notification-title-row">
+                    <h4>New Trainer Registered</h4>
+                    <span>10 minutes ago</span>
+                </div>
+                <p>A new trainer, <strong>John Silva</strong>, has registered and is awaiting your approval.</p>
+            </div>
+        </div>
+
+        <!-- Notification 2 -->
+        <div class="notification-item">
+            <div class="notification-icon green">
+                <i class="bi bi-server"></i>
+            </div>
+            <div class="notification-content">
+                <div class="notification-title-row">
+                    <h4>System Backup Successful</h4>
+                    <span>2 hours ago</span>
+                </div>
+                <p>The weekly database backup has been completed successfully without any errors.</p>
+            </div>
+        </div>
+
+        <!-- Notification 3 -->
+        <div class="notification-item">
+            <div class="notification-icon orange">
+                <i class="bi bi-exclamation-triangle-fill"></i>
+            </div>
+            <div class="notification-content">
+                <div class="notification-title-row">
+                    <h4>High Server Load Detected</h4>
+                    <span>1 day ago</span>
+                </div>
+                <p>Server CPU usage exceeded 80% for 15 minutes. Please check server resources.</p>
+            </div>
+        </div>
+
+        <!-- Notification 4 -->
+        <div class="notification-item">
+            <div class="notification-icon blue">
+                <i class="bi bi-calendar-check-fill"></i>
+            </div>
+            <div class="notification-content">
+                <div class="notification-title-row">
+                    <h4>Monthly Report Generated</h4>
+                    <span>2 days ago</span>
+                </div>
+                <p>The analytics report for September 2026 is ready. You can now download it from the Reports section.</p>
+            </div>
+        </div>
+
+    </div>
+</div>

@@ -1,0 +1,155 @@
+﻿@{
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+    ViewData["Title"] = "Manage Trainers";
+    ViewData["Heading"] = "Manage Trainers";
+    ViewData["ActivePage"] = "ManageTrainers";
+}
+
+<div class="trainer-page-header">
+    <h2>Manage Trainers</h2>
+    <button class="health-primary-button" id="addTrainerBtn">
+        <i class="bi bi-plus-lg"></i> Add Trainer
+    </button>
+</div>
+
+<!-- SEARCH BAR -->
+<div class="manage-users-controls">
+    <div></div>
+    <div class="search-box">
+        <i class="bi bi-search"></i>
+        <input type="text" placeholder="Search trainers..." />
+    </div>
+</div>
+
+<!-- TRAINERS TABLE -->
+<div class="client-table-wrapper">
+    <table class="client-table">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Specialization</th>
+                <th>Status</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>
+                    <div class="table-user-info">
+                        <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop" class="table-avatar" alt="John" />
+                        <h4>John Silva</h4>
+                    </div>
+                </td>
+                <td>john@gmail.com</td>
+                <td>Strength & Conditioning</td>
+                <td><span class="badge badge-active">Active</span></td>
+                <td>
+                    <div class="action-buttons">
+                        <button class="btn-edit">Edit</button>
+                        <button class="btn-delete">Delete</button>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <div class="table-user-info">
+                        <img src="https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=100&h=100&fit=crop" class="table-avatar" alt="Sarah" />
+                        <h4>Sarah Perera</h4>
+                    </div>
+                </td>
+                <td>sarah@gmail.com</td>
+                <td>Yoga & Flexibility</td>
+                <td><span class="badge badge-active">Active</span></td>
+                <td>
+                    <div class="action-buttons">
+                        <button class="btn-edit">Edit</button>
+                        <button class="btn-delete">Delete</button>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <div class="table-user-info">
+                        <img src="https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=100&h=100&fit=crop" class="table-avatar" alt="Mike" />
+                        <h4>Mike Johnson</h4>
+                    </div>
+                </td>
+                <td>mike@gmail.com</td>
+                <td>Cardio & HIIT</td>
+                <td><span class="badge badge-inactive">On Leave</span></td>
+                <td>
+                    <div class="action-buttons">
+                        <button class="btn-edit">Edit</button>
+                        <button class="btn-delete">Delete</button>
+                    </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+
+<!-- ADD TRAINER MODAL -->
+<div class="ca-modal" id="addTrainerModal" hidden>
+    <div class="ca-modal-content">
+        <button type="button" class="ca-modal-close" id="closeTrainerModalBtn">&times;</button>
+        <h3>Add New Trainer</h3>
+
+        <form id="addTrainerForm">
+            <div class="form-group">
+                <label>Full Name</label>
+                <input type="text" placeholder="e.g. Jane Smith" required />
+            </div>
+
+            <div class="form-group">
+                <label>Email Address</label>
+                <input type="email" placeholder="e.g. jane@example.com" required />
+            </div>
+
+            <div class="form-group">
+                <label>Specialization</label>
+                <select required>
+                    <option value="">-- Select Specialization --</option>
+                    <option value="1">Strength & Conditioning</option>
+                    <option value="2">Yoga & Flexibility</option>
+                    <option value="3">Cardio & HIIT</option>
+                    <option value="4">Nutrition & Diet</option>
+                </select>
+            </div>
+
+            <div class="modal-actions">
+                <button type="button" class="btn-view-outline" id="cancelTrainerBtn">Cancel</button>
+                <button type="submit" class="health-primary-button">Save Trainer</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const modal = document.getElementById("addTrainerModal");
+            const addBtn = document.getElementById("addTrainerBtn");
+            const closeBtn = document.getElementById("closeTrainerModalBtn");
+            const cancelBtn = document.getElementById("cancelTrainerBtn");
+            const form = document.getElementById("addTrainerForm");
+
+            addBtn.addEventListener("click", () => modal.hidden = false);
+
+            function closeModal() {
+                modal.hidden = true;
+                form.reset();
+            }
+
+            closeBtn.addEventListener("click", closeModal);
+            cancelBtn.addEventListener("click", closeModal);
+            modal.addEventListener("click", (e) => { if (e.target === modal) closeModal(); });
+
+            form.addEventListener("submit", function (e) {
+                e.preventDefault();
+                alert("Trainer added successfully! (UI Demo)");
+                closeModal();
+            });
+        });
+    </script>
+}

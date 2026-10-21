@@ -1,0 +1,75 @@
+﻿@{
+    Layout = null;
+    ViewData["Title"] = "About Us";
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>About Us - HealthTrack</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
+    <link rel="stylesheet" href="/css/home.css" />
+    <link rel="stylesheet" href="~/css/site.css" />
+    <link rel="stylesheet" href="/css/about.css" />
+</head>
+<body>
+    <div class="healthtrack-page">
+        <!-- NAVBAR (Same as Home) -->
+        <header class="ht-navbar">
+            <a href="/" class="ht-logo">
+                <div class="logo-heart"><i class="bi bi-heart-pulse-fill"></i></div>
+                <span>HealthTrack</span>
+            </a>
+            <nav class="ht-navigation">
+                <a href="/">Home</a>
+                <a asp-controller="Home" asp-action="About" class="active">About</a>
+                <a asp-controller="Home" asp-action="Services">Services</a>
+                <a asp-controller="Home" asp-action="Contact">Contact</a>
+            </nav>
+            <div class="nav-buttons">
+                <a href="/Identity/Account/Login" class="login-btn">Login</a>
+                <a href="/Identity/Account/Register" class="register-btn">Register</a>
+            </div>
+        </header>
+
+        <!-- ABOUT CONTENT -->
+        <section class="about-section">
+            <div class="about-header">
+                <h1>About <span>HealthTrack</span></h1>
+                <p>Your journey to a healthier lifestyle starts here.</p>
+            </div>
+
+            <div class="about-content">
+                <div class="about-image">
+                    <img src="/images/health-woman.jpg" alt="About HealthTrack" />
+                </div>
+                <div class="about-text">
+                    <h2>Who We Are</h2>
+                    <p>HealthTrack is a comprehensive digital platform designed to help individuals track and improve their health and fitness. We bridge the gap between clients, trainers, and healthcare professionals.</p>
+
+                    <h2>Our Mission</h2>
+                    <p>We believe that maintaining a healthy lifestyle shouldn't be complicated. Our mission is to provide you with the tools you need to monitor your exercise routines, manage your diet, track health metrics, and achieve your goals.</p>
+
+                    <div class="about-stats">
+                        <div class="stat-box">
+                            <h3>500+</h3>
+                            <p>Active Clients</p>
+                        </div>
+                        <div class="stat-box">
+                            <h3>50+</h3>
+                            <p>Expert Trainers</p>
+                        </div>
+                        <div class="stat-box">
+                            <h3>10k+</h3>
+                            <p>Workouts Logged</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+    <partial name="_Footer" />
+</body>
+</html>

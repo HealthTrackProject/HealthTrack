@@ -1,0 +1,186 @@
+﻿/* =========================================
+   CONTACT PAGE
+========================================= */
+.contact-section {
+    padding: 60px 5vw;
+    background: #ffffff;
+    flex: 1;
+}
+
+.contact-header {
+    text-align: center;
+    margin-bottom: 50px;
+}
+
+    .contact-header h1 {
+        font-size: clamp(36px, 4vw, 52px);
+        color: #092b3d;
+        margin-bottom: 15px;
+    }
+
+        .contact-header h1 span {
+            color: #008f78;
+        }
+
+    .contact-header p {
+        color: #687980;
+        font-size: 18px;
+    }
+
+.contact-container {
+    display: flex;
+    gap: 50px;
+    max-width: 1000px;
+    margin: 0 auto;
+    background: #ffffff;
+    border-radius: 20px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.05);
+    overflow: hidden;
+}
+
+.contact-info {
+    flex: 1;
+    background: #e5f7fb;
+    padding: 50px 40px;
+}
+
+    .contact-info h2 {
+        color: #092b3d;
+        font-size: 24px;
+        margin-bottom: 15px;
+    }
+
+    .contact-info > p {
+        color: #687980;
+        margin-bottom: 40px;
+    }
+
+.info-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 15px;
+    margin-bottom: 30px;
+}
+
+    .info-item i {
+        font-size: 24px;
+        color: #008f78;
+        margin-top: 3px;
+    }
+
+    .info-item h4 {
+        color: #092b3d;
+        font-size: 16px;
+        margin-bottom: 5px;
+    }
+
+    .info-item p {
+        color: #687980;
+        font-size: 14px;
+        margin: 0;
+    }
+
+.contact-form {
+    flex: 1.2;
+    padding: 50px 40px;
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+    .form-group label {
+        display: block;
+        color: #092b3d;
+        font-weight: 600;
+        font-size: 14px;
+        margin-bottom: 8px;
+    }
+
+    .form-group input,
+    .form-group textarea {
+        width: 100%;
+        padding: 12px 15px;
+        border: 1px solid #dce6ed;
+        border-radius: 8px;
+        font-size: 14px;
+        outline: none;
+        font-family: inherit;
+        transition: border-color 0.3s ease;
+    }
+
+        .form-group input:focus,
+        .form-group textarea:focus {
+            border-color: #008f78;
+            box-shadow: 0 0 0 3px rgba(0, 143, 120, 0.1);
+        }
+
+.contact-form .get-started {
+    width: 100%;
+    border: none;
+    cursor: pointer;
+    margin-top: 10px;
+}
+
+@media (max-width: 900px) {
+    .contact-container {
+        flex-direction: column;
+    }
+}
+
+/* =========================================
+   FIX FOR FOOTER POSITION ON LONG PAGES
+========================================= */
+body {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+.healthtrack-page {
+    height: auto !important; /* Remove the 100vh restriction */
+    min-height: 100vh;
+    overflow: visible !important; /* Allow scrolling */
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+}
+
+/* Make sure the section takes up available space to push footer down */
+.about-section, .services-section, .contact-section {
+    flex: 1;
+}
+
+/* =========================================
+   FIX FOR SUBPAGES (About, Services, Contact)
+   ========================================= */
+
+/* 1. Body එක ස්ක්‍රීන් එකේ උසට හදලා, flex කරමු */
+body {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    height: auto !important;
+    overflow-y: auto !important;
+}
+
+/* 2. home.css එකේ තියෙන 100vh සීමාව අයින් කරමු */
+.healthtrack-page {
+    height: auto !important;
+    min-height: 100vh;
+    overflow: visible !important;
+    display: flex;
+    flex-direction: column;
+    flex: 1 0 auto; /* මේකෙන් Content එක තියෙන තැනට ලොකු වෙනවා */
+}
+
+/* 3. අදාළ කොටස (Section) එක ඉතුරු ඉඩ පුරවන්න හදමු */
+.about-section, .services-section, .contact-section {
+    flex: 1; /* මේකෙන් Footer එක පහළට තල්ලු වෙනවා */
+}
+
+/* 4. Footer එක හැකිළෙන එක නවත්තමු */
+.ht-footer {
+    flex-shrink: 0;
+    margin-top: auto;
+}

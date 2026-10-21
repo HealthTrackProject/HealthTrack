@@ -47,21 +47,10 @@
             <!-- NAVIGATION -->
             <nav class="ht-navigation">
 
-                <a href="/" class="active">
-                    Home
-                </a>
-
-                <a href="#about">
-                    About
-                </a>
-
-                <a href="#services">
-                    Services
-                </a>
-
-                <a href="#contact">
-                    Contact
-                </a>
+                <a href="/" class="active">Home</a>
+                <a asp-controller="Home" asp-action="About">About</a>
+                <a asp-controller="Home" asp-action="Services">Services</a>
+                <a asp-controller="Home" asp-action="Contact">Contact</a>
 
             </nav>
 
@@ -129,7 +118,7 @@
 
                 <div class="feature-icon workout">
 
-                    <i class="bi bi-barbell"></i>
+                    <i class="bi bi-lightning-charge-fill"></i>
 
                 </div>
 
