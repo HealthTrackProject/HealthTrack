@@ -748,3 +748,207 @@ button {
         gap: 20px;
     }
 }
+
+/* =========================================
+   ADMIN - MANAGE USERS PAGE
+========================================= */
+
+.manage-users-controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+/* Tabs */
+.admin-tabs {
+    display: flex;
+    gap: 25px;
+    border-bottom: 1px solid var(--border);
+}
+
+.admin-tab {
+    padding: 10px 5px;
+    background: transparent;
+    border: none;
+    border-bottom: 2px solid transparent;
+    color: var(--muted);
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+    .admin-tab:hover {
+        color: var(--text);
+    }
+
+    .admin-tab.active {
+        color: var(--text);
+        border-bottom-color: #008f78; /* Green underline matching image */
+    }
+
+/* Search Box */
+.search-box {
+    position: relative;
+    width: 280px;
+}
+
+    .search-box i {
+        position: absolute;
+        left: 12px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: var(--muted);
+        font-size: 14px;
+    }
+
+    .search-box input {
+        width: 100%;
+        padding: 10px 10px 10px 35px;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        font-size: 13px;
+        outline: none;
+        transition: border-color 0.2s;
+    }
+
+        .search-box input:focus {
+            border-color: var(--primary);
+        }
+
+/* Badges for Roles */
+.badge-client {
+    background: #e3f2fd; /* Light Blue */
+    color: #1E88E5;
+}
+
+.badge-trainer {
+    background: #f3e5f5; /* Light Purple */
+    color: #8E24AA;
+}
+
+.badge-admin {
+    background: #ffebee; /* Light Red */
+    color: #e53935;
+}
+
+/* Action Buttons */
+.action-buttons {
+    display: flex;
+    gap: 8px;
+}
+
+.btn-edit {
+    background: #1E88E5;
+    color: white;
+    border: none;
+    padding: 6px 14px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+    .btn-edit:hover {
+        background: #1565C0;
+    }
+
+.btn-delete {
+    background: #e53935;
+    color: white;
+    border: none;
+    padding: 6px 14px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+    .btn-delete:hover {
+        background: #c62828;
+    }
+
+/* =========================================
+   ADMIN MODAL (POP-UP) STYLES
+========================================= */
+.ca-modal {
+    position: fixed;
+    z-index: 2000;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    background: rgba(12, 35, 48, 0.45);
+}
+
+    .ca-modal[hidden] {
+        display: none !important;
+    }
+
+.ca-modal-content {
+    position: relative;
+    width: 100%;
+    max-width: 500px;
+    padding: 28px;
+    border-radius: 13px;
+    background: white;
+    box-shadow: 0 15px 45px rgba(0, 0, 0, 0.16);
+}
+
+.ca-modal-close {
+    position: absolute;
+    top: 8px;
+    right: 12px;
+    border: 0;
+    background: transparent;
+    color: #718494;
+    font-size: 25px;
+    cursor: pointer;
+}
+
+.ca-modal-content h3 {
+    margin-bottom: 20px;
+    text-align: center;
+    color: var(--text);
+}
+
+/* Form inputs inside the modal */
+.form-group {
+    margin-bottom: 15px;
+}
+
+    .form-group label {
+        display: block;
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--text);
+        margin-bottom: 5px;
+    }
+
+    .form-group input,
+    .form-group select {
+        width: 100%;
+        padding: 10px 12px;
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        font-size: 14px;
+        outline: none;
+    }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            border-color: var(--primary);
+        }
+
+.modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 20px;
+}

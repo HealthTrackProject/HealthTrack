@@ -1,4 +1,239 @@
-﻿@page
-@model HealthTrack.Views.AdminDashboard.ManageUserModel
-@{
+﻿@{
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+    ViewData["Title"] = "Manage Users";
+    ViewData["Heading"] = "Manage Users";
+    ViewData["ActivePage"] = "ManageUser";
+}
+
+<div class="trainer-page-header">
+    <h2>Manage Users</h2>
+    <button class="health-primary-button" id="addUserBtn">
+        <i class="bi bi-plus-lg"></i> Add User
+    </button>
+</div>
+
+<!-- TABS & SEARCH BAR -->
+<div class="manage-users-controls">
+    <div class="admin-tabs">
+        <!-- Added data-filter attributes for JavaScript -->
+        <button class="admin-tab active" data-filter="all">All Users</button>
+        <button class="admin-tab" data-filter="client">Clients</button>
+        <button class="admin-tab" data-filter="trainer">Trainers</button>
+        <button class="admin-tab" data-filter="admin">Admins</button>
+    </div>
+
+    <div class="search-box">
+        <i class="bi bi-search"></i>
+        <input type="text" placeholder="Search users..." />
+    </div>
+</div>
+
+<!-- USERS TABLE -->
+<div class="client-table-wrapper">
+    <table class="client-table">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Role</th>
+                <th>Status</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody id="usersTableBody">
+            <!-- Added data-role attributes to each row -->
+            <tr data-role="client">
+                <td>
+                    <div class="table-user-info">
+                        <img src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100&h=100&fit=crop" class="table-avatar" alt="Kamal" />
+                        <h4>Kamal Perera</h4>
+                    </div>
+                </td>
+                <td>kamal@gmail.com</td>
+                <td><span class="badge badge-client">Client</span></td>
+                <td><span class="badge badge-active">Active</span></td>
+                <td>
+                    <div class="action-buttons">
+                        <button class="btn-edit">Edit</button>
+                        <button class="btn-delete">Delete</button>
+                    </div>
+                </td>
+            </tr>
+
+            <tr data-role="client">
+                <td>
+                    <div class="table-user-info">
+                        <img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&fit=crop" class="table-avatar" alt="Nimali" />
+                        <h4>Nimali Silva</h4>
+                    </div>
+                </td>
+                <td>nimali@gmail.com</td>
+                <td><span class="badge badge-client">Client</span></td>
+                <td><span class="badge badge-active">Active</span></td>
+                <td>
+                    <div class="action-buttons">
+                        <button class="btn-edit">Edit</button>
+                        <button class="btn-delete">Delete</button>
+                    </div>
+                </td>
+            </tr>
+
+            <tr data-role="trainer">
+                <td>
+                    <div class="table-user-info">
+                        <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop" class="table-avatar" alt="John" />
+                        <h4>John Silva</h4>
+                    </div>
+                </td>
+                <td>john@gmail.com</td>
+                <td><span class="badge badge-trainer">Trainer</span></td>
+                <td><span class="badge badge-active">Active</span></td>
+                <td>
+                    <div class="action-buttons">
+                        <button class="btn-edit">Edit</button>
+                        <button class="btn-delete">Delete</button>
+                    </div>
+                </td>
+            </tr>
+
+            <tr data-role="trainer">
+                <td>
+                    <div class="table-user-info">
+                        <img src="https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=100&h=100&fit=crop" class="table-avatar" alt="Sarah" />
+                        <h4>Sarah Perera</h4>
+                    </div>
+                </td>
+                <td>sarah@gmail.com</td>
+                <td><span class="badge badge-trainer">Trainer</span></td>
+                <td><span class="badge badge-active">Active</span></td>
+                <td>
+                    <div class="action-buttons">
+                        <button class="btn-edit">Edit</button>
+                        <button class="btn-delete">Delete</button>
+                    </div>
+                </td>
+            </tr>
+
+            <tr data-role="admin">
+                <td>
+                    <div class="table-user-info">
+                        <img src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&h=100&fit=crop" class="table-avatar" alt="Admin" />
+                        <h4>Admin User</h4>
+                    </div>
+                </td>
+                <td>admin@healthtrack.com</td>
+                <td><span class="badge badge-admin">Admin</span></td>
+                <td><span class="badge badge-active">Active</span></td>
+                <td>
+                    <div class="action-buttons">
+                        <button class="btn-edit">Edit</button>
+                        <button class="btn-delete">Delete</button>
+                    </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+
+<!-- ADD USER MODAL (POP-UP) -->
+<div class="ca-modal" id="addUserModal" hidden>
+    <div class="ca-modal-content">
+        <button type="button" class="ca-modal-close" id="closeModalBtn">&times;</button>
+        <h3>Add New User</h3>
+
+        <form id="addUserForm">
+            <div class="form-group">
+                <label>Full Name</label>
+                <input type="text" placeholder="e.g. John Doe" required />
+            </div>
+
+            <div class="form-group">
+                <label>Email Address</label>
+                <input type="email" placeholder="e.g. john@example.com" required />
+            </div>
+
+            <div class="form-group">
+                <label>Password</label>
+                <input type="password" placeholder="Enter a strong password" required />
+            </div>
+
+            <div class="form-group">
+                <label>Select Role</label>
+                <select required>
+                    <option value="">-- Choose Role --</option>
+                    <option value="Client">Client</option>
+                    <option value="Trainer">Trainer</option>
+                    <option value="Admin">Admin</option>
+                </select>
+            </div>
+
+            <div class="modal-actions">
+                <button type="button" class="btn-view-outline" id="cancelBtn">Cancel</button>
+                <button type="submit" class="health-primary-button">Save User</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            // --- 1. Tab Filtering Logic ---
+            const tabs = document.querySelectorAll(".admin-tab");
+            const tableRows = document.querySelectorAll("#usersTableBody tr");
+
+            tabs.forEach(tab => {
+                tab.addEventListener("click", function () {
+                    // Update active tab styling
+                    tabs.forEach(t => t.classList.remove("active"));
+                    this.classList.add("active");
+
+                    const filterValue = this.getAttribute("data-filter");
+
+                    // Show/hide table rows based on data-role
+                    tableRows.forEach(row => {
+                        if (filterValue === "all" || row.getAttribute("data-role") === filterValue) {
+                            row.style.display = ""; // Show row
+                        } else {
+                            row.style.display = "none"; // Hide row
+                        }
+                    });
+                });
+            });
+
+            // --- 2. Add User Modal Logic ---
+            const modal = document.getElementById("addUserModal");
+            const addUserBtn = document.getElementById("addUserBtn");
+            const closeModalBtn = document.getElementById("closeModalBtn");
+            const cancelBtn = document.getElementById("cancelBtn");
+            const addUserForm = document.getElementById("addUserForm");
+
+            function openModal() {
+                modal.hidden = false;
+            }
+
+            function closeModal() {
+                modal.hidden = true;
+                addUserForm.reset(); // Clear form fields
+            }
+
+            addUserBtn.addEventListener("click", openModal);
+            closeModalBtn.addEventListener("click", closeModal);
+            cancelBtn.addEventListener("click", closeModal);
+
+            // Close when clicking outside the modal content
+            modal.addEventListener("click", (e) => {
+                if (e.target === modal) {
+                    closeModal();
+                }
+            });
+
+            // Handle form submission (Demo only - prevents page reload)
+            addUserForm.addEventListener("submit", function (e) {
+                e.preventDefault(); // Prevent actual form submission
+                alert("User added successfully! (UI Demo)");
+                closeModal();
+            });
+        });
+    </script>
 }
