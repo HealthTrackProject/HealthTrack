@@ -1,4 +1,130 @@
-﻿@page
-@model HealthTrack.Views.AdminDashboard.ReportsModel
-@{
+﻿@{
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+    ViewData["Title"] = "Reports";
+    ViewData["Heading"] = "Reports & Analytics";
+    ViewData["ActivePage"] = "Reports";
+}
+
+<div class="reports-header">
+    <h2>Reports & Analytics</h2>
+
+    <div class="header-controls">
+        <!-- Export Buttons -->
+        <div class="export-actions">
+            <a asp-action="ExportPdf" asp-controller="AdminDashboard" class="btn-export btn-pdf">
+                <i class="bi bi-file-earmark-pdf-fill"></i> Export PDF
+            </a>
+            <a asp-action="ExportExcel" asp-controller="AdminDashboard" class="btn-export btn-excel">
+                <i class="bi bi-file-earmark-excel-fill"></i> Export Excel
+            </a>
+        </div>
+
+        <!-- Time Period Dropdown -->
+        <select class="period-select">
+            <option value="6" selected>Last 6 Months</option>
+            <option value="3">Last 3 Months</option>
+            <option value="12">Last 12 Months</option>
+        </select>
+    </div>
+</div>
+
+<!-- STAT CARDS -->
+<div class="stats-grid">
+    <div class="stat-card blue">
+        <div class="stat-icon"><i class="bi bi-person-plus-fill"></i></div>
+        <h3>35</h3>
+        <p>New Users</p>
+    </div>
+    <div class="stat-card green">
+        <div class="stat-icon"><i class="bi bi-calendar-check-fill"></i></div>
+        <h3>120</h3>
+        <p>Appointments</p>
+    </div>
+    <div class="stat-card orange">
+        <div class="stat-icon"><i class="bi bi-clipboard-check-fill"></i></div>
+        <h3>85</h3>
+        <p>Completed Plans</p>
+    </div>
+    <div class="stat-card purple">
+        <div class="stat-icon"><i class="bi bi-people-fill"></i></div>
+        <h3>105</h3>
+        <p>Active Clients</p>
+    </div>
+</div>
+
+<!-- CHARTS GRID -->
+<div class="reports-grid">
+    <!-- User Growth (Line Chart) -->
+    <div class="report-chart-card">
+        <h3>User Growth</h3>
+        <div class="chart-wrapper">
+            <canvas id="userGrowthChart"></canvas>
+        </div>
+    </div>
+
+    <!-- Appointments Overview (Bar Chart) -->
+    <div class="report-chart-card">
+        <h3>Appointments Overview</h3>
+        <div class="chart-wrapper">
+            <canvas id="appointmentsChart"></canvas>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <!-- Include Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+        // Common Chart Options
+        const commonOptions = {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: {
+        x: { grid: { display: false } },
+        y: { border: { display: false }, grid: { color: '#edf2f5' } }
+        }
+        };
+
+        // 1. User Growth Line Chart
+        const ctxLine = document.getElementById('userGrowthChart').getContext('2d');
+        new Chart(ctxLine, {
+        type: 'line',
+        data: {
+        labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+        datasets: [{
+        label: 'New Users',
+        data: [10, 15, 22, 28, 35, 45], // Mock Data
+        borderColor: '#1E88E5', // Blue Line
+        backgroundColor: 'rgba(30, 136, 229, 0.1)', // Light Blue Fill
+        borderWidth: 2,
+        pointBackgroundColor: '#1E88E5',
+        pointRadius: 3,
+        fill: true,
+        tension: 0.4 // Smooth curve
+        }]
+        },
+        options: commonOptions
+        });
+
+        // 2. Appointments Bar Chart
+        const ctxBar = document.getElementById('appointmentsChart').getContext('2d');
+        new Chart(ctxBar, {
+        type: 'bar',
+        data: {
+        labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+        datasets: [{
+        label: 'Appointments',
+        data: [8, 12, 18, 25, 30, 22], // Mock Data
+        backgroundColor: '#14ad6d', // Green Bars
+        borderRadius: 4,
+        barThickness: 20
+        }]
+        },
+        options: commonOptions
+        });
+        });
+    </script>
 }
