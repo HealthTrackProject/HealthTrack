@@ -1,107 +1,371 @@
 ﻿(() => {
-    'use strict';
-    const esc = value => String(value ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-    let activeClient = null;
+    "use strict";
 
-    function closeModal() {
-        const modal = document.getElementById('trainerActionModal');
-        if (modal) modal.hidden = true;
-        document.body.classList.remove('trainer-modal-open');
-        activeClient = null;
-    }
-    function ensureModal() {
-        let modal = document.getElementById('trainerActionModal');
-        if (modal) return modal;
-        modal = document.createElement('div');
-        modal.id = 'trainerActionModal';
-        modal.className = 'trainer-action-modal';
-        modal.hidden = true;
-        modal.innerHTML = `<div class="trainer-action-backdrop" data-close></div><section class="trainer-action-dialog" role="dialog" aria-modal="true" aria-labelledby="trainerActionTitle"><button type="button" class="trainer-action-x" aria-label="Close" data-close>&times;</button><div class="trainer-popup-eyebrow">HEALTHTRACK · TRAINER</div><h3 id="trainerActionTitle"></h3><div id="trainerActionBody"></div><div class="trainer-action-footer"><button type="button" class="health-secondary-button" data-close>Close</button></div></section>`;
+    document.addEventListener("DOMContentLoaded", () => {
+        const config = document.getElementById("trainerAssignmentConfig");
+        const tableBody = document.getElementById("clientTableBody");
+
+        if (!config || !tableBody) {
+            console.error("Trainer client table or assignment configuration was not found.");
+            return;
+        }
+
+        const workoutUrl = config.dataset.workoutUrl;
+        const dietUrl = config.dataset.dietUrl;
+        const tokenInput = config.querySelector(
+            'input[name="__RequestVerificationToken"]'
+        );
+
+        // Create the modal once.
+        const modal = document.createElement("div");
+        modal.id = "trainerClientModal";
+        modal.className = "trainer-modal";
+        modal.innerHTML = `
+            <div class="trainer-modal-backdrop" data-close-modal></div>
+            <section class="trainer-modal-card"
+                     role="dialog"
+                     aria-modal="true"
+                     aria-labelledby="trainerModalTitle">
+                <header class="trainer-modal-header">
+                    <h2 id="trainerModalTitle">Client Details</h2>
+                    <button type="button"
+                            class="trainer-modal-close"
+                            aria-label="Close popup"
+                            data-close-modal>&times;</button>
+                </header>
+
+                <div class="trainer-modal-content" id="trainerModalContent"></div>
+                <div id="trainerModalMessage" role="status" aria-live="polite"></div>
+            </section>
+        `;
         document.body.appendChild(modal);
-        modal.addEventListener('click', e => { if (e.target.closest('[data-close]')) closeModal(); });
-        document.addEventListener('keydown', e => { if (e.key === 'Escape' && !modal.hidden) closeModal(); });
-        return modal;
-    }
-    function showModal(title, html) {
-        const modal = ensureModal();
-        modal.querySelector('#trainerActionTitle').textContent = title;
-        modal.querySelector('#trainerActionBody').innerHTML = html;
-        modal.hidden = false;
-        document.body.classList.add('trainer-modal-open');
-        const first = modal.querySelector('input,select,textarea,button');
-        if (first) first.focus();
-    }
-    function clientFromRow(row) {
-        return { id: row.dataset.clientId || '', name: row.dataset.name || '', email: row.dataset.email || '', progress: row.dataset.progress || '0', phone: row.dataset.phone || 'Not provided', goal: row.dataset.goal || 'Not specified', health: row.dataset.health || 'No health record details available.' };
-    }
-    function showClientProfile(client) {
-        showModal('Client profile', `<div class="trainer-client-profile"><div class="trainer-profile-avatar"><i class="bi bi-person-fill"></i></div><div><h4>${esc(client.name)}</h4><p>${esc(client.email)}</p><span class="trainer-progress-pill">${esc(client.progress)}% progress</span></div></div><div class="trainer-popup-detail-grid"><div><span>Phone</span><strong>${esc(client.phone)}</strong></div><div><span>Fitness goal</span><strong>${esc(client.goal)}</strong></div><div><span>Progress</span><strong>${esc(client.progress)}%</strong></div><div><span>Health records</span><strong>Not connected</strong></div></div><div class="trainer-popup-section"><h4><i class="bi bi-heart-pulse"></i> Health records</h4><p>${esc(client.health)} Connect this section to your health-record database before using it for real client care.</p></div><div class="trainer-popup-form-actions"><button type="button" class="health-primary-button" data-client-action="workout-from-modal">Assign workout</button><button type="button" class="health-secondary-button" data-client-action="diet-from-modal">Assign diet plan</button></div>`);
-    }
-    function showPlanAssignment(client, type) {
-        const isWorkout = type === 'workout';
-        const title = isWorkout ? 'Assign workout plan' : 'Assign diet plan';
-        const plans = isWorkout ? ['Beginner Full Body', 'Strength Training', 'Cardio & Endurance', 'Weight Loss Workout'] : ['Balanced Nutrition', 'Weight Loss Diet', 'Muscle Gain Diet', 'Healthy Lifestyle Diet'];
-        showModal(title, `<p class="trainer-popup-intro">Choose an existing ${isWorkout ? 'workout' : 'diet'} plan for <strong>${esc(client.name)}</strong>.</p><form class="trainer-popup-form" id="trainerAssignmentForm"><input type="hidden" name="clientId" value="${esc(client.id)}"><input type="hidden" name="type" value="${type}"><div class="client-form-group"><label for="trainerPlanSelect">${isWorkout ? 'Workout plan' : 'Diet plan'}</label><select id="trainerPlanSelect" name="plan" required><option value="">Select a plan</option>${plans.map(p => `<option value="${esc(p)}">${esc(p)}</option>`).join('')}</select><small>Use the ${isWorkout ? 'Workout Plans' : 'Diet Plans'} sidebar page to create and manage reusable plans.</small></div><div class="client-form-group"><label for="trainerPlanNotes">Instructions (optional)</label><textarea id="trainerPlanNotes" name="notes" placeholder="Add client-specific instructions..."></textarea></div><div class="trainer-popup-form-actions"><button type="submit" class="health-primary-button">Assign plan</button></div></form><p class="trainer-popup-disclaimer">Preview only: this sample form does not save an assignment to the database.</p>`);
-    }
-    function showAddClient() {
-        showModal('Add client', `<form class="trainer-popup-form" id="trainerAddClientForm"><div class="client-form-group"><label for="newClientName">Full name</label><input id="newClientName" name="name" required maxlength="100" placeholder="Enter full name"></div><div class="client-form-group"><label for="newClientEmail">Email address</label><input id="newClientEmail" name="email" type="email" required maxlength="160" placeholder="name@example.com"></div><div class="client-form-group"><label for="newClientProgress">Progress (%)</label><input id="newClientProgress" name="progress" type="number" min="0" max="100" value="0" required></div><div class="trainer-popup-form-actions"><button type="submit" class="health-primary-button">Add to list</button></div></form><p class="trainer-popup-disclaimer">Preview only: connect this form to your client-create controller to save permanently.</p>`);
-    }
-    document.addEventListener('click', e => {
-        const button = e.target.closest('[data-client-action]');
-        if (!button) return;
-        const action = button.dataset.clientAction;
-        if (action === 'add') { showAddClient(); return; }
-        if (action === 'view' || action === 'workout' || action === 'diet') {
-            const row = button.closest('tr');
-            if (!row) return;
-            activeClient = clientFromRow(row);
-            if (action === 'view') showClientProfile(activeClient);
-            else showPlanAssignment(activeClient, action);
-            return;
+
+        const modalTitle = modal.querySelector("#trainerModalTitle");
+        const modalContent = modal.querySelector("#trainerModalContent");
+        const modalMessage = modal.querySelector("#trainerModalMessage");
+
+        let activeClient = null;
+
+        function escapeHtml(value) {
+            return String(value ?? "").replace(/[&<>"']/g, char => ({
+                "&": "&amp;",
+                "<": "&lt;",
+                ">": "&gt;",
+                '"': "&quot;",
+                "'": "&#39;"
+            })[char]);
         }
-        if (action === 'workout-from-modal' && activeClient) showPlanAssignment(activeClient, 'workout');
-        if (action === 'diet-from-modal' && activeClient) showPlanAssignment(activeClient, 'diet');
-    });
-    document.addEventListener('input', e => {
-        if (e.target.id !== 'clientSearch') return;
-        const query = e.target.value.trim().toLowerCase();
-        const rows = [...document.querySelectorAll('#clientTableBody tr')];
-        let shown = 0;
-        rows.forEach(row => { const match = row.innerText.toLowerCase().includes(query); row.hidden = !match; if (match) shown++; });
-        const empty = document.getElementById('clientsEmptyState');
-        if (empty) empty.style.display = shown ? 'none' : 'block';
-        const count = document.getElementById('clientCount');
-        if (count) count.textContent = shown;
-    });
-    document.addEventListener('submit', e => {
-        if (e.target.id === 'trainerAddClientForm') {
-            e.preventDefault();
-            const form = new FormData(e.target);
-            const name = String(form.get('name') || '').trim();
-            const email = String(form.get('email') || '').trim();
-            const progress = Math.max(0, Math.min(100, Number(form.get('progress') || 0)));
-            if (!name || !email) return;
-            const tbody = document.getElementById('clientTableBody');
-            if (!tbody) return;
-            const id = `preview-${Date.now()}`;
-            const row = document.createElement('tr');
-            row.dataset.clientId = id; row.dataset.name = name; row.dataset.email = email; row.dataset.progress = String(progress); row.dataset.phone = 'Not provided'; row.dataset.goal = 'Not specified'; row.dataset.health = 'No health records have been added.';
-            row.innerHTML = `<td><div class="table-user-info"><div class="table-avatar trainer-initial-avatar">${esc(name.charAt(0).toUpperCase())}</div><div><h4>${esc(name)}</h4><p>Client · Preview</p></div></div></td><td class="client-email">${esc(email)}</td><td><div class="progress-cell"><div class="progress-bar-bg"><div class="progress-bar-fill" style="width:${progress}%"></div></div><span class="progress-text">${progress}%</span></div></td><td><div class="client-actions"><button type="button" class="btn-view-outline" data-client-action="view">View</button><button type="button" class="health-secondary-button" data-client-action="workout">Workout</button><button type="button" class="health-secondary-button" data-client-action="diet">Diet Plan</button></div></td>`;
-            tbody.appendChild(row);
-            closeModal();
-            const count = document.getElementById('clientCount'); if (count) count.textContent = tbody.querySelectorAll('tr:not([hidden])').length;
-            showModal('Client added to preview', `<p><strong>${esc(name)}</strong> was added to the visible list. This change is temporary and will disappear after refresh until a database endpoint is connected.</p>`);
-            return;
+
+        function getClientRow(clientId) {
+            return Array.from(
+                tableBody.querySelectorAll("tr[data-client-id]")
+            ).find(row => row.dataset.clientId === String(clientId));
         }
-        if (e.target.id === 'trainerAssignmentForm') {
-            e.preventDefault();
-            const form = new FormData(e.target);
-            const plan = String(form.get('plan') || '').trim();
-            if (!plan) return;
-            const client = activeClient?.name || 'the selected client';
-            const type = form.get('type') === 'workout' ? 'Workout' : 'Diet';
-            closeModal();
-            showModal('Assignment preview', `<p><strong>${esc(plan)}</strong> was selected for <strong>${esc(client)}</strong>.</p><p>This is a front-end preview only. Connect the form to your assignment controller and database to save it permanently.</p>`);
+
+        function readClient(row) {
+            return {
+                id: row.dataset.clientId || "",
+                name: row.dataset.name || "Client",
+                email: row.dataset.email || "Not provided",
+                phone: row.dataset.phone || "Not provided",
+                progress: row.dataset.progress || "0",
+                goal: row.dataset.goal || "Not specified",
+                health: row.dataset.health || "No health information available."
+            };
         }
+
+        function showModal(title, content) {
+            modalTitle.textContent = title;
+            modalContent.innerHTML = content;
+            modalMessage.textContent = "";
+            modalMessage.className = "";
+            modal.classList.add("is-open");
+            document.body.classList.add("trainer-modal-open");
+
+            const firstInput = modalContent.querySelector(
+                "input:not([type=hidden]), textarea, button"
+            );
+
+            if (firstInput) firstInput.focus();
+        }
+
+        function closeModal() {
+            modal.classList.remove("is-open");
+            document.body.classList.remove("trainer-modal-open");
+            activeClient = null;
+        }
+
+        modal.addEventListener("click", event => {
+            if (event.target.closest("[data-close-modal]")) {
+                closeModal();
+            }
+        });
+
+        document.addEventListener("keydown", event => {
+            if (event.key === "Escape" && modal.classList.contains("is-open")) {
+                closeModal();
+            }
+        });
+
+        function showView(client) {
+            showModal("Client Details", `
+                <div class="trainer-client-profile">
+                    <div class="trainer-client-avatar">
+                        <i class="bi bi-person-fill"></i>
+                    </div>
+                    <h3>${escapeHtml(client.name)}</h3>
+                    <p>Client profile</p>
+                </div>
+
+                <div class="trainer-detail-list">
+                    <div class="trainer-detail-row">
+                        <span>Name</span>
+                        <strong>${escapeHtml(client.name)}</strong>
+                    </div>
+                    <div class="trainer-detail-row">
+                        <span>Email</span>
+                        <strong>${escapeHtml(client.email)}</strong>
+                    </div>
+                    <div class="trainer-detail-row">
+                        <span>Phone</span>
+                        <strong>${escapeHtml(client.phone)}</strong>
+                    </div>
+                    <div class="trainer-detail-row">
+                        <span>Workouts completed</span>
+                        <strong>${escapeHtml(client.progress)}</strong>
+                    </div>
+                    <div class="trainer-detail-row">
+                        <span>Goal</span>
+                        <strong>${escapeHtml(client.goal)}</strong>
+                    </div>
+                    <div class="trainer-detail-row">
+                        <span>Health information</span>
+                        <strong>${escapeHtml(client.health)}</strong>
+                    </div>
+                </div>
+
+                <div class="trainer-modal-actions">
+                    <button type="button"
+                            class="trainer-btn trainer-btn-primary"
+                            data-client-action="workout"
+                            data-client-id="${escapeHtml(client.id)}">
+                        <i class="bi bi-activity"></i> Assign workout
+                    </button>
+                    <button type="button"
+                            class="trainer-btn trainer-btn-secondary"
+                            data-client-action="diet"
+                            data-client-id="${escapeHtml(client.id)}">
+                        <i class="bi bi-egg-fried"></i> Assign diet plan
+                    </button>
+                </div>
+            `);
+        }
+
+        function showAssignment(client, type) {
+            const isWorkout = type === "workout";
+            const title = isWorkout ? "Assign Workout Plan" : "Assign Diet Plan";
+
+            showModal(title, `
+                <div class="trainer-selected-client">
+                    <i class="bi bi-person-circle"></i>
+                    <div>
+                        <strong>${escapeHtml(client.name)}</strong>
+                        <span>${escapeHtml(client.email)}</span>
+                    </div>
+                </div>
+
+                <form id="trainerAssignmentForm">
+                    <input type="hidden" name="clientId"
+                           value="${escapeHtml(client.id)}">
+
+                    <div class="trainer-form-group">
+                        <label for="assignmentPlan">
+                            ${isWorkout ? "Workout plan name" : "Diet plan name"}
+                        </label>
+                        <input id="assignmentPlan"
+                               name="plan"
+                               type="text"
+                               maxlength="150"
+                               required
+                               placeholder="${isWorkout ? "e.g. Strength Training Plan" : "e.g. Healthy Weight Loss Plan"}">
+                    </div>
+
+                    <div class="trainer-form-group">
+                        <label for="assignmentNotes">Description / Notes</label>
+                        <textarea id="assignmentNotes"
+                                  name="notes"
+                                  rows="3"
+                                  placeholder="Add instructions or notes (optional)"></textarea>
+                    </div>
+
+                    <div class="trainer-form-grid">
+                        <div class="trainer-form-group">
+                            <label for="assignmentStart">Start date</label>
+                            <input id="assignmentStart"
+                                   name="startDate"
+                                   type="date"
+                                   required>
+                        </div>
+                        <div class="trainer-form-group">
+                            <label for="assignmentEnd">End date</label>
+                            <input id="assignmentEnd"
+                                   name="endDate"
+                                   type="date"
+                                   required>
+                        </div>
+                    </div>
+
+                    <div class="trainer-modal-actions">
+                        <button type="button"
+                                class="trainer-btn trainer-btn-secondary"
+                                data-close-modal>Cancel</button>
+                        <button type="submit"
+                                class="trainer-btn trainer-btn-primary"
+                                id="saveAssignmentButton">
+                            <i class="bi bi-check-circle"></i> Save assignment
+                        </button>
+                    </div>
+                </form>
+            `);
+
+            const today = new Date();
+            const localToday = new Date(
+                today.getTime() - today.getTimezoneOffset() * 60000
+            ).toISOString().slice(0, 10);
+
+            const startInput = modalContent.querySelector("#assignmentStart");
+            const endInput = modalContent.querySelector("#assignmentEnd");
+
+            startInput.value = localToday;
+            endInput.value = localToday;
+            startInput.min = localToday;
+            endInput.min = localToday;
+
+            startInput.addEventListener("change", () => {
+                endInput.min = startInput.value;
+                if (endInput.value && endInput.value < startInput.value) {
+                    endInput.value = startInput.value;
+                }
+            });
+
+            const form = modalContent.querySelector("#trainerAssignmentForm");
+
+            form.addEventListener("submit", async event => {
+                event.preventDefault();
+
+                const button = form.querySelector("#saveAssignmentButton");
+                const formData = new FormData(form);
+
+                if (tokenInput?.value) {
+                    formData.append("__RequestVerificationToken", tokenInput.value);
+                }
+
+                if (!workoutUrl || !dietUrl) {
+                    showMessage("Assignment URL is missing. Check your controller action names.", true);
+                    return;
+                }
+
+                const url = isWorkout ? workoutUrl : dietUrl;
+
+                button.disabled = true;
+                button.innerHTML = '<span class="trainer-spinner"></span> Saving...';
+                showMessage("");
+
+                try {
+                    const response = await fetch(url, {
+                        method: "POST",
+                        body: formData,
+                        credentials: "same-origin",
+                        headers: {
+                            "X-Requested-With": "XMLHttpRequest",
+                            "Accept": "application/json"
+                        }
+                    });
+
+                    const result = await response.json().catch(() => null);
+
+                    if (!response.ok || !result || result.success !== true) {
+                        throw new Error(
+                            result?.message ||
+                            `Could not save the assignment (HTTP ${response.status}).`
+                        );
+                    }
+
+                    showMessage(result.message || "Plan assigned successfully.", false);
+
+                    button.innerHTML = '<i class="bi bi-check-circle"></i> Saved';
+
+                    // Keep the success message visible, then close the popup.
+                    window.setTimeout(() => {
+                        closeModal();
+                        window.location.reload();
+                    }, 1200);
+                } catch (error) {
+                    showMessage(error.message || "An unexpected error occurred.", true);
+                    button.disabled = false;
+                    button.innerHTML = '<i class="bi bi-check-circle"></i> Save assignment';
+                }
+            });
+        }
+
+        function showMessage(message, isError = false) {
+            modalMessage.textContent = message;
+            modalMessage.className = message
+                ? (isError ? "trainer-message error" : "trainer-message success")
+                : "";
+        }
+
+        // Event delegation: works for all rows, including filtered rows.
+        tableBody.addEventListener("click", event => {
+            const button = event.target.closest("[data-client-action]");
+
+            if (!button) return;
+
+            const action = button.dataset.clientAction;
+            const clientId = button.dataset.clientId;
+            const row = getClientRow(clientId);
+
+            if (!row) {
+                showModal("Client Not Found", `
+                    <p class="trainer-error-text">
+                        The selected client could not be found in the table.
+                        Refresh the page and try again.
+                    </p>
+                `);
+                return;
+            }
+
+            activeClient = readClient(row);
+
+            if (action === "view") {
+                showView(activeClient);
+            } else if (action === "workout" || action === "diet") {
+                showAssignment(activeClient, action);
+            }
+        });
+
+        // Also handle assignment buttons opened from inside the View popup.
+        modal.addEventListener("click", event => {
+            const button = event.target.closest(
+                '[data-client-action="workout"], [data-client-action="diet"]'
+            );
+
+            if (!button) return;
+
+            event.stopPropagation();
+
+            const clientId = button.dataset.clientId;
+            const row = getClientRow(clientId);
+
+            if (!row) {
+                showMessage("The selected client row was not found. Refresh the page and try again.", true);
+                return;
+            }
+
+            const client = readClient(row);
+            const action = button.dataset.clientAction;
+
+            showAssignment(client, action);
+        });
     });
 })();

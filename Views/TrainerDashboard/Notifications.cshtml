@@ -1,33 +1,242 @@
-﻿@model IEnumerable<HealthTrack.Controllers.NotificationItem>
+﻿@model IEnumerable<HealthTrack.Models.Notification>
+
 @{
     Layout = "~/Views/Shared/_TrainerLayout.cshtml";
     ViewData["Title"] = "Notifications";
     ViewData["Heading"] = "Notifications";
     ViewData["ActivePage"] = "Notifications";
+
+    var notifications = Model?.ToList()
+        ?? new List<HealthTrack.Models.Notification>();
+
+    var unreadCount = notifications.Count(n => !n.IsRead);
 }
 
-<section class="health-page">
-    <div class="health-page-header">
-       
+<style>
+    .notifications-page {
+        padding: 24px;
+    }
+
+    .notifications-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 12px;
+        margin-bottom: 22px;
+    }
+
+    .notifications-header h2 {
+        margin: 0 0 6px;
+        font-size: 24px;
+        font-weight: 700;
+        color: #1e293b;
+    }
+
+    .notifications-header p {
+        margin: 0;
+        color: #64748b;
+    }
+
+    .unread-count {
+        display: inline-block;
+        padding: 7px 12px;
+        border-radius: 20px;
+        background: #dbeafe;
+        color: #1d4ed8;
+        font-size: 13px;
+        font-weight: 600;
+    }
+
+    .notifications-panel {
+        background: #fff;
+        border: 1px solid #e2e8f0;
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 4px 16px rgba(15, 23, 42, .04);
+    }
+
+    .notification-item {
+        display: flex;
+        align-items: flex-start;
+        gap: 15px;
+        padding: 20px;
+        border-bottom: 1px solid #edf2f7;
+    }
+
+    .notification-item:last-child {
+        border-bottom: none;
+    }
+
+    .notification-item.unread {
+        background: #f5f9ff;
+    }
+
+    .notification-icon {
+        width: 44px;
+        height: 44px;
+        flex-shrink: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 12px;
+        font-size: 19px;
+    }
+
+    .notification-icon.blue {
+        background: #dbeafe;
+        color: #2563eb;
+    }
+
+    .notification-icon.green {
+        background: #dcfce7;
+        color: #16a34a;
+    }
+
+    .notification-icon.orange {
+        background: #ffedd5;
+        color: #ea580c;
+    }
+
+    .notification-icon.purple {
+        background: #f3e8ff;
+        color: #9333ea;
+    }
+
+    .notification-content {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .notification-title-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 12px;
+        flex-wrap: wrap;
+    }
+
+    .notification-title-row h4 {
+        margin: 0;
+        color: #1e293b;
+        font-size: 15px;
+        font-weight: 700;
+    }
+
+    .notification-time {
+        color: #64748b;
+        font-size: 12px;
+        white-space: nowrap;
+    }
+
+    .notification-content p {
+        margin: 7px 0 0;
+        color: #64748b;
+        font-size: 14px;
+        line-height: 1.6;
+        overflow-wrap: anywhere;
+    }
+
+    .unread-label {
+        display: inline-block;
+        margin-left: 7px;
+        color: #2563eb;
+        font-size: 11px;
+        font-weight: 700;
+    }
+
+    .empty-notifications {
+        padding: 55px 20px;
+        text-align: center;
+        color: #64748b;
+    }
+
+    .empty-notifications i {
+        display: block;
+        margin-bottom: 12px;
+        font-size: 38px;
+        color: #94a3b8;
+    }
+
+    .empty-notifications h3 {
+        margin: 0 0 8px;
+        color: #334155;
+        font-size: 17px;
+    }
+
+    @@media (max-width: 600px) {
+        .notifications-page {
+            padding: 14px;
+        }
+
+        .notification-item {
+            padding: 15px;
+            gap: 11px;
+        }
+
+        .notification-icon {
+            width: 38px;
+            height: 38px;
+        }
+    }
+</style>
+
+<section class="notifications-page">
+
+    <div class="notifications-header">
+        <div>
+            <h2>Notifications</h2>
+            <p>Stay updated with your clients and appointments.</p>
+        </div>
+
+        <span class="unread-count">
+            @unreadCount unread
+        </span>
     </div>
 
-    <div class="health-panel">
-        <div class="notification-list">
-            @foreach (var item in Model)
+    <div class="notifications-panel">
+
+        @if (notifications.Any())
+        {
+            @foreach (var item in notifications)
             {
-                <div class="notification-item">
-                    <div class="notification-icon @item.Color">
-                        <i class="bi @item.Icon"></i>
+                <div class="notification-item @(item.IsRead ? "" : "unread")">
+
+                    <div class="notification-icon blue">
+                        <i class="bi bi-bell-fill"></i>
                     </div>
+
                     <div class="notification-content">
+
                         <div class="notification-title-row">
-                            <h4>@item.Title</h4>
-                            <span>@item.Time</span>
+                            <h4>
+                                @item.Title
+
+                                @if (!item.IsRead)
+                                {
+                                    <span class="unread-label">NEW</span>
+                                }
+                            </h4>
+
+                            <span class="notification-time">
+                                @item.CreatedAt.ToString("dd MMM yyyy, hh:mm tt")
+                            </span>
                         </div>
+
                         <p>@item.Message</p>
+
                     </div>
                 </div>
             }
-        </div>
+        }
+        else
+        {
+            <div class="empty-notifications">
+                <i class="bi bi-bell-slash"></i>
+                <h3>No notifications yet</h3>
+                <p>New notifications will appear here.</p>
+            </div>
+        }
+
     </div>
 </section>

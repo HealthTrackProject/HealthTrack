@@ -1,70 +1,513 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Http;
+using Microsoft.EntityFrameworkCore;
+
+using HealthTrack.Models;
+using HealthTrack.Data;
+using HealthTrack.ViewModels;
+
+using System;
 using System.Collections.Generic;
-using Microsoft.AspNetCore.Identity; // Added for UserManager
-using HealthTrack.Models;            // Added for ApplicationUser, HealthProfile
-using HealthTrack.Data;              // Added for ApplicationDbContext
-using System.Threading.Tasks;        // Added for async/await
-using Microsoft.EntityFrameworkCore; // Added for FirstOrDefaultAsync
-using System.IO;                     // Added for File handling
-using System;                        // Added for Guid, DateTime
-using System.Linq;                   // Added for .Contains()
+using System.IO;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace HealthTrack.Controllers
 {
-    [Authorize(Roles = "Trainer")] // Only accessible by Trainers
+    [Authorize(Roles = "Trainer")]
     public class TrainerDashboardController : Controller
     {
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly ApplicationDbContext _context;
 
-        // Constructor to inject UserManager and DbContext
-        public TrainerDashboardController(UserManager<ApplicationUser> userManager, ApplicationDbContext context)
+        public TrainerDashboardController(
+            UserManager<ApplicationUser> userManager,
+            ApplicationDbContext context)
         {
             _userManager = userManager;
             _context = context;
         }
 
-        // ---- Existing Actions ----
-        public IActionResult Index()
+        // --------------------------------------------------
+        // 1. TRAINER DASHBOARD
+        // --------------------------------------------------
+        public async Task<IActionResult> Index()
+        {
+            var trainer = await _userManager.GetUserAsync(User);
+
+            if (trainer == null)
+            {
+                return Challenge();
+            }
+
+            var today = DateTime.Today;
+            var now = DateTime.Now;
+
+            // Find clients connected to this trainer
+            // through workout plans, diet plans and appointments.
+            var workoutClientIds = await _context.WorkoutPlans
+                .Where(p => p.TrainerId == trainer.Id)
+                .Select(p => p.ClientId)
+                .Distinct()
+                .ToListAsync();
+
+            var dietClientIds = await _context.DietPlans
+                .Where(p => p.TrainerId == trainer.Id)
+                .Select(p => p.ClientId)
+                .Distinct()
+                .ToListAsync();
+
+            var appointmentClientIds = await _context.Appointments
+                .Where(a => a.TrainerId == trainer.Id)
+                .Select(a => a.ClientId)
+                .Distinct()
+                .ToListAsync();
+
+            var clientIds = workoutClientIds
+                .Concat(dietClientIds)
+                .Concat(appointmentClientIds)
+                .Where(id => !string.IsNullOrEmpty(id))
+                .Distinct()
+                .ToList();
+
+            // Total clients
+            var totalClients = clientIds.Count;
+
+            // Recent clients
+            var recentClients = await _context.Users
+                .Where(u => clientIds.Contains(u.Id))
+                .OrderBy(u => u.FullName)
+                .Take(5)
+                .ToListAsync();
+
+            // Pending appointments
+            var pendingAppointments = await _context.Appointments
+                .CountAsync(a =>
+                    a.TrainerId == trainer.Id &&
+                    a.Status == "Pending");
+
+            // Active workout plans
+            var activeWorkoutPlans = await _context.WorkoutPlans
+                .CountAsync(p =>
+                    p.TrainerId == trainer.Id &&
+                    p.StartDate <= today &&
+                    p.EndDate >= today);
+
+            // Active diet plans
+            var activeDietPlans = await _context.DietPlans
+                .CountAsync(p =>
+                    p.TrainerId == trainer.Id &&
+                    p.StartDate <= today &&
+                    p.EndDate >= today);
+
+            var activePlans = activeWorkoutPlans + activeDietPlans;
+
+            // Plans whose end date has passed
+            var completedWorkoutPlans = await _context.WorkoutPlans
+                .CountAsync(p =>
+                    p.TrainerId == trainer.Id &&
+                    p.EndDate < today);
+
+            var completedDietPlans = await _context.DietPlans
+                .CountAsync(p =>
+                    p.TrainerId == trainer.Id &&
+                    p.EndDate < today);
+
+            var completedPlans =
+                completedWorkoutPlans + completedDietPlans;
+
+            // Upcoming appointments
+            var upcomingAppointments = await _context.Appointments
+                .Include(a => a.Client)
+                .Where(a =>
+                    a.TrainerId == trainer.Id &&
+                    a.AppointmentDate >= now &&
+                    a.Status != "Cancelled" &&
+                    a.Status != "Completed")
+                .OrderBy(a => a.AppointmentDate)
+                .Take(5)
+                .ToListAsync();
+
+            // Build dashboard ViewModel
+            var model = new TrainerDashboardViewModel
+            {
+                TotalClients = totalClients,
+                PendingAppointments = pendingAppointments,
+                ActivePlans = activePlans,
+                CompletedPlans = completedPlans,
+                RecentClients = recentClients,
+                UpcomingAppointments = upcomingAppointments
+            };
+
+            ViewData["Title"] = "Trainer Dashboard";
+            ViewData["Heading"] = "Welcome, Trainer";
+            ViewData["ActivePage"] = "Dashboard";
+
+            return View(model);
+        }
+
+        // --------------------------------------------------
+        // 2. OTHER TRAINER PAGES
+        // --------------------------------------------------
+        public async Task<IActionResult> MyClient()
+        {
+            var trainer = await _userManager.GetUserAsync(User);
+
+            if (trainer == null)
+            {
+                return Challenge();
+            }
+
+            // 1. Get client IDs from workout plans
+            var workoutClientIds = await _context.WorkoutPlans
+                .Where(p => p.TrainerId == trainer.Id)
+                .Select(p => p.ClientId)
+                .Distinct()
+                .ToListAsync();
+
+            // 2. Get client IDs from diet plans
+            var dietClientIds = await _context.DietPlans
+                .Where(p => p.TrainerId == trainer.Id)
+                .Select(p => p.ClientId)
+                .Distinct()
+                .ToListAsync();
+
+            // 3. Get client IDs from appointments
+            var appointmentClientIds = await _context.Appointments
+                .Where(a => a.TrainerId == trainer.Id)
+                .Select(a => a.ClientId)
+                .Distinct()
+                .ToListAsync();
+
+            // 4. Combine all client IDs without duplicates
+            var clientIds = workoutClientIds
+                .Concat(dietClientIds)
+                .Concat(appointmentClientIds)
+                .Where(id => !string.IsNullOrWhiteSpace(id))
+                .Distinct()
+                .ToList();
+
+            // 5. Fetch client Identity records
+            var users = await _context.Users
+                .Where(u => clientIds.Contains(u.Id))
+                .OrderBy(u => u.FullName)
+                .ToListAsync();
+
+            var clients = new List<TrainerClientViewModel>();
+
+            // 6. Fetch each client's latest progress and health records
+            foreach (var user in users)
+            {
+                var progress = await _context.ProgressRecords
+                    .Where(p => p.ClientId == user.Id)
+                    .OrderByDescending(p => p.RecordDate)
+                    .FirstOrDefaultAsync();
+
+                var health = await _context.HealthRecords
+                    .Where(h => h.ClientId == user.Id)
+                    .OrderByDescending(h => h.RecordDate)
+                    .FirstOrDefaultAsync();
+
+                clients.Add(new TrainerClientViewModel
+                {
+                    Id = user.Id,
+
+                    FullName = string.IsNullOrWhiteSpace(user.FullName)
+                        ? (user.Email ?? "Client")
+                        : user.FullName,
+
+                    Email = user.Email,
+                    PhoneNumber = user.PhoneNumber,
+                    ProfilePictureUrl = user.ProfilePictureUrl,
+
+                    WorkoutsCompleted = progress?.WorkoutsCompleted ?? 0,
+
+                    Weight = health?.Weight,
+                    BMI = health?.BMI,
+
+                    HealthSummary = health == null
+                        ? "No health records available."
+                        : $"Latest weight: {health.Weight:F2} kg; BMI: {health.BMI:F2}"
+                });
+            }
+
+            // 7. Set page information
+            ViewData["Title"] = "My Clients";
+            ViewData["Heading"] = "Manage Clients";
+            ViewData["ActivePage"] = "MyClients";
+
+            // 8. Send data to the view
+            return View(clients);
+
+        }
+        // Verify that this client is connected to the logged-in trainer.
+        private async Task<bool> CanAccessClientAsync(
+            string trainerId,
+            string clientId)
+        {
+            if (string.IsNullOrWhiteSpace(clientId))
+                return false;
+
+            var hasWorkout = await _context.WorkoutPlans.AnyAsync(p =>
+                p.TrainerId == trainerId && p.ClientId == clientId);
+
+            var hasDiet = await _context.DietPlans.AnyAsync(p =>
+                p.TrainerId == trainerId && p.ClientId == clientId);
+
+            var hasAppointment = await _context.Appointments.AnyAsync(a =>
+                a.TrainerId == trainerId && a.ClientId == clientId);
+
+            return hasWorkout || hasDiet || hasAppointment;
+        }
+
+        // Save a workout assignment.
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> AssignWorkout(
+            string clientId,
+            string plan,
+            string? notes,
+            DateTime startDate,
+            DateTime endDate)
+        {
+            var trainer = await _userManager.GetUserAsync(User);
+
+            if (trainer == null)
+                return Unauthorized(new { success = false, message = "Please sign in again." });
+
+            if (!await CanAccessClientAsync(trainer.Id, clientId))
+                return BadRequest(new { success = false, message = "This client is not assigned to you." });
+
+            if (string.IsNullOrWhiteSpace(plan) || plan.Length > 150)
+                return BadRequest(new { success = false, message = "Enter a valid workout plan name." });
+
+            if (startDate == default || endDate == default || endDate.Date < startDate.Date)
+                return BadRequest(new { success = false, message = "Please select valid start and end dates." });
+
+            var clientExists = await _context.Users.AnyAsync(u => u.Id == clientId);
+
+            if (!clientExists)
+                return BadRequest(new { success = false, message = "Client account was not found." });
+
+            var workoutPlan = new WorkoutPlan
+            {
+                TrainerId = trainer.Id,
+                ClientId = clientId,
+                PlanName = plan.Trim(),
+                Description = string.IsNullOrWhiteSpace(notes) ? null : notes.Trim(),
+                StartDate = startDate.Date,
+                EndDate = endDate.Date
+            };
+
+            _context.WorkoutPlans.Add(workoutPlan);
+            await _context.SaveChangesAsync();
+
+            return Json(new
+            {
+                success = true,
+                message = $"Workout plan '{workoutPlan.PlanName}' was assigned successfully."
+            });
+        }
+
+        // Save a diet assignment.
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> AssignDietPlan(
+            string clientId,
+            string plan,
+            string? notes,
+            DateTime startDate,
+            DateTime endDate)
+        {
+            var trainer = await _userManager.GetUserAsync(User);
+
+            if (trainer == null)
+                return Unauthorized(new { success = false, message = "Please sign in again." });
+
+            if (!await CanAccessClientAsync(trainer.Id, clientId))
+                return BadRequest(new { success = false, message = "This client is not assigned to you." });
+
+            if (string.IsNullOrWhiteSpace(plan) || plan.Length > 150)
+                return BadRequest(new { success = false, message = "Enter a valid diet plan name." });
+
+            if (startDate == default || endDate == default || endDate.Date < startDate.Date)
+                return BadRequest(new { success = false, message = "Please select valid start and end dates." });
+
+            var clientExists = await _context.Users.AnyAsync(u => u.Id == clientId);
+
+            if (!clientExists)
+                return BadRequest(new { success = false, message = "Client account was not found." });
+
+            var dietPlan = new DietPlan
+            {
+                TrainerId = trainer.Id,
+                ClientId = clientId,
+                PlanName = plan.Trim(),
+                Description = string.IsNullOrWhiteSpace(notes) ? null : notes.Trim(),
+                StartDate = startDate.Date,
+                EndDate = endDate.Date
+            };
+
+            _context.DietPlans.Add(dietPlan);
+            await _context.SaveChangesAsync();
+
+            return Json(new
+            {
+                success = true,
+                message = $"Diet plan '{dietPlan.PlanName}' was assigned successfully."
+            });
+        }
+        public IActionResult WorkoutPlans()
         {
             return View();
         }
 
-        public IActionResult MyClient() { return View(); }
-        public IActionResult WorkoutPlans() { return View(); }
-        public IActionResult DietPlans() { return View(); }
-        public IActionResult Appointments() { return View(); }
-        public IActionResult ClientProgress() { return View(); }
-        public IActionResult Feedback() { return View(); }
-
-        public IActionResult Notifications()
+        public IActionResult DietPlans()
         {
-            var notifications = new List<NotificationItem>
-            {
-                new NotificationItem { Title = "New Client Assigned", Message = "You have been assigned to Kamal Perera.", Time = "1 hour ago", Icon = "bi-person-plus", Color = "blue" },
-                new NotificationItem { Title = "Appointment Request", Message = "Nimali Silva requested a new appointment for tomorrow.", Time = "3 hours ago", Icon = "bi-calendar-check", Color = "green" },
-                new NotificationItem { Title = "Workout Plan Completed", Message = "Sahan Fernando completed his workout plan for this week.", Time = "1 day ago", Icon = "bi-activity", Color = "orange" }
-            };
-            return View(notifications);
+            return View();
         }
 
-        // ---- Newly Added Profile Actions ----
+        [Authorize(Roles = "Trainer")]
+        public async Task<IActionResult> Appointments()
+        {
+            var trainer = await _userManager.GetUserAsync(User);
 
-        // 1. Show Trainer Profile (GET)
+            if (trainer == null)
+            {
+                return Challenge();
+            }
+
+            var appointments = await _context.Appointments
+                .AsNoTracking()
+                .Where(a => a.TrainerId == trainer.Id)
+                .Include(a => a.Client)
+                .OrderByDescending(a => a.AppointmentDate)
+                .ToListAsync();
+
+            ViewData["Title"] = "Appointments";
+            ViewData["Heading"] = "Manage Appointments";
+            ViewData["ActivePage"] = "Appointments";
+
+            return View(appointments);
+        }
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Trainer")]
+        public async Task<IActionResult> UpdateAppointmentStatus(
+    int appointmentId,
+    string status)
+        {
+            var trainer = await _userManager.GetUserAsync(User);
+
+            if (trainer == null)
+            {
+                return Challenge();
+            }
+
+            var allowedStatuses = new[]
+            {
+        "Pending",
+        "Confirmed",
+        "Completed",
+        "Cancelled"
+    };
+
+            if (string.IsNullOrWhiteSpace(status) ||
+                !allowedStatuses.Contains(status, StringComparer.OrdinalIgnoreCase))
+            {
+                TempData["Error"] = "Invalid appointment status.";
+                return RedirectToAction(nameof(Appointments));
+            }
+
+            var appointment = await _context.Appointments
+                .FirstOrDefaultAsync(a =>
+                    a.AppointmentId == appointmentId &&
+                    a.TrainerId == trainer.Id);
+
+            if (appointment == null)
+            {
+                return NotFound();
+            }
+
+            appointment.Status = allowedStatuses.First(
+                s => s.Equals(status, StringComparison.OrdinalIgnoreCase));
+
+            await _context.SaveChangesAsync();
+
+            TempData["Success"] = "Appointment status updated successfully.";
+
+            return RedirectToAction(nameof(Appointments));
+        }
+        public IActionResult ClientProgress()
+        {
+            return View();
+        }
+
+        public IActionResult Feedback()
+        {
+            return View();
+        }
+
+        // --------------------------------------------------
+        // 3. TRAINER NOTIFICATIONS
+        // --------------------------------------------------
+        // These notifications are sample data.
+        // This action is not yet connected to the database.
+        [Authorize(Roles = "Trainer")]
+        public async Task<IActionResult> Notifications()
+        {
+            var trainer = await _userManager.GetUserAsync(User);
+
+            if (trainer == null)
+            {
+                return Challenge();
+            }
+
+            var notifications = await _context.Notifications
+                .AsNoTracking()
+                .Where(n => n.UserId == trainer.Id)
+                .OrderByDescending(n => n.CreatedAt)
+                .ToListAsync();
+
+            ViewData["Title"] = "Notifications";
+            ViewData["Heading"] = "Notifications";
+            ViewData["ActivePage"] = "Notifications";
+
+            return View(notifications);
+        }
+        // --------------------------------------------------
+        // 4. SHOW TRAINER PROFILE
+        // --------------------------------------------------
+        [HttpGet]
         public async Task<IActionResult> MyProfile()
         {
             var user = await _userManager.GetUserAsync(User);
-            if (user == null) return RedirectToPage("/Account/Login", new { area = "Identity" });
+
+            if (user == null)
+            {
+                return Challenge();
+            }
 
             var roles = await _userManager.GetRolesAsync(user);
-            ViewBag.Role = roles.Count > 0 ? roles[0] : "Trainer";
 
-            var healthProfile = await _context.HealthProfiles.FirstOrDefaultAsync(p => p.UserId == user.Id);
+            ViewBag.Role = roles.Count > 0
+                ? roles[0]
+                : "Trainer";
+
+            var healthProfile = await _context.HealthProfiles
+                .FirstOrDefaultAsync(p => p.UserId == user.Id);
 
             if (healthProfile == null)
             {
-                healthProfile = new HealthProfile { UserId = user.Id, Weight = 0, Height = 0, DateOfBirth = DateTime.Now.AddYears(-25) };
+                healthProfile = new HealthProfile
+                {
+                    UserId = user.Id,
+                    Weight = 0,
+                    Height = 0,
+                    DateOfBirth = DateTime.Now.AddYears(-25)
+                };
             }
 
             var model = new ManageProfileViewModel
@@ -73,7 +516,11 @@ namespace HealthTrack.Controllers
                 Email = user.Email,
                 PhoneNumber = user.PhoneNumber,
                 ProfilePictureUrl = user.ProfilePictureUrl,
-                DateOfBirth = healthProfile.DateOfBirth == default ? DateTime.Now.AddYears(-25) : healthProfile.DateOfBirth,
+
+                DateOfBirth = healthProfile.DateOfBirth == default
+                    ? DateTime.Now.AddYears(-25)
+                    : healthProfile.DateOfBirth,
+
                 Weight = healthProfile.Weight,
                 Height = healthProfile.Height,
                 BMI = healthProfile.BMI,
@@ -83,76 +530,177 @@ namespace HealthTrack.Controllers
             return View(model);
         }
 
-        // 2. Save Trainer Profile (POST)
+        // --------------------------------------------------
+        // 5. UPDATE TRAINER PROFILE
+        // --------------------------------------------------
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> UpdateProfile(ManageProfileViewModel model)
+        public async Task<IActionResult> UpdateProfile(
+            ManageProfileViewModel model)
         {
-            if (!ModelState.IsValid) return RedirectToAction("MyProfile");
+            if (!ModelState.IsValid)
+            {
+                TempData["Error"] =
+                    "Please check the information you entered.";
+
+                return RedirectToAction(nameof(MyProfile));
+            }
 
             var user = await _userManager.GetUserAsync(User);
-            if (user == null) return RedirectToPage("/Account/Login", new { area = "Identity" });
+
+            if (user == null)
+            {
+                return Challenge();
+            }
 
             user.FullName = model.FullName;
             user.PhoneNumber = model.PhoneNumber;
-            await _userManager.UpdateAsync(user);
 
-            var healthProfile = await _context.HealthProfiles.FirstOrDefaultAsync(p => p.UserId == user.Id);
+            var identityResult = await _userManager.UpdateAsync(user);
+
+            if (!identityResult.Succeeded)
+            {
+                TempData["Error"] =
+                    string.Join(" ", identityResult.Errors
+                        .Select(e => e.Description));
+
+                return RedirectToAction(nameof(MyProfile));
+            }
+
+            var healthProfile = await _context.HealthProfiles
+                .FirstOrDefaultAsync(p => p.UserId == user.Id);
+
             if (healthProfile == null)
             {
-                healthProfile = new HealthProfile { UserId = user.Id };
+                healthProfile = new HealthProfile
+                {
+                    UserId = user.Id
+                };
+
                 _context.HealthProfiles.Add(healthProfile);
             }
 
             healthProfile.DateOfBirth = model.DateOfBirth;
             healthProfile.Weight = model.Weight;
             healthProfile.Height = model.Height;
+            healthProfile.MedicalNotes = model.MedicalNotes;
 
             if (model.Height > 0)
             {
-                decimal heightInMeters = model.Height / 100;
-                healthProfile.BMI = model.Weight / (heightInMeters * heightInMeters);
-            }
-            else { healthProfile.BMI = 0; }
+                decimal heightInMeters = model.Height / 100m;
 
-            healthProfile.MedicalNotes = model.MedicalNotes;
+                healthProfile.BMI =
+                    model.Weight / (heightInMeters * heightInMeters);
+            }
+            else
+            {
+                healthProfile.BMI = 0;
+            }
 
             await _context.SaveChangesAsync();
-            return RedirectToAction("MyProfile");
+
+            TempData["Success"] = "Profile updated successfully.";
+
+            return RedirectToAction(nameof(MyProfile));
         }
 
-        // 3. Upload Trainer Profile Picture (POST)
+        // --------------------------------------------------
+        // 6. UPLOAD TRAINER PROFILE PICTURE
+        // --------------------------------------------------
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> UploadProfilePicture(IFormFile profilePic)
+        public async Task<IActionResult> UploadProfilePicture(
+            IFormFile profilePic)
         {
-            if (profilePic != null && profilePic.Length > 0)
+            if (profilePic == null || profilePic.Length == 0)
             {
-                var user = await _userManager.GetUserAsync(User);
-                if (user == null) return RedirectToPage("/Account/Login", new { area = "Identity" });
+                TempData["Error"] = "Please select an image.";
 
-                var allowedExtensions = new[] { ".jpg", ".jpeg", ".png" };
-                var extension = Path.GetExtension(profilePic.FileName).ToLower();
+                return RedirectToAction(nameof(MyProfile));
+            }
 
-                if (!allowedExtensions.Contains(extension)) return RedirectToAction("MyProfile");
+            // Limit the uploaded file to 5 MB.
+            const long maxFileSize = 5 * 1024 * 1024;
 
-                var fileName = Guid.NewGuid().ToString() + extension;
-                var uploadPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads", "profiles");
+            if (profilePic.Length > maxFileSize)
+            {
+                TempData["Error"] =
+                    "The image size must not exceed 5 MB.";
 
-                if (!Directory.Exists(uploadPath)) Directory.CreateDirectory(uploadPath);
+                return RedirectToAction(nameof(MyProfile));
+            }
 
-                var filePath = Path.Combine(uploadPath, fileName);
+            var allowedExtensions = new[]
+            {
+                ".jpg",
+                ".jpeg",
+                ".png"
+            };
 
-                using (var stream = new FileStream(filePath, FileMode.Create))
+            var extension = Path
+                .GetExtension(profilePic.FileName)
+                .ToLowerInvariant();
+
+            if (!allowedExtensions.Contains(extension))
+            {
+                TempData["Error"] =
+                    "Only JPG, JPEG and PNG images are allowed.";
+
+                return RedirectToAction(nameof(MyProfile));
+            }
+
+            var user = await _userManager.GetUserAsync(User);
+
+            if (user == null)
+            {
+                return Challenge();
+            }
+
+            var uploadPath = Path.Combine(
+                Directory.GetCurrentDirectory(),
+                "wwwroot",
+                "uploads",
+                "profiles");
+
+            Directory.CreateDirectory(uploadPath);
+
+            var fileName = Guid.NewGuid().ToString("N") + extension;
+            var filePath = Path.Combine(uploadPath, fileName);
+
+            try
+            {
+                using (var stream = new FileStream(
+                    filePath,
+                    FileMode.CreateNew,
+                    FileAccess.Write))
                 {
                     await profilePic.CopyToAsync(stream);
                 }
 
                 user.ProfilePictureUrl = fileName;
-                await _userManager.UpdateAsync(user);
+
+                var result = await _userManager.UpdateAsync(user);
+
+                if (!result.Succeeded)
+                {
+                    System.IO.File.Delete(filePath);
+
+                    TempData["Error"] =
+                        "The profile picture could not be saved.";
+
+                    return RedirectToAction(nameof(MyProfile));
+                }
+
+                TempData["Success"] =
+                    "Profile picture uploaded successfully.";
+            }
+            catch (IOException)
+            {
+                TempData["Error"] =
+                    "An error occurred while uploading the image.";
             }
 
-            return RedirectToAction("MyProfile");
+            return RedirectToAction(nameof(MyProfile));
         }
     }
 }

@@ -2832,3 +2832,350 @@ body.trainer-modal-open {
         min-width: 190px
     }
 }
+/* Popup overlay */
+.trainer-modal {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 99999;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+    .trainer-modal.is-open {
+        display: flex;
+    }
+
+body.trainer-modal-open {
+    overflow: hidden;
+}
+
+.trainer-modal-backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.60);
+    backdrop-filter: blur(4px);
+}
+
+.trainer-modal-card {
+    position: relative;
+    z-index: 1;
+    width: 100%;
+    max-width: 600px;
+    max-height: 90vh;
+    overflow-y: auto;
+    background: #fff;
+    border-radius: 18px;
+    box-shadow: 0 24px 70px rgba(0, 0, 0, 0.22);
+    animation: trainerModalEnter 0.2s ease-out;
+}
+
+@keyframes trainerModalEnter {
+    from {
+        opacity: 0;
+        transform: translateY(12px) scale(0.98);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+.trainer-modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 15px;
+    padding: 22px 26px;
+    border-bottom: 1px solid #e8edf4;
+}
+
+    .trainer-modal-header h2 {
+        margin: 0;
+        font-size: 22px;
+        font-weight: 700;
+        color: #172033;
+    }
+
+.trainer-modal-close {
+    width: 38px;
+    height: 38px;
+    border: none;
+    border-radius: 10px;
+    background: #f1f5f9;
+    color: #475569;
+    font-size: 27px;
+    cursor: pointer;
+}
+
+    .trainer-modal-close:hover {
+        background: #e2e8f0;
+    }
+
+.trainer-modal-content {
+    padding: 25px 26px;
+}
+
+.trainer-client-profile {
+    text-align: center;
+    padding-bottom: 22px;
+}
+
+.trainer-client-avatar {
+    width: 66px;
+    height: 66px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 12px;
+    border-radius: 50%;
+    background: #eaf2ff;
+    color: #1769d2;
+    font-size: 30px;
+}
+
+.trainer-client-profile h3 {
+    margin: 0 0 5px;
+    color: #172033;
+    font-size: 21px;
+}
+
+.trainer-client-profile p {
+    margin: 0;
+    color: #64748b;
+    font-size: 14px;
+}
+
+.trainer-detail-list {
+    border: 1px solid #e5eaf1;
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.trainer-detail-row {
+    display: grid;
+    grid-template-columns: minmax(120px, 0.8fr) minmax(0, 1.2fr);
+    gap: 16px;
+    padding: 14px 16px;
+    border-bottom: 1px solid #edf0f5;
+}
+
+    .trainer-detail-row:last-child {
+        border-bottom: none;
+    }
+
+    .trainer-detail-row span {
+        color: #64748b;
+        font-size: 14px;
+    }
+
+    .trainer-detail-row strong {
+        color: #1e293b;
+        font-size: 14px;
+        font-weight: 600;
+        overflow-wrap: anywhere;
+    }
+
+.trainer-modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 24px;
+}
+
+.trainer-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-height: 43px;
+    padding: 10px 17px;
+    border: 1px solid transparent;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.15s, transform 0.15s;
+}
+
+    .trainer-btn:disabled {
+        opacity: 0.65;
+        cursor: not-allowed;
+    }
+
+.trainer-btn-primary {
+    background: #1677ed;
+    color: #fff;
+}
+
+    .trainer-btn-primary:hover:not(:disabled) {
+        background: #0d62cc;
+    }
+
+.trainer-btn-secondary {
+    background: #fff;
+    border-color: #d9e2ee;
+    color: #334155;
+}
+
+    .trainer-btn-secondary:hover {
+        background: #f8fafc;
+    }
+
+.trainer-selected-client {
+    display: flex;
+    align-items: center;
+    gap: 13px;
+    padding: 14px;
+    margin-bottom: 22px;
+    background: #f4f8ff;
+    border: 1px solid #e0ebff;
+    border-radius: 12px;
+}
+
+    .trainer-selected-client > i {
+        font-size: 32px;
+        color: #1677ed;
+    }
+
+    .trainer-selected-client div {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        min-width: 0;
+    }
+
+    .trainer-selected-client strong {
+        color: #172033;
+    }
+
+    .trainer-selected-client span {
+        color: #64748b;
+        font-size: 13px;
+        overflow-wrap: anywhere;
+    }
+
+.trainer-form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 18px;
+}
+
+    .trainer-form-group label {
+        color: #334155;
+        font-size: 14px;
+        font-weight: 600;
+    }
+
+    .trainer-form-group input,
+    .trainer-form-group textarea {
+        width: 100%;
+        box-sizing: border-box;
+        padding: 12px 13px;
+        border: 1px solid #d8e0eb;
+        border-radius: 9px;
+        background: #fff;
+        color: #172033;
+        font: inherit;
+        outline: none;
+    }
+
+        .trainer-form-group input:focus,
+        .trainer-form-group textarea:focus {
+            border-color: #1677ed;
+            box-shadow: 0 0 0 3px rgba(22, 119, 237, 0.12);
+        }
+
+    .trainer-form-group textarea {
+        resize: vertical;
+    }
+
+.trainer-form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+}
+
+.trainer-message {
+    margin: 0 26px 22px;
+    padding: 12px 14px;
+    border-radius: 9px;
+    font-size: 14px;
+}
+
+    .trainer-message:empty {
+        display: none;
+    }
+
+    .trainer-message.success {
+        color: #166534;
+        background: #dcfce7;
+    }
+
+    .trainer-message.error {
+        color: #b91c1c;
+        background: #fee2e2;
+    }
+
+.trainer-error-text {
+    color: #b91c1c;
+    line-height: 1.6;
+}
+
+.trainer-spinner {
+    display: inline-block;
+    width: 15px;
+    height: 15px;
+    border: 2px solid rgba(255, 255, 255, 0.5);
+    border-top-color: #fff;
+    border-radius: 50%;
+    animation: trainerSpin 0.7s linear infinite;
+}
+
+@keyframes trainerSpin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+@media (max-width: 560px) {
+    .trainer-modal {
+        padding: 10px;
+    }
+
+    .trainer-modal-card {
+        max-height: 95vh;
+        border-radius: 14px;
+    }
+
+    .trainer-modal-header,
+    .trainer-modal-content {
+        padding: 18px;
+    }
+
+    .trainer-detail-row {
+        grid-template-columns: 1fr;
+        gap: 5px;
+    }
+
+    .trainer-form-grid {
+        grid-template-columns: 1fr;
+        gap: 0;
+    }
+
+    .trainer-modal-actions {
+        flex-direction: column;
+    }
+
+        .trainer-modal-actions .trainer-btn {
+            width: 100%;
+        }
+
+    .trainer-message {
+        margin: 0 18px 18px;
+    }
+}
