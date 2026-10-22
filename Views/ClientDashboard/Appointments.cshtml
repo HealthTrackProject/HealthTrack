@@ -8,8 +8,10 @@
 <div class="client-appointments">
 
     <div class="client-appointments-header">
-        <h2>My Appointments</h2>
-
+        <div>
+            <h2>My Appointments</h2>
+            <p>Manage your appointments and stay on top of your health.</p>
+        </div>
         <button type="button"
                 class="ca-request-btn"
                 id="caRequestBtn">
@@ -153,6 +155,7 @@
 
         <h3 id="caModalTitle">Appointment Details</h3>
         <p id="caModalText"></p>
+        <div id="appointmentFormHost"></div>
         <button type="button"
                 class="ca-request-btn"
                 id="caModalOk">
@@ -199,11 +202,15 @@
             function openModal(title, text) {
                 modalTitle.textContent = title;
                 modalText.textContent = text;
+                document.getElementById("appointmentFormHost").innerHTML = "";
+                document.getElementById("caModalOk").hidden = false;
                 modal.hidden = false;
             }
 
             function closeModal() {
                 modal.hidden = true;
+                document.getElementById("appointmentFormHost").innerHTML = "";
+                document.getElementById("caModalOk").hidden = false;
             }
 
             tabs.forEach(button => {
@@ -236,13 +243,32 @@
                 }
             });
 
-            document.getElementById("caRequestBtn")
-                .addEventListener("click", () => {
-                    openModal(
-                        "Request Appointment",
-                        "The appointment request form can be added here. This design preview does not submit or save bookings."
-                    );
+            document.getElementById("caRequestBtn").addEventListener("click", () => {
+                openModal("Request Appointment", "Choose a preferred date and time for your appointment.");
+                const host = document.getElementById("appointmentFormHost");
+                const today = new Date();
+                const localToday = new Date(today.getTime() - today.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
+                host.innerHTML = `<form id="appointmentRequestForm" class="ht-modal-form">
+                            <div class="ht-form-field"><label for="appointmentDate">Preferred date</label><input id="appointmentDate" name="date" type="date" min="${localToday}" required></div>
+                            <div class="ht-form-field"><label for="appointmentTime">Preferred time</label><input id="appointmentTime" name="time" type="time" required></div>
+                            <div class="ht-form-field full-width"><label for="appointmentTrainer">Preferred trainer</label><input id="appointmentTrainer" name="trainer" maxlength="100" placeholder="Any available trainer" value="Any available trainer"></div>
+                            <div class="ht-form-field full-width"><label for="appointmentReason">Reason for appointment</label><textarea id="appointmentReason" name="reason" maxlength="500" required placeholder="Briefly describe your request"></textarea></div>
+                            <div class="ht-form-message">Demo only: this request is added to the page and is not sent to a trainer or saved in the database.</div>
+                            <div class="ht-form-actions"><button type="button" class="ht-secondary-button" id="cancelAppointmentForm">Cancel</button><button type="submit" class="ca-request-btn">Submit request</button></div>
+                        </form>`;
+                document.getElementById("caModalOk").hidden = true;
+                document.getElementById("appointmentRequestForm").addEventListener("submit", event => {
+                    event.preventDefault(); const form = event.currentTarget;
+                    const dateValue = form.elements.date.value; const timeValue = form.elements.time.value; const trainer = form.elements.trainer.value.trim() || "Any available trainer"; const reason = form.elements.reason.value.trim();
+                    const row = document.createElement("tr");
+                    const dateCell = document.createElement("td"); dateCell.textContent = new Date(dateValue + "T00:00:00").toLocaleDateString(undefined, { day: "2-digit", month: "short", year: "numeric" });
+                    const timeCell = document.createElement("td"); const [hour, minute] = timeValue.split(":").map(Number); const dt = new Date(); dt.setHours(hour, minute, 0, 0); timeCell.textContent = dt.toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" });
+                    const trainerCell = document.createElement("td"); trainerCell.textContent = trainer; const statusCell = document.createElement("td"); const badge = document.createElement("span"); badge.className = "ca-status pending"; badge.textContent = "Pending"; statusCell.appendChild(badge);
+                    const actionCell = document.createElement("td"); const view = document.createElement("button"); view.type = "button"; view.className = "ca-action view"; view.textContent = "View"; view.dataset.view = `${trainer} | ${dateCell.textContent} | ${timeCell.textContent} | Pending | ${reason}`; actionCell.appendChild(view);
+                    row.append(dateCell, timeCell, trainerCell, statusCell, actionCell); upcoming.prepend(row); closeModal(); showTab("upcoming");
                 });
+                document.getElementById("cancelAppointmentForm").addEventListener("click", closeModal);
+            });
 
             document.getElementById("caModalClose")
                 .addEventListener("click", closeModal);
