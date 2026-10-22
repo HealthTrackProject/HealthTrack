@@ -24,22 +24,19 @@ namespace HealthTrack.Controllers
             _context = context;
         }
 
-        
+        // ---- Dashboard Index ----
         public async Task<IActionResult> Index()
         {
             var user = await _userManager.GetUserAsync(User);
             if (user == null) return RedirectToPage("/Account/Login", new { area = "Identity" });
 
-            // 1. Fetch Health Profile (Weight, BMI)
             var healthProfile = await _context.HealthProfiles.FirstOrDefaultAsync(h => h.UserId == user.Id);
 
-            // 2. Fetch Weekly Workouts & Calories (Last 7 days)
             var startOfWeek = DateTime.Now.AddDays(-7);
             var weeklyLogs = await _context.WorkoutLogs
                 .Where(w => w.ClientId == user.Id && w.WorkoutDate >= startOfWeek)
                 .ToListAsync();
 
-            // 3. Fetch Upcoming Appointments
             var upcomingAppointments = await _context.Appointments
                 .Include(a => a.Trainer)
                 .Where(a => a.ClientId == user.Id && a.AppointmentDate >= DateTime.Now && a.Status == "Approved")
@@ -47,16 +44,14 @@ namespace HealthTrack.Controllers
                 .Take(3)
                 .ToListAsync();
 
-            // 4. Fetch Weight History for Chart (Last 6 Health Records)
             var weightHistory = await _context.HealthRecords
                 .Where(h => h.ClientId == user.Id)
                 .OrderByDescending(h => h.RecordDate)
                 .Take(6)
                 .ToListAsync();
 
-            weightHistory.Reverse(); // Ascending order for chart
+            weightHistory.Reverse();
 
-            // --- Map to ViewModel ---
             var model = new ClientDashboardViewModel
             {
                 FullName = user.FullName,
@@ -79,16 +74,10 @@ namespace HealthTrack.Controllers
                     Value = (double)h.Weight
                 }).ToList(),
 
-                CaloriesChartData = weeklyLogs
-                    .GroupBy(w => w.WorkoutDate.DayOfWeek)
-                    .Select(g => new ChartDataPoint
-                    {
-                        Label = g.Key.ToString().Substring(0, 3),
-                        Value = g.Sum(w => w.CaloriesBurned)
-                    }).ToList()
+                // මෙතන තමයි අර වැරැද්ද තිබ්බේ. දැන් හරි!
+                CaloriesChartData = GetWeeklyCaloriesChartData(weeklyLogs)
             };
 
-            // Fallback for UI demonstration if no data
             if (!model.WeightChartData.Any())
             {
                 model.WeightChartData = new List<ChartDataPoint>
@@ -98,10 +87,30 @@ namespace HealthTrack.Controllers
                 };
             }
 
-            // this should pass to the model
             return View(model);
         }
-        // ------------------------------------------------
+
+        private List<ChartDataPoint> GetWeeklyCaloriesChartData(List<WorkoutLog> logs)
+        {
+            var chartData = new List<ChartDataPoint>();
+            for (int i = 6; i >= 0; i--)
+            {
+                var date = DateTime.Now.AddDays(-i).Date;
+                var dayName = date.ToString("ddd"); // Mon, Tue, Wed...
+
+                // Get total calories for this specific day
+                var calories = logs.Where(w => w.WorkoutDate.Date == date).Sum(w => w.CaloriesBurned);
+
+                chartData.Add(new ChartDataPoint
+                {
+                    Label = dayName,
+                    Value = calories
+                });
+            }
+            return chartData;
+        }
+
+        // ---- Health Records Actions ----
 
         // 1. Show Health Records Page (GET)
         public async Task<IActionResult> HealthRecords()
@@ -109,20 +118,21 @@ namespace HealthTrack.Controllers
             var user = await _userManager.GetUserAsync(User);
             if (user == null) return RedirectToPage("/Account/Login", new { area = "Identity" });
 
-            // Get latest Health Profile
             var profile = await _context.HealthProfiles.FirstOrDefaultAsync(p => p.UserId == user.Id);
 
-            // Get all health records for this user
             var records = await _context.HealthRecords
                 .Where(r => r.ClientId == user.Id)
                 .OrderByDescending(r => r.RecordDate)
                 .ToListAsync();
+
+            var latestRecord = records.FirstOrDefault();
 
             var model = new HealthRecordsViewModel
             {
                 CurrentWeight = profile?.Weight ?? 0,
                 CurrentHeight = profile?.Height ?? 0,
                 CurrentBMI = profile?.BMI ?? 0,
+                LastHeartRate = latestRecord?.HeartRate ?? 0,
                 Records = records
             };
 
@@ -132,12 +142,11 @@ namespace HealthTrack.Controllers
         // 2. Add New Record (POST)
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> AddHealthRecord(decimal weight, decimal height, int caloriesBurned, DateTime recordDate)
+        public async Task<IActionResult> AddHealthRecord(decimal weight, decimal height, int caloriesBurned, DateTime recordDate, int? heartRate, string? bloodPressure)
         {
             var user = await _userManager.GetUserAsync(User);
             if (user == null) return RedirectToPage("/Account/Login", new { area = "Identity" });
 
-            // Calculate BMI
             decimal bmi = 0;
             if (height > 0)
             {
@@ -145,7 +154,6 @@ namespace HealthTrack.Controllers
                 bmi = weight / (heightInMeters * heightInMeters);
             }
 
-            // Save to HealthRecords Table
             var newRecord = new HealthRecord
             {
                 ClientId = user.Id,
@@ -153,12 +161,13 @@ namespace HealthTrack.Controllers
                 Height = height,
                 BMI = bmi,
                 CaloriesBurned = caloriesBurned,
-                RecordDate = recordDate
+                RecordDate = recordDate,
+                HeartRate = heartRate,
+                BloodPressure = bloodPressure
             };
 
             _context.HealthRecords.Add(newRecord);
 
-            // Update the Health Profile so the top summary cards change
             var profile = await _context.HealthProfiles.FirstOrDefaultAsync(p => p.UserId == user.Id);
             if (profile != null)
             {
@@ -200,13 +209,157 @@ namespace HealthTrack.Controllers
             return RedirectToAction("HealthRecords");
         }
 
-        public IActionResult Workout()
+        // ---- Other Pages ----
+
+        // 1. GET:when Load the Workout Page 
+        public async Task<IActionResult> Workout()
         {
-            return View();
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null) return RedirectToPage("/Account/Login", new { area = "Identity" });
+
+            // user fetch Workout History from db
+            var workoutHistory = await _context.WorkoutLogs
+                .Where(w => w.ClientId == user.Id)
+                .OrderByDescending(w => w.WorkoutDate)
+                .ToListAsync();
+
+            // Current Plan (mock up data for now)
+            var currentPlan = new List<WorkoutDay>
+    {
+        new WorkoutDay { Day = "Monday", MuscleGroup = "Chest & Arms", Exercises = "Push-ups, Bench Press, Bicep Curls" },
+        new WorkoutDay { Day = "Tuesday", MuscleGroup = "Legs", Exercises = "Squats, Lunges, Leg Press" },
+        new WorkoutDay { Day = "Wednesday", MuscleGroup = "Cardio", Exercises = "Running, Cycling, HIIT" },
+        new WorkoutDay { Day = "Thursday", MuscleGroup = "Back & Shoulders", Exercises = "Deadlifts, Shoulder Press" },
+        new WorkoutDay { Day = "Friday", MuscleGroup = "Full Body", Exercises = "Circuit Training" }
+    };
+
+            var model = new WorkoutViewModel
+            {
+                WorkoutHistory = workoutHistory,
+                CurrentPlan = currentPlan
+            };
+
+            return View(model);
         }
-        public IActionResult Diet()
+
+        // 2. POST: data that comes from the form
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> LogWorkout(string workoutName, string workoutGroup, string workoutExercises, int workoutDuration, int? workoutCalories, DateTime workoutDate)
         {
-            return View();
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null) return RedirectToPage("/Account/Login", new { area = "Identity" });
+
+            // WorkoutPlanId is compulsory. If user cannot have a plan, then create it.
+            var plan = await _context.WorkoutPlans.FirstOrDefaultAsync(p => p.ClientId == user.Id);
+
+            if (plan == null)
+            {
+                // if user doesn't have a plan, create a dummy plan for them
+                var trainer = await _userManager.GetUsersInRoleAsync("Trainer");
+                var defaultTrainerId = trainer.FirstOrDefault()?.Id ?? user.Id;
+
+                plan = new WorkoutPlan
+                {
+                    ClientId = user.Id,
+                    TrainerId = defaultTrainerId,
+                    PlanName = "General Fitness",
+                    Description = "Auto-generated general plan",
+                    StartDate = DateTime.Now,
+                    EndDate = DateTime.Now.AddMonths(1)
+                };
+                _context.WorkoutPlans.Add(plan);
+                await _context.SaveChangesAsync();
+            }
+
+            // create a new Workout Log and save it
+            var newLog = new WorkoutLog
+            {
+                ClientId = user.Id,
+                WorkoutPlanId = plan.WorkoutPlanId,
+                ExerciseName = $"{workoutName} ({workoutGroup}) - {workoutExercises}", // Combine all text for DB
+                DurationMinutes = workoutDuration,
+                CaloriesBurned = workoutCalories ?? 0,
+                WorkoutDate = workoutDate
+            };
+
+            _context.WorkoutLogs.Add(newLog);
+            await _context.SaveChangesAsync();
+
+            return RedirectToAction("Workout");
+        }
+        // 1. GET: when load the diet page
+        public async Task<IActionResult> Diet()
+        {
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null) return RedirectToPage("/Account/Login", new { area = "Identity" });
+
+            // Fetch Meal History from Database
+            var mealHistory = await _context.DietLogs
+                .Where(d => d.ClientId == user.Id)
+                .OrderByDescending(d => d.MealDate)
+                .ToListAsync();
+
+            // Today's Plan (Mock Data)
+            var todayPlan = new List<MockMeal>
+    {
+        new MockMeal { Name = "Breakfast", Time = "7:00 AM", Food = "Oatmeal, Banana, Almonds", Calories = 350, ImageUrl = "https://images.unsplash.com/photo-1517673132405-a56a62b18caf?w=200&h=200&fit=crop" },
+        new MockMeal { Name = "Lunch", Time = "12:00 PM", Food = "Grilled Chicken, Brown Rice, Salad", Calories = 550, ImageUrl = "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=200&h=200&fit=crop" },
+        new MockMeal { Name = "Dinner", Time = "7:00 PM", Food = "Fish, Vegetables, Quinoa", Calories = 450, ImageUrl = "https://images.unsplash.com/photo-1467003909585-2f8a72700288?w=200&h=200&fit=crop" },
+        new MockMeal { Name = "Snacks", Time = "4:00 PM", Food = "Greek Yogurt, Nuts", Calories = 200, ImageUrl = "https://images.unsplash.com/photo-1488477181946-6428a0291777?w=200&h=200&fit=crop" }
+    };
+
+            var model = new DietViewModel
+            {
+                MealHistory = mealHistory,
+                TodayPlan = todayPlan
+            };
+
+            return View(model);
+        }
+
+        // 2. POST: Submit data via Log Meal Form 
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> LogMeal(string mealType, string foodDescription, int calories, DateTime mealDate)
+        {
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null) return RedirectToPage("/Account/Login", new { area = "Identity" });
+
+            // DietPlanId is compulsory for DietLog 
+            // If the user doesn't have a diet plan, create a new one.
+            var plan = await _context.DietPlans.FirstOrDefaultAsync(p => p.ClientId == user.Id);
+            if (plan == null)
+            {
+                var trainer = await _userManager.GetUsersInRoleAsync("Trainer");
+                var defaultTrainerId = trainer.FirstOrDefault()?.Id ?? user.Id;
+
+                plan = new DietPlan
+                {
+                    ClientId = user.Id,
+                    TrainerId = defaultTrainerId,
+                    PlanName = "General Diet",
+                    StartDate = DateTime.Now,
+                    EndDate = DateTime.Now.AddMonths(1)
+                };
+                _context.DietPlans.Add(plan);
+                await _context.SaveChangesAsync();
+            }
+
+            var newLog = new DietLog
+            {
+                ClientId = user.Id,
+                DietPlanId = plan.DietPlanId,
+                MealType = mealType,
+                FoodDescription = foodDescription,
+                Calories = calories,
+                MealDate = mealDate
+            };
+
+            _context.DietLogs.Add(newLog);
+            await _context.SaveChangesAsync();
+
+            return RedirectToAction("Diet");
         }
 
         public IActionResult Appointments()
@@ -347,12 +500,13 @@ namespace HealthTrack.Controllers
         }
     }
 
+    // Fixed warnings by adding = string.Empty;
     public class NotificationItem
     {
-        public string Title { get; set; }
-        public string Message { get; set; }
-        public string Time { get; set; }
-        public string Icon { get; set; }
-        public string Color { get; set; }
+        public string Title { get; set; } = string.Empty;
+        public string Message { get; set; } = string.Empty;
+        public string Time { get; set; } = string.Empty;
+        public string Icon { get; set; } = string.Empty;
+        public string Color { get; set; } = string.Empty;
     }
 }
