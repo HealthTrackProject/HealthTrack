@@ -1,13 +1,14 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Identity;
 using HealthTrack.Models;
-using HealthTrack.Data; // Added for Database access
+using HealthTrack.Data;
 using System.Threading.Tasks;
 using System.Collections.Generic;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.EntityFrameworkCore; // Added for EF Core
-using System; // Added for DateTime
-using System.Linq; // Added for FirstOrDefault
+using Microsoft.EntityFrameworkCore;
+using System;
+using System.Linq;
+using System.IO;
 
 namespace HealthTrack.Controllers
 {
@@ -15,25 +16,190 @@ namespace HealthTrack.Controllers
     public class ClientDashboardController : Controller
     {
         private readonly UserManager<ApplicationUser> _userManager;
-        private readonly ApplicationDbContext _context; // Added DbContext
+        private readonly ApplicationDbContext _context;
 
-        // Constructor injecting both UserManager and DbContext
         public ClientDashboardController(UserManager<ApplicationUser> userManager, ApplicationDbContext context)
         {
             _userManager = userManager;
             _context = context;
         }
 
-        // ---- Existing actions ----
-        public IActionResult Index()
+        
+        public async Task<IActionResult> Index()
         {
-            return View();
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null) return RedirectToPage("/Account/Login", new { area = "Identity" });
+
+            // 1. Fetch Health Profile (Weight, BMI)
+            var healthProfile = await _context.HealthProfiles.FirstOrDefaultAsync(h => h.UserId == user.Id);
+
+            // 2. Fetch Weekly Workouts & Calories (Last 7 days)
+            var startOfWeek = DateTime.Now.AddDays(-7);
+            var weeklyLogs = await _context.WorkoutLogs
+                .Where(w => w.ClientId == user.Id && w.WorkoutDate >= startOfWeek)
+                .ToListAsync();
+
+            // 3. Fetch Upcoming Appointments
+            var upcomingAppointments = await _context.Appointments
+                .Include(a => a.Trainer)
+                .Where(a => a.ClientId == user.Id && a.AppointmentDate >= DateTime.Now && a.Status == "Approved")
+                .OrderBy(a => a.AppointmentDate)
+                .Take(3)
+                .ToListAsync();
+
+            // 4. Fetch Weight History for Chart (Last 6 Health Records)
+            var weightHistory = await _context.HealthRecords
+                .Where(h => h.ClientId == user.Id)
+                .OrderByDescending(h => h.RecordDate)
+                .Take(6)
+                .ToListAsync();
+
+            weightHistory.Reverse(); // Ascending order for chart
+
+            // --- Map to ViewModel ---
+            var model = new ClientDashboardViewModel
+            {
+                FullName = user.FullName,
+                CurrentWeight = healthProfile?.Weight ?? 0,
+                CurrentBMI = healthProfile?.BMI ?? 0,
+                WeeklyCalories = weeklyLogs.Sum(w => w.CaloriesBurned),
+                WeeklyWorkouts = weeklyLogs.Count,
+
+                UpcomingActivities = upcomingAppointments.Select(a => new UpcomingActivity
+                {
+                    Title = $"Appointment with {a.Trainer?.FullName ?? "Trainer"}",
+                    Time = a.AppointmentDate.ToString("dd MMM yyyy, h:mm tt"),
+                    Icon = "bi-calendar-event",
+                    Color = "purple"
+                }).ToList(),
+
+                WeightChartData = weightHistory.Select(h => new ChartDataPoint
+                {
+                    Label = h.RecordDate.ToString("MMM"),
+                    Value = (double)h.Weight
+                }).ToList(),
+
+                CaloriesChartData = weeklyLogs
+                    .GroupBy(w => w.WorkoutDate.DayOfWeek)
+                    .Select(g => new ChartDataPoint
+                    {
+                        Label = g.Key.ToString().Substring(0, 3),
+                        Value = g.Sum(w => w.CaloriesBurned)
+                    }).ToList()
+            };
+
+            // Fallback for UI demonstration if no data
+            if (!model.WeightChartData.Any())
+            {
+                model.WeightChartData = new List<ChartDataPoint>
+                {
+                    new ChartDataPoint { Label = "Jan", Value = 70 },
+                    new ChartDataPoint { Label = "Feb", Value = 69 }
+                };
+            }
+
+            // this should pass to the model
+            return View(model);
+        }
+        // ------------------------------------------------
+
+        // 1. Show Health Records Page (GET)
+        public async Task<IActionResult> HealthRecords()
+        {
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null) return RedirectToPage("/Account/Login", new { area = "Identity" });
+
+            // Get latest Health Profile
+            var profile = await _context.HealthProfiles.FirstOrDefaultAsync(p => p.UserId == user.Id);
+
+            // Get all health records for this user
+            var records = await _context.HealthRecords
+                .Where(r => r.ClientId == user.Id)
+                .OrderByDescending(r => r.RecordDate)
+                .ToListAsync();
+
+            var model = new HealthRecordsViewModel
+            {
+                CurrentWeight = profile?.Weight ?? 0,
+                CurrentHeight = profile?.Height ?? 0,
+                CurrentBMI = profile?.BMI ?? 0,
+                Records = records
+            };
+
+            return View(model);
         }
 
-        public IActionResult HealthRecords()
+        // 2. Add New Record (POST)
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> AddHealthRecord(decimal weight, decimal height, int caloriesBurned, DateTime recordDate)
         {
-            return View();
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null) return RedirectToPage("/Account/Login", new { area = "Identity" });
+
+            // Calculate BMI
+            decimal bmi = 0;
+            if (height > 0)
+            {
+                decimal heightInMeters = height / 100;
+                bmi = weight / (heightInMeters * heightInMeters);
+            }
+
+            // Save to HealthRecords Table
+            var newRecord = new HealthRecord
+            {
+                ClientId = user.Id,
+                Weight = weight,
+                Height = height,
+                BMI = bmi,
+                CaloriesBurned = caloriesBurned,
+                RecordDate = recordDate
+            };
+
+            _context.HealthRecords.Add(newRecord);
+
+            // Update the Health Profile so the top summary cards change
+            var profile = await _context.HealthProfiles.FirstOrDefaultAsync(p => p.UserId == user.Id);
+            if (profile != null)
+            {
+                profile.Weight = weight;
+                profile.Height = height;
+                profile.BMI = bmi;
+            }
+            else
+            {
+                _context.HealthProfiles.Add(new HealthProfile
+                {
+                    UserId = user.Id,
+                    Weight = weight,
+                    Height = height,
+                    BMI = bmi,
+                    DateOfBirth = DateTime.Now.AddYears(-20)
+                });
+            }
+
+            await _context.SaveChangesAsync();
+            return RedirectToAction("HealthRecords");
         }
+
+        // 3. Delete Record (POST)
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteHealthRecord(int id)
+        {
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null) return RedirectToPage("/Account/Login", new { area = "Identity" });
+
+            var record = await _context.HealthRecords.FirstOrDefaultAsync(r => r.HealthRecordId == id && r.ClientId == user.Id);
+            if (record != null)
+            {
+                _context.HealthRecords.Remove(record);
+                await _context.SaveChangesAsync();
+            }
+
+            return RedirectToAction("HealthRecords");
+        }
+
         public IActionResult Workout()
         {
             return View();
@@ -65,7 +231,6 @@ namespace HealthTrack.Controllers
 
         // ---- Profile Actions ----
 
-        // 1. Show Profile (GET)
         public async Task<IActionResult> ManageProfile()
         {
             var user = await _userManager.GetUserAsync(User);
@@ -74,16 +239,13 @@ namespace HealthTrack.Controllers
             var roles = await _userManager.GetRolesAsync(user);
             ViewBag.Role = roles.Count > 0 ? roles[0] : "Client";
 
-            // Fetch HealthProfile from database
             var healthProfile = await _context.HealthProfiles.FirstOrDefaultAsync(p => p.UserId == user.Id);
 
-            // If no profile exists yet, create a temporary empty one to show in the view
             if (healthProfile == null)
             {
                 healthProfile = new HealthProfile { UserId = user.Id, Weight = 0, Height = 0, DateOfBirth = DateTime.Now.AddYears(-20) };
             }
 
-            // Map both User and HealthProfile data to the ViewModel
             var model = new ManageProfileViewModel
             {
                 FullName = user.FullName,
@@ -100,7 +262,6 @@ namespace HealthTrack.Controllers
             return View(model);
         }
 
-        //for uploading profile picture
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> UploadProfilePicture(IFormFile profilePic)
@@ -110,22 +271,17 @@ namespace HealthTrack.Controllers
                 var user = await _userManager.GetUserAsync(User);
                 if (user == null) return RedirectToPage("/Account/Login", new { area = "Identity" });
 
-                // Allowed extensions
                 var allowedExtensions = new[] { ".jpg", ".jpeg", ".png" };
                 var extension = Path.GetExtension(profilePic.FileName).ToLower();
 
                 if (!allowedExtensions.Contains(extension))
                 {
-                    return RedirectToAction("ManageProfile"); // Handle error properly in a real app
+                    return RedirectToAction("ManageProfile");
                 }
 
-                // Create unique filename
                 var fileName = Guid.NewGuid().ToString() + extension;
-
-                // Define path (wwwroot/uploads/profiles)
                 var uploadPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads", "profiles");
 
-                // Ensure directory exists
                 if (!Directory.Exists(uploadPath))
                 {
                     Directory.CreateDirectory(uploadPath);
@@ -138,7 +294,6 @@ namespace HealthTrack.Controllers
                     await profilePic.CopyToAsync(stream);
                 }
 
-                // Save filename to database
                 user.ProfilePictureUrl = fileName;
                 await _userManager.UpdateAsync(user);
             }
@@ -146,26 +301,22 @@ namespace HealthTrack.Controllers
             return RedirectToAction("ManageProfile");
         }
 
-        // 2. Save Edited Profile (POST)
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> UpdateProfile(ManageProfileViewModel model)
         {
             if (!ModelState.IsValid)
             {
-                // If validation fails, reload the page (you might want to return View with errors later)
                 return RedirectToAction("ManageProfile");
             }
 
             var user = await _userManager.GetUserAsync(User);
             if (user == null) return RedirectToPage("/Account/Login", new { area = "Identity" });
 
-            // Update User Base Data
             user.FullName = model.FullName;
             user.PhoneNumber = model.PhoneNumber;
             await _userManager.UpdateAsync(user);
 
-            // Update or Create Health Profile
             var healthProfile = await _context.HealthProfiles.FirstOrDefaultAsync(p => p.UserId == user.Id);
 
             if (healthProfile == null)
@@ -178,7 +329,6 @@ namespace HealthTrack.Controllers
             healthProfile.Weight = model.Weight;
             healthProfile.Height = model.Height;
 
-            // Calculate BMI automatically
             if (model.Height > 0)
             {
                 decimal heightInMeters = model.Height / 100;
@@ -193,7 +343,7 @@ namespace HealthTrack.Controllers
 
             await _context.SaveChangesAsync();
 
-            return RedirectToAction("ManageProfile"); // Reload page after save
+            return RedirectToAction("ManageProfile");
         }
     }
 

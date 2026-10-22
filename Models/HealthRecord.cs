@@ -16,6 +16,10 @@
 
         public DateTime RecordDate { get; set; }
 
+        public int? HeartRate { get; set; }
+
+        public string? BloodPressure { get; set; }
+
         public ApplicationUser? Client { get; set; }
     }
 }

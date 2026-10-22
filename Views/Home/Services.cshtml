@@ -1,0 +1,74 @@
+﻿@{
+    Layout = null;
+    ViewData["Title"] = "Our Services";
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Services - HealthTrack</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
+    <link rel="stylesheet" href="/css/home.css" />
+    <link rel="stylesheet" href="~/css/site.css" />
+    <link rel="stylesheet" href="/css/services.css" />
+</head>
+<body>
+    <div class="healthtrack-page">
+        <!-- NAVBAR -->
+        <header class="ht-navbar">
+            <a href="/" class="ht-logo">
+                <div class="logo-heart"><i class="bi bi-heart-pulse-fill"></i></div>
+                <span>HealthTrack</span>
+            </a>
+            <nav class="ht-navigation">
+                <a href="/">Home</a>
+                <a asp-controller="Home" asp-action="About">About</a>
+                <a asp-controller="Home" asp-action="Services" class="active">Services</a>
+                <a asp-controller="Home" asp-action="Contact">Contact</a>
+            </nav>
+            <div class="nav-buttons">
+                <a href="/Identity/Account/Login" class="login-btn">Login</a>
+                <a href="/Identity/Account/Register" class="register-btn">Register</a>
+            </div>
+        </header>
+
+        <!-- SERVICES CONTENT -->
+        <section class="services-section">
+            <div class="services-header">
+                <h1>Our <span>Services</span></h1>
+                <p>Everything you need to manage your health in one place.</p>
+            </div>
+
+            <div class="services-grid">
+                <!-- Service 1 -->
+                <div class="service-card">
+                    <div class="service-icon workout"><i class="bi bi-lightning-charge-fill"></i></div>
+                    <h3>Personalized Workouts</h3>
+                    <p>Get custom workout plans tailored to your fitness level and goals, designed by professional trainers.</p>
+                </div>
+                <!-- Service 2 -->
+                <div class="service-card">
+                    <div class="service-icon diet"><i class="bi bi-apple"></i></div>
+                    <h3>Diet & Nutrition</h3>
+                    <p>Track your daily meals, monitor calorie intake, and receive personalized diet plans from experts.</p>
+                </div>
+                <!-- Service 3 -->
+                <div class="service-card">
+                    <div class="service-icon progress"><i class="bi bi-graph-up-arrow"></i></div>
+                    <h3>Progress Tracking</h3>
+                    <p>Visualize your weight, BMI, and other health metrics with detailed charts and analytics.</p>
+                </div>
+                <!-- Service 4 -->
+                <div class="service-card">
+                    <div class="service-icon calendar"><i class="bi bi-calendar-check"></i></div>
+                    <h3>Appointments</h3>
+                    <p>Easily schedule consultations with trainers or healthcare professionals and manage your bookings.</p>
+                </div>
+            </div>
+        </section>
+    </div>
+    <partial name="_Footer" />
+</body>
+</html>

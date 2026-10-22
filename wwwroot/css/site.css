@@ -24,15 +24,33 @@ body {
 /* =========================================
    GLOBAL FOOTER STYLES
 ========================================= */
+/* =========================================
+   FOOTER & PAGE LAYOUT FIX
+========================================= */
+
+body {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    margin: 0;
+    padding: 0;
+}
+
+.healthtrack-page {
+    flex: 1; /* push footer to the bottom */
+}
+
 .ht-footer {
     background-color: #ffffff;
     border-top: 1px solid #edf2f3;
     padding: 20px 5vw;
+    width: 100%;
+    display: flex;
+    justify-content: center; 
+    align-items: center;
     text-align: center;
     color: #66777f;
     font-size: 14px;
-    width: 100%;
-    flex-shrink: 0;
 }
 
     .ht-footer p {

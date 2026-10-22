@@ -1,0 +1,158 @@
+﻿/* =========================================
+   SERVICES PAGE
+========================================= */
+.services-section {
+    padding: 60px 5vw;
+    background: #f8fcfd;
+    flex: 1;
+}
+
+.services-header {
+    text-align: center;
+    margin-bottom: 50px;
+}
+
+    .services-header h1 {
+        font-size: clamp(36px, 4vw, 52px);
+        color: #092b3d;
+        margin-bottom: 15px;
+    }
+
+        .services-header h1 span {
+            color: #008f78;
+        }
+
+    .services-header p {
+        color: #687980;
+        font-size: 18px;
+    }
+
+.services-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr); /* Force exactly 2 columns */
+    gap: 30px;
+    max-width: 900px; /* Keep it centered and neat */
+    margin: 0 auto;
+}
+
+.service-card {
+    background: #ffffff;
+    padding: 40px 30px;
+    border-radius: 16px;
+    border: 1px solid #edf1f2;
+    box-shadow: 0 5px 20px rgba(0,0,0,0.03);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    text-align: center;
+}
+
+    .service-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+    }
+
+.service-icon {
+    width: 70px;
+    height: 70px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 32px;
+    margin: 0 auto 20px auto;
+}
+
+    /* Reusing colors from Home page */
+    .service-icon.workout {
+        background: #dcecff;
+        color: #2587dd;
+    }
+
+    .service-icon.diet {
+        background: #dcf7e6;
+        color: #25a85d;
+    }
+
+    .service-icon.progress {
+        background: #eee2ff;
+        color: #8144d8;
+    }
+
+    .service-icon.calendar {
+        background: #fff5e7;
+        color: #fa9419;
+    }
+
+.service-card h3 {
+    color: #092b3d;
+    font-size: 20px;
+    margin-bottom: 15px;
+}
+
+.service-card p {
+    color: #687980;
+    font-size: 15px;
+    line-height: 1.6;
+}
+
+@media (max-width: 768px) {
+    .services-grid {
+        grid-template-columns: 1fr; /* 1 column on mobile */
+    }
+}
+
+/* =========================================
+   FIX FOR FOOTER POSITION ON LONG PAGES
+========================================= */
+body {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+.healthtrack-page {
+    height: auto !important; /* Remove the 100vh restriction */
+    min-height: 100vh;
+    overflow: visible !important; /* Allow scrolling */
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+}
+
+/* Make sure the section takes up available space to push footer down */
+.about-section, .services-section, .contact-section {
+    flex: 1;
+}
+
+/* =========================================
+   FIX FOR SUBPAGES (About, Services, Contact)
+   ========================================= */
+
+/* 1. Body එක ස්ක්‍රීන් එකේ උසට හදලා, flex කරමු */
+body {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    height: auto !important;
+    overflow-y: auto !important;
+}
+
+/* 2. home.css එකේ තියෙන 100vh සීමාව අයින් කරමු */
+.healthtrack-page {
+    height: auto !important;
+    min-height: 100vh;
+    overflow: visible !important;
+    display: flex;
+    flex-direction: column;
+    flex: 1 0 auto; /* මේකෙන් Content එක තියෙන තැනට ලොකු වෙනවා */
+}
+
+/* 3. අදාළ කොටස (Section) එක ඉතුරු ඉඩ පුරවන්න හදමු */
+.about-section, .services-section, .contact-section {
+    flex: 1; /* මේකෙන් Footer එක පහළට තල්ලු වෙනවා */
+}
+
+/* 4. Footer එක හැකිළෙන එක නවත්තමු */
+.ht-footer {
+    flex-shrink: 0;
+    margin-top: auto;
+}

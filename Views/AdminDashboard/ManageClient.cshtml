@@ -1,0 +1,153 @@
+﻿@{
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+    ViewData["Title"] = "Manage Clients";
+    ViewData["Heading"] = "Manage Clients";
+    ViewData["ActivePage"] = "ManageClient";
+}
+
+<div class="trainer-page-header">
+    <h2>Manage Clients</h2>
+    <button class="health-primary-button" id="addClientBtn">
+        <i class="bi bi-plus-lg"></i> Add Client
+    </button>
+</div>
+
+<!-- SEARCH BAR -->
+<div class="manage-users-controls">
+    <div></div> <!-- Empty div to push search to the right -->
+    <div class="search-box">
+        <i class="bi bi-search"></i>
+        <input type="text" placeholder="Search clients..." />
+    </div>
+</div>
+
+<!-- CLIENTS TABLE -->
+<div class="client-table-wrapper">
+    <table class="client-table">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Assigned Trainer</th>
+                <th>Status</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>
+                    <div class="table-user-info">
+                        <img src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100&h=100&fit=crop" class="table-avatar" alt="Kamal" />
+                        <h4>Kamal Perera</h4>
+                    </div>
+                </td>
+                <td>kamal@gmail.com</td>
+                <td>John Silva</td>
+                <td><span class="badge badge-active">Active</span></td>
+                <td>
+                    <div class="action-buttons">
+                        <button class="btn-edit">Edit</button>
+                        <button class="btn-delete">Delete</button>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <div class="table-user-info">
+                        <img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&fit=crop" class="table-avatar" alt="Nimali" />
+                        <h4>Nimali Silva</h4>
+                    </div>
+                </td>
+                <td>nimali@gmail.com</td>
+                <td>Sarah Perera</td>
+                <td><span class="badge badge-active">Active</span></td>
+                <td>
+                    <div class="action-buttons">
+                        <button class="btn-edit">Edit</button>
+                        <button class="btn-delete">Delete</button>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <div class="table-user-info">
+                        <img src="https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?w=100&h=100&fit=crop" class="table-avatar" alt="Tharushi" />
+                        <h4>Tharushi Dias</h4>
+                    </div>
+                </td>
+                <td>tharushi@gmail.com</td>
+                <td><span style="color: #e53935; font-size: 12px;">Unassigned</span></td>
+                <td><span class="badge badge-inactive">Inactive</span></td>
+                <td>
+                    <div class="action-buttons">
+                        <button class="btn-edit">Edit</button>
+                        <button class="btn-delete">Delete</button>
+                    </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+
+<!-- ADD CLIENT MODAL -->
+<div class="ca-modal" id="addClientModal" hidden>
+    <div class="ca-modal-content">
+        <button type="button" class="ca-modal-close" id="closeClientModalBtn">&times;</button>
+        <h3>Add New Client</h3>
+
+        <form id="addClientForm">
+            <div class="form-group">
+                <label>Full Name</label>
+                <input type="text" placeholder="e.g. John Doe" required />
+            </div>
+
+            <div class="form-group">
+                <label>Email Address</label>
+                <input type="email" placeholder="e.g. john@example.com" required />
+            </div>
+
+            <div class="form-group">
+                <label>Assign Trainer</label>
+                <select required>
+                    <option value="">-- Select Trainer --</option>
+                    <option value="1">John Silva</option>
+                    <option value="2">Sarah Perera</option>
+                </select>
+            </div>
+
+            <div class="modal-actions">
+                <button type="button" class="btn-view-outline" id="cancelClientBtn">Cancel</button>
+                <button type="submit" class="health-primary-button">Save Client</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const modal = document.getElementById("addClientModal");
+            const addBtn = document.getElementById("addClientBtn");
+            const closeBtn = document.getElementById("closeClientModalBtn");
+            const cancelBtn = document.getElementById("cancelClientBtn");
+            const form = document.getElementById("addClientForm");
+
+            addBtn.addEventListener("click", () => modal.hidden = false);
+
+            function closeModal() {
+                modal.hidden = true;
+                form.reset();
+            }
+
+            closeBtn.addEventListener("click", closeModal);
+            cancelBtn.addEventListener("click", closeModal);
+            modal.addEventListener("click", (e) => { if (e.target === modal) closeModal(); });
+
+            form.addEventListener("submit", function (e) {
+                e.preventDefault();
+                alert("Client added successfully! (UI Demo)");
+                closeModal();
+            });
+        });
+    </script>
+}

@@ -254,12 +254,18 @@ namespace HealthTrack.Data.Migrations
                         .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
+                    b.Property<string>("BloodPressure")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<int>("CaloriesBurned")
                         .HasColumnType("int");
 
                     b.Property<string>("ClientId")
                         .IsRequired()
                         .HasColumnType("nvarchar(450)");
+
+                    b.Property<int?>("HeartRate")
+                        .HasColumnType("int");
 
                     b.Property<decimal>("Height")
                         .HasPrecision(18, 2)
