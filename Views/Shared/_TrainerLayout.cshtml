@@ -1,24 +1,58 @@
-﻿<!DOCTYPE html>
+﻿
+@using Microsoft.AspNetCore.Identity
+@using HealthTrack.Models
+@inject UserManager<ApplicationUser> UserManager
+
+@{
+    var currentTrainer = await UserManager.GetUserAsync(User);
+
+    var trainerName = !string.IsNullOrWhiteSpace(currentTrainer?.FullName)
+        ? currentTrainer.FullName
+        : (currentTrainer?.UserName ?? "Trainer");
+
+    var profileImage = string.IsNullOrWhiteSpace(currentTrainer?.ProfilePictureUrl)
+        ? null
+        : (currentTrainer.ProfilePictureUrl.StartsWith(
+            "http", StringComparison.OrdinalIgnoreCase)
+            ? currentTrainer.ProfilePictureUrl
+            : Url.Content("~/uploads/profiles/" +
+                currentTrainer.ProfilePictureUrl));
+}
+
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
     <title>@ViewData["Title"] - HealthTrack Trainer</title>
 
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
-    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
-    <!-- Trainer Dashboard CSS -->
-    <link rel="stylesheet" href="~/css/TrainerDashboard.css" />
-    <link rel="stylesheet" href="~/css/site.css" />
+    <link rel="stylesheet"
+          href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
+
+    <link rel="stylesheet"
+          href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+
+    <link rel="stylesheet"
+          href="~/css/TrainerDashboard.css"
+          asp-append-version="true" />
+
+    <link rel="stylesheet"
+          href="~/css/site.css"
+          asp-append-version="true" />
 
     @await RenderSectionAsync("Styles", required: false)
 </head>
+
 <body>
     <div class="dashboard-shell">
 
         <!-- SIDEBAR -->
         <aside class="sidebar" id="sidebar">
-            <a href="/" class="brand">
+
+            <a asp-controller="TrainerDashboard"
+               asp-action="Index"
+               class="brand">
                 <span class="brand-icon">
                     <i class="bi bi-heart-pulse-fill"></i>
                 </span>
@@ -28,62 +62,139 @@
             <div class="sidebar-menu">
                 <p class="menu-label">TRAINER MENU</p>
 
-                <a asp-controller="TrainerDashboard" asp-action="Index" class="side-link @(ViewData["ActivePage"]?.ToString() == "Dashboard" ? "active" : "")">
-                    <i class="bi bi-house-door"></i> <span>Dashboard</span>
+                <a asp-controller="TrainerDashboard"
+                   asp-action="Index"
+                   class="side-link @(ViewData["ActivePage"]?.ToString() == "Dashboard" ? "active" : "")">
+                    <i class="bi bi-house-door"></i>
+                    <span>Dashboard</span>
                 </a>
-                <a asp-controller="TrainerDashboard" asp-action="MyClient" class="side-link @(ViewData["ActivePage"]?.ToString() == "MyClients" ? "active" : "")">
-                    <i class="bi bi-people"></i> <span>My Clients</span>
+
+                <a asp-controller="TrainerDashboard"
+                   asp-action="MyClient"
+                   class="side-link @(ViewData["ActivePage"]?.ToString() == "MyClients" ? "active" : "")">
+                    <i class="bi bi-people"></i>
+                    <span>My Clients</span>
                 </a>
-                <a asp-controller="TrainerDashboard" asp-action="WorkoutPlans" class="side-link @(ViewData["ActivePage"]?.ToString() == "WorkoutPlans" ? "active" : "")">
-                    <i class="bi bi-activity"></i> <span>Workout Plans</span>
+
+                <a asp-controller="TrainerDashboard"
+                   asp-action="WorkoutPlans"
+                   class="side-link @(ViewData["ActivePage"]?.ToString() == "WorkoutPlans" ? "active" : "")">
+                    <i class="bi bi-activity"></i>
+                    <span>Workout Plans</span>
                 </a>
-                <a asp-controller="TrainerDashboard" asp-action="DietPlans" class="side-link @(ViewData["ActivePage"]?.ToString() == "DietPlans" ? "active" : "")">
-                    <i class="bi bi-egg-fried"></i> <span>Diet Plans</span>
+
+                <a asp-controller="TrainerDashboard"
+                   asp-action="DietPlans"
+                   class="side-link @(ViewData["ActivePage"]?.ToString() == "DietPlans" ? "active" : "")">
+                    <i class="bi bi-egg-fried"></i>
+                    <span>Diet Plans</span>
                 </a>
-                <a asp-controller="TrainerDashboard" asp-action="Appointments" class="side-link @(ViewData["ActivePage"]?.ToString() == "Appointments" ? "active" : "")">
-                    <i class="bi bi-calendar3"></i> <span>Appointments</span>
+
+                <a asp-controller="TrainerDashboard"
+                   asp-action="Appointments"
+                   class="side-link @(ViewData["ActivePage"]?.ToString() == "Appointments" ? "active" : "")">
+                    <i class="bi bi-calendar3"></i>
+                    <span>Appointments</span>
                 </a>
-                <a asp-controller="TrainerDashboard" asp-action="ClientProgress" class="side-link @(ViewData["ActivePage"]?.ToString() == "ClientProgress" ? "active" : "")">
-                    <i class="bi bi-graph-up-arrow"></i> <span>Client Progress</span>
+
+                <a asp-controller="TrainerDashboard"
+                   asp-action="ClientProgress"
+                   class="side-link @(ViewData["ActivePage"]?.ToString() == "ClientProgress" ? "active" : "")">
+                    <i class="bi bi-graph-up-arrow"></i>
+                    <span>Client Progress</span>
                 </a>
-                <a asp-controller="TrainerDashboard" asp-action="Feedback" class="side-link @(ViewData["ActivePage"]?.ToString() == "Feedback" ? "active" : "")">
-                    <i class="bi bi-chat-left-text"></i> <span>Feedback</span>
+
+                <a asp-controller="TrainerDashboard"
+                   asp-action="Feedback"
+                   class="side-link @(ViewData["ActivePage"]?.ToString() == "Feedback" ? "active" : "")">
+                    <i class="bi bi-chat-left-text"></i>
+                    <span>Feedback</span>
                 </a>
-                <a asp-controller="TrainerDashboard" asp-action="Notifications" class="side-link @(ViewData["ActivePage"]?.ToString() == "Notifications" ? "active" : "")">
-                    <i class="bi bi-bell"></i> <span>Notifications</span>
+
+                <a asp-controller="TrainerDashboard"
+                   asp-action="Notifications"
+                   class="side-link @(ViewData["ActivePage"]?.ToString() == "Notifications" ? "active" : "")">
+                    <i class="bi bi-bell"></i>
+                    <span>Notifications</span>
                 </a>
-                <a asp-controller="TrainerDashboard" asp-action="MyProfile" class="side-link @(ViewData["ActivePage"]?.ToString() == "MyProfile" ? "active" : "")">
-                    <i class="bi bi-person"></i> <span>My Profile</span>
+
+                <a asp-controller="TrainerDashboard"
+                   asp-action="MyProfile"
+                   class="side-link @(ViewData["ActivePage"]?.ToString() == "MyProfile" ? "active" : "")">
+                    <i class="bi bi-person"></i>
+                    <span>My Profile</span>
                 </a>
             </div>
 
             <div class="sidebar-bottom">
-                <form asp-area="Identity" asp-page="/Account/Logout" asp-route-returnUrl="@Url.Action("Index", "Home")" method="post">
+                <form asp-area="Identity"
+                      asp-page="/Account/Logout"
+                      asp-route-returnUrl="@Url.Action("Index", "Home")"
+                      method="post">
                     <button type="submit" class="side-link logout-link">
-                        <i class="bi bi-power"></i> <span>Logout</span>
+                        <i class="bi bi-power"></i>
+                        <span>Logout</span>
                     </button>
                 </form>
             </div>
         </aside>
 
-        <!-- MAIN CONTENT -->
+        <!-- MAIN PANEL -->
         <div class="main-panel">
-            <!-- TOPBAR -->
+
+            <!-- TOP BAR -->
             <header class="topbar">
                 <div class="topbar-left">
-                    <div>
-                        <h1>@(ViewData["Heading"] ?? "Trainer Dashboard")</h1>
-                        <p class="topbar-subtitle">Manage your clients and plans</p>
+                    <div class="topbar-heading">
+                        <h1>Welcome @trainerName Traineer</h1>
+                      
                     </div>
                 </div>
 
                 <div class="topbar-right">
-                    <a asp-controller="TrainerDashboard" asp-action="Notifications" class="notification-button">
+
+                    <!-- Live Date and Time -->
+                    <div class="topbar-greeting">
+                        <i class="bi bi-clock"></i>
+                        <span id="trainerDateTime">Loading date and time...</span>
+                    </div>
+
+                    <!-- Notifications -->
+                    <a asp-controller="TrainerDashboard"
+                       asp-action="Notifications"
+                       class="notification-button"
+                       aria-label="Notifications"
+                       title="Notifications">
                         <i class="bi bi-bell"></i>
                     </a>
-                    <a asp-controller="TrainerDashboard" asp-action="MyProfile" class="user-avatar">
-                        <i class="bi bi-person-fill"></i>
+
+                    <!-- Trainer Profile Image -->
+                    <a asp-controller="TrainerDashboard"
+                       asp-action="MyProfile"
+                       class="trainer-profile-link"
+                       aria-label="Trainer profile"
+                       title="@trainerName">
+
+                        @if (profileImage != null)
+                        {
+                            <img src="@profileImage"
+                                 alt="Trainer profile"
+                                 class="trainer-avatar-image" />
+                        }
+                        else
+                        {
+                            <span class="user-avatar">
+                                <i class="bi bi-person-fill"></i>
+                            </span>
+                        }
                     </a>
+
+                    <!-- Trainer Name and Role -->
+                    <div class="trainer-identity">
+                        <span class="trainer-name">@trainerName</span>
+                        <span class="trainer-role">Personal Trainer</span>
+                    </div>
+
                 </div>
             </header>
 
@@ -92,13 +203,46 @@
                 @RenderBody()
             </main>
 
-            <!-- Footer Include (Optional, using site.css partial) -->
             <partial name="_Footer" />
+
         </div>
     </div>
 
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        // Live date and time in the browser's local timezone.
+        (function () {
+            const dateTimeElement =
+                document.getElementById("trainerDateTime");
+
+            function updateTrainerDateTime() {
+                if (!dateTimeElement) return;
+
+                const now = new Date();
+
+                const date = now.toLocaleDateString(undefined, {
+                    weekday: "short",
+                    year: "numeric",
+                    month: "short",
+                    day: "numeric"
+                });
+
+                const time = now.toLocaleTimeString(undefined, {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                    second: "2-digit"
+                });
+
+                dateTimeElement.textContent = date + " · " + time;
+            }
+
+            updateTrainerDateTime();
+            window.setInterval(updateTrainerDateTime, 1000);
+        })();
+    </script>
+
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

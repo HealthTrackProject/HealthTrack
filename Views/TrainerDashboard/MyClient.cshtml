@@ -2,133 +2,49 @@
     Layout = "~/Views/Shared/_TrainerLayout.cshtml";
     ViewData["Title"] = "My Clients";
     ViewData["Heading"] = "Manage Clients";
-    ViewData["ActivePage"] = "MyClients"; // Sidebar active state
+    ViewData["ActivePage"] = "MyClients";
 }
 
-<div class="trainer-page-header">
-    <h2>My Clients</h2>
-    <button type="button" class="health-primary-button">
-        <i class="bi bi-plus-lg"></i> Add Client
-    </button>
+<div class="clients-toolbar">
+    <div class="search-container">
+        <i class="bi bi-search"></i>
+        <input type="search" id="clientSearch" placeholder="Search clients by name or email..." aria-label="Search clients" />
+    </div>
+    <span class="clients-count"><i class="bi bi-people"></i> <span id="clientCount">4</span> clients</span>
 </div>
 
-<!-- Search Bar -->
-<div class="search-container">
-    <i class="bi bi-search"></i>
-    <input type="text" placeholder="Search clients..." />
-</div>
-
-<!-- Clients Table -->
 <div class="client-table-wrapper">
     <table class="client-table">
-        <thead>
-            <tr>
-                <th>Name</th>
-                <th>Email</th>
-                <th>Progress</th>
-                <th>Actions</th>
+        <thead><tr><th>Name</th><th>Email</th><th>Progress</th><th>Actions</th></tr></thead>
+        <tbody id="clientTableBody">
+            <tr data-client-id="1" data-name="Kamal Perera" data-email="kamal@gmail.com" data-progress="70" data-phone="Not provided" data-goal="Improve overall fitness" data-health="No health records are connected to this demo page.">
+                <td><div class="table-user-info"><img src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100&h=100&fit=crop" alt="Kamal Perera" class="table-avatar" /><div><h4>Kamal Perera</h4><p>Client</p></div></div></td>
+                <td class="client-email">kamal@gmail.com</td>
+                <td><div class="progress-cell"><div class="progress-bar-bg"><div class="progress-bar-fill" style="width:70%"></div></div><span class="progress-text">70%</span></div></td>
+                <td><div class="client-actions"><button type="button" class="btn-view-outline" data-client-action="view">View</button><button type="button" class="health-secondary-button" data-client-action="workout">Workout</button><button type="button" class="health-secondary-button" data-client-action="diet">Diet Plan</button></div></td>
             </tr>
-        </thead>
-        <tbody>
-            <!-- Row 1 -->
-            <tr>
-                <td>
-                    <div class="table-user-info">
-                        <img src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100&h=100&fit=crop" alt="Kamal" class="table-avatar" />
-                        <div>
-                            <h4>Kamal Perera</h4>
-                            <p>Client</p>
-                        </div>
-                    </div>
-                </td>
-                <td style="font-size: 13px; color: var(--muted);">kamal@gmail.com</td>
-                <td>
-                    <div class="progress-cell">
-                        <div class="progress-bar-bg">
-                            <div class="progress-bar-fill" style="width: 70%;"></div>
-                        </div>
-                        <span class="progress-text">70%</span>
-                    </div>
-                </td>
-                <td>
-                    <button class="btn-view-outline">View</button>
-                </td>
+            <tr data-client-id="2" data-name="Nimali Silva" data-email="nimali@gmail.com" data-progress="50" data-phone="Not provided" data-goal="Weight management" data-health="No health records are connected to this demo page.">
+                <td><div class="table-user-info"><img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&fit=crop" alt="Nimali Silva" class="table-avatar" /><div><h4>Nimali Silva</h4><p>Client</p></div></div></td>
+                <td class="client-email">nimali@gmail.com</td>
+                <td><div class="progress-cell"><div class="progress-bar-bg"><div class="progress-bar-fill" style="width:50%"></div></div><span class="progress-text">50%</span></div></td>
+                <td><div class="client-actions"><button type="button" class="btn-view-outline" data-client-action="view">View</button><button type="button" class="health-secondary-button" data-client-action="workout">Workout</button><button type="button" class="health-secondary-button" data-client-action="diet">Diet Plan</button></div></td>
             </tr>
-
-            <!-- Row 2 -->
-            <tr>
-                <td>
-                    <div class="table-user-info">
-                        <img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&fit=crop" alt="Nimali" class="table-avatar" />
-                        <div>
-                            <h4>Nimali Silva</h4>
-                            <p>Client</p>
-                        </div>
-                    </div>
-                </td>
-                <td style="font-size: 13px; color: var(--muted);">nimali@gmail.com</td>
-                <td>
-                    <div class="progress-cell">
-                        <div class="progress-bar-bg">
-                            <div class="progress-bar-fill" style="width: 50%;"></div>
-                        </div>
-                        <span class="progress-text">50%</span>
-                    </div>
-                </td>
-                <td>
-                    <button class="btn-view-outline">View</button>
-                </td>
+            <tr data-client-id="3" data-name="Sahan Fernando" data-email="sahan@gmail.com" data-progress="80" data-phone="Not provided" data-goal="Build strength and endurance" data-health="No health records are connected to this demo page.">
+                <td><div class="table-user-info"><img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop" alt="Sahan Fernando" class="table-avatar" /><div><h4>Sahan Fernando</h4><p>Client</p></div></div></td>
+                <td class="client-email">sahan@gmail.com</td>
+                <td><div class="progress-cell"><div class="progress-bar-bg"><div class="progress-bar-fill" style="width:80%"></div></div><span class="progress-text">80%</span></div></td>
+                <td><div class="client-actions"><button type="button" class="btn-view-outline" data-client-action="view">View</button><button type="button" class="health-secondary-button" data-client-action="workout">Workout</button><button type="button" class="health-secondary-button" data-client-action="diet">Diet Plan</button></div></td>
             </tr>
-
-            <!-- Row 3 -->
-            <tr>
-                <td>
-                    <div class="table-user-info">
-                        <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop" alt="Sahan" class="table-avatar" />
-                        <div>
-                            <h4>Sahan Fernando</h4>
-                            <p>Client</p>
-                        </div>
-                    </div>
-                </td>
-                <td style="font-size: 13px; color: var(--muted);">sahan@gmail.com</td>
-                <td>
-                    <div class="progress-cell">
-                        <div class="progress-bar-bg">
-                            <div class="progress-bar-fill" style="width: 80%;"></div>
-                        </div>
-                        <span class="progress-text">80%</span>
-                    </div>
-                </td>
-                <td>
-                    <button class="btn-view-outline">View</button>
-                </td>
-            </tr>
-
-            <!-- Row 4 -->
-            <tr>
-                <td>
-                    <div class="table-user-info">
-                        <img src="https://images.unsplash.com/photo-1599566150163-29194dcaad36?w=100&h=100&fit=crop" alt="Tharushi" class="table-avatar" />
-                        <div>
-                            <h4>Tharushi Dias</h4>
-                            <p>Client</p>
-                        </div>
-                    </div>
-                </td>
-                <td style="font-size: 13px; color: var(--muted);">tharushi@gmail.com</td>
-                <td>
-                    <div class="progress-cell">
-                        <div class="progress-bar-bg">
-                            <div class="progress-bar-fill" style="width: 60%;"></div>
-                        </div>
-                        <span class="progress-text">60%</span>
-                    </div>
-                </td>
-                <td>
-                    <button class="btn-view-outline">View</button>
-                </td>
+            <tr data-client-id="4" data-name="Tharushi Dias" data-email="tharushi@gmail.com" data-progress="60" data-phone="Not provided" data-goal="Improve fitness consistency" data-health="No health records are connected to this demo page.">
+                <td><div class="table-user-info"><img src="https://images.unsplash.com/photo-1599566150163-29194dcaad36?w=100&h=100&fit=crop" alt="Tharushi Dias" class="table-avatar" /><div><h4>Tharushi Dias</h4><p>Client</p></div></div></td>
+                <td class="client-email">tharushi@gmail.com</td>
+                <td><div class="progress-cell"><div class="progress-bar-bg"><div class="progress-bar-fill" style="width:60%"></div></div><span class="progress-text">60%</span></div></td>
+                <td><div class="client-actions"><button type="button" class="btn-view-outline" data-client-action="view">View</button><button type="button" class="health-secondary-button" data-client-action="workout">Workout</button><button type="button" class="health-secondary-button" data-client-action="diet">Diet Plan</button></div></td>
             </tr>
         </tbody>
     </table>
 </div>
+
+@section Scripts {
+    <script src="~/js/trainer-dashboard-popups.js" asp-append-version="true"></script>
+}

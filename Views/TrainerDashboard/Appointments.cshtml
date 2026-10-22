@@ -2,150 +2,369 @@
     Layout = "~/Views/Shared/_TrainerLayout.cshtml";
     ViewData["Title"] = "Appointments";
     ViewData["Heading"] = "Appointments";
-    ViewData["ActivePage"] = "Appointments"; // Sidebar active state
+    ViewData["ActivePage"] = "Appointments";
 }
 
-<div class="trainer-page-header">
-    <h2>Client Appointments</h2>
+<div class="appointments-page">
+
+    <div class="appointments-heading">
+        <div>
+            <h2>Appointments</h2>
+            <p>Manage client appointments and requests.</p>
+        </div>
+    </div>
+
+    <!-- Appointment tabs -->
+    <div class="trainer-tabs">
+        <button type="button" class="trainer-tab active"
+                data-target="pendingTab">
+            Pending <span>3</span>
+        </button>
+
+        <button type="button" class="trainer-tab"
+                data-target="approvedTab">
+            Approved <span>1</span>
+        </button>
+
+        <button type="button" class="trainer-tab"
+                data-target="cancelledTab">
+            Cancelled <span>1</span>
+        </button>
+    </div>
+
+    <!-- Appointments table -->
+    <div class="client-table-wrapper">
+
+        <table class="client-table appointment-table" id="pendingTab">
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Time</th>
+                    <th>Client</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>10 Apr 2025</td>
+                    <td>10:00 AM</td>
+                    <td>Kamal Perera</td>
+                    <td><span class="appointment-status pending">Pending</span></td>
+                    <td>
+                        <div class="appointment-actions">
+                            <button type="button" class="btn-sm btn-approve"
+                                    data-action="approve">
+                                Approve
+                            </button>
+                            <button type="button" class="btn-sm btn-cancel"
+                                    data-action="cancel">
+                                Cancel
+                            </button>
+                            <button type="button" class="btn-sm btn-view"
+                                    data-action="view">
+                                View
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td>12 Apr 2025</td>
+                    <td>2:00 PM</td>
+                    <td>Nimali Silva</td>
+                    <td><span class="appointment-status pending">Pending</span></td>
+                    <td>
+                        <div class="appointment-actions">
+                            <button type="button" class="btn-sm btn-approve"
+                                    data-action="approve">
+                                Approve
+                            </button>
+                            <button type="button" class="btn-sm btn-cancel"
+                                    data-action="cancel">
+                                Cancel
+                            </button>
+                            <button type="button" class="btn-sm btn-view"
+                                    data-action="view">
+                                View
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td>20 Apr 2025</td>
+                    <td>3:00 PM</td>
+                    <td>Tharushi Dias</td>
+                    <td><span class="appointment-status pending">Pending</span></td>
+                    <td>
+                        <div class="appointment-actions">
+                            <button type="button" class="btn-sm btn-approve"
+                                    data-action="approve">
+                                Approve
+                            </button>
+                            <button type="button" class="btn-sm btn-cancel"
+                                    data-action="cancel">
+                                Cancel
+                            </button>
+                            <button type="button" class="btn-sm btn-view"
+                                    data-action="view">
+                                View
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+
+        <table class="client-table appointment-table" id="approvedTab" hidden>
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Time</th>
+                    <th>Client</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>15 Apr 2025</td>
+                    <td>11:00 AM</td>
+                    <td>Sahan Fernando</td>
+                    <td><span class="appointment-status approved">Approved</span></td>
+                    <td>
+                        <button type="button" class="btn-sm btn-view"
+                                data-action="view">
+                            View
+                        </button>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+
+        <table class="client-table appointment-table" id="cancelledTab" hidden>
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Time</th>
+                    <th>Client</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>05 Apr 2025</td>
+                    <td>9:00 AM</td>
+                    <td>Kamal Perera</td>
+                    <td><span class="appointment-status cancelled">Cancelled</span></td>
+                    <td>
+                        <button type="button" class="btn-sm btn-view"
+                                data-action="view">
+                            View
+                        </button>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+
+    </div>
 </div>
 
-<!-- Tabs -->
-<div class="trainer-tabs">
-    <button class="trainer-tab active" data-target="pendingTab">Pending</button>
-    <button class="trainer-tab" data-target="approvedTab">Approved</button>
-    <button class="trainer-tab" data-target="cancelledTab">Cancelled</button>
-</div>
+<!-- Appointment details modal -->
+<div class="appointment-modal" id="appointmentModal"
+     aria-hidden="true">
 
-<!-- TABLES CONTAINER -->
-<div class="client-table-wrapper">
+    <div class="appointment-modal-dialog"
+         role="dialog"
+         aria-modal="true"
+         aria-labelledby="appointmentModalTitle">
 
-    <!-- 1. PENDING TABLE -->
-    <table class="client-table" id="pendingTab">
-        <thead>
-            <tr>
-                <th>Date</th>
-                <th>Time</th>
-                <th>Client</th>
-                <th>Status</th>
-                <th>Actions</th>
-            </tr>
-        </thead>
-        <tbody>
-            <tr>
-                <td>10 Apr 2025</td>
-                <td>10:00 AM</td>
-                <td>Kamal Perera</td>
-                <td><span class="badge badge-pending">Pending</span></td>
-                <td>
-                    <div class="action-buttons">
-                        <button class="btn-sm btn-approve">Approve</button>
-                        <button class="btn-sm btn-cancel">Cancel</button>
-                    </div>
-                </td>
-            </tr>
-            <tr>
-                <td>12 Apr 2025</td>
-                <td>2:00 PM</td>
-                <td>Nimali Silva</td>
-                <td><span class="badge badge-pending">Pending</span></td>
-                <td>
-                    <div class="action-buttons">
-                        <button class="btn-sm btn-approve">Approve</button>
-                        <button class="btn-sm btn-cancel">Cancel</button>
-                    </div>
-                </td>
-            </tr>
-            <tr>
-                <td>20 Apr 2025</td>
-                <td>3:00 PM</td>
-                <td>Tharushi Dias</td>
-                <td><span class="badge badge-pending">Pending</span></td>
-                <td>
-                    <div class="action-buttons">
-                        <button class="btn-sm btn-approve">Approve</button>
-                        <button class="btn-sm btn-cancel">Cancel</button>
-                    </div>
-                </td>
-            </tr>
-        </tbody>
-    </table>
+        <div class="appointment-modal-header">
+            <div class="modal-title-group">
+                <div class="modal-icon">▦</div>
+                <div>
+                    <h3 id="appointmentModalTitle">Appointment Details</h3>
+                    <p>Review the appointment information below.</p>
+                </div>
+            </div>
 
-    <!-- 2. APPROVED TABLE (Hidden by default) -->
-    <table class="client-table" id="approvedTab" style="display: none;">
-        <thead>
-            <tr>
-                <th>Date</th>
-                <th>Time</th>
-                <th>Client</th>
-                <th>Status</th>
-                <th>Actions</th>
-            </tr>
-        </thead>
-        <tbody>
-            <tr>
-                <td>15 Apr 2025</td>
-                <td>11:00 AM</td>
-                <td>Sahan Fernando</td>
-                <td><span class="badge badge-approved">Approved</span></td>
-                <td>
-                    <div class="action-buttons">
-                        <button class="btn-sm btn-view">View</button>
-                    </div>
-                </td>
-            </tr>
-        </tbody>
-    </table>
+            <button type="button" class="modal-close"
+                    id="closeAppointmentModal"
+                    aria-label="Close dialog">
+                &times;
+            </button>
+        </div>
 
-    <!-- 3. CANCELLED TABLE (Hidden by default) -->
-    <table class="client-table" id="cancelledTab" style="display: none;">
-        <thead>
-            <tr>
-                <th>Date</th>
-                <th>Time</th>
-                <th>Client</th>
-                <th>Status</th>
-                <th>Actions</th>
-            </tr>
-        </thead>
-        <tbody>
-            <tr>
-                <td>05 Apr 2025</td>
-                <td>9:00 AM</td>
-                <td>Kamal Perera</td>
-                <td><span class="badge badge-cancelled">Cancelled</span></td>
-                <td>
-                    <div class="action-buttons">
-                        <button class="btn-sm btn-view">View</button>
-                    </div>
-                </td>
-            </tr>
-        </tbody>
-    </table>
+        <div class="appointment-modal-body">
+            <div class="modal-client-card">
+                <div class="modal-client-avatar" id="modalClientInitial">C</div>
+                <div>
+                    <span class="modal-label">Client</span>
+                    <h4 id="modalClientName">Client name</h4>
+                    <p id="modalClientEmail">No email provided</p>
+                </div>
+            </div>
 
+            <div class="modal-details-grid">
+                <div class="modal-detail-item">
+                    <span class="modal-label">Date</span>
+                    <strong id="modalAppointmentDate">-</strong>
+                </div>
+
+                <div class="modal-detail-item">
+                    <span class="modal-label">Time</span>
+                    <strong id="modalAppointmentTime">-</strong>
+                </div>
+
+                <div class="modal-detail-item modal-detail-status">
+                    <span class="modal-label">Status</span>
+                    <span class="appointment-status" id="modalAppointmentStatus">-</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="appointment-modal-footer">
+            <button type="button" class="modal-button modal-button-secondary"
+                    id="cancelAppointmentModal">
+                Close
+            </button>
+        </div>
+    </div>
 </div>
 
 @section Scripts {
     <script>
         document.addEventListener("DOMContentLoaded", function () {
             const tabs = document.querySelectorAll(".trainer-tab");
-            const tables = document.querySelectorAll(".client-table");
+            const tables = document.querySelectorAll(".appointment-table");
+            const modal = document.getElementById("appointmentModal");
+            const closeButton = document.getElementById("closeAppointmentModal");
+            const cancelButton = document.getElementById("cancelAppointmentModal");
 
-            tabs.forEach(tab => {
+            // Switch between Pending, Approved and Cancelled
+            tabs.forEach(function (tab) {
                 tab.addEventListener("click", function () {
-                    // 1. Remove active class from all tabs
-                    tabs.forEach(t => t.classList.remove("active"));
+                    tabs.forEach(function (item) {
+                        item.classList.remove("active");
+                    });
 
-                    // 2. Add active class to clicked tab
-                    this.classList.add("active");
+                    tab.classList.add("active");
 
-                    // 3. Hide all tables
-                    tables.forEach(table => table.style.display = "none");
+                    tables.forEach(function (table) {
+                        table.hidden = true;
+                    });
 
-                    // 4. Show the targeted table
-                    const targetId = this.getAttribute("data-target");
-                    document.getElementById(targetId).style.display = "table";
+                    const target = document.getElementById(tab.dataset.target);
+
+                    if (target) {
+                        target.hidden = false;
+                    }
                 });
             });
+
+            // Open modal with the information from the selected row
+            document.querySelectorAll(".appointment-table tbody tr").forEach(function (row) {
+                const viewButton = row.querySelector('[data-action="view"]');
+
+                if (!viewButton) return;
+
+                viewButton.addEventListener("click", function () {
+                    const cells = row.querySelectorAll("td");
+                    const date = cells[0]?.textContent.trim() || "-";
+                    const time = cells[1]?.textContent.trim() || "-";
+                    const client = cells[2]?.textContent.trim() || "Unknown client";
+                    const statusElement = cells[3]?.querySelector(".appointment-status");
+                    const status = statusElement?.textContent.trim() || "Unknown";
+
+                    document.getElementById("modalClientName").textContent = client;
+                    document.getElementById("modalClientInitial").textContent =
+                        client.charAt(0).toUpperCase();
+                    document.getElementById("modalClientEmail").textContent =
+                        "Appointment information";
+                    document.getElementById("modalAppointmentDate").textContent = date;
+                    document.getElementById("modalAppointmentTime").textContent = time;
+
+                    const modalStatus = document.getElementById("modalAppointmentStatus");
+                    modalStatus.textContent = status;
+                    modalStatus.className = "appointment-status " + status.toLowerCase();
+
+                    modal.classList.add("is-open");
+                    modal.setAttribute("aria-hidden", "false");
+                    document.body.classList.add("appointment-modal-open");
+                    closeButton.focus();
+                });
+            });
+
+            // Close modal
+            function closeModal() {
+                modal.classList.remove("is-open");
+                modal.setAttribute("aria-hidden", "true");
+                document.body.classList.remove("appointment-modal-open");
+            }
+
+            closeButton.addEventListener("click", closeModal);
+            cancelButton.addEventListener("click", closeModal);
+
+            // Close when clicking outside the dialog
+            modal.addEventListener("click", function (event) {
+                if (event.target === modal) {
+                    closeModal();
+                }
+            });
+
+            // Close with Escape
+            document.addEventListener("keydown", function (event) {
+                if (event.key === "Escape" && modal.classList.contains("is-open")) {
+                    closeModal();
+                }
+            });
+
+            // Demo actions only: these changes are not saved to a database.
+            document.querySelectorAll('[data-action="approve"], [data-action="cancel"]')
+                .forEach(function (button) {
+                    button.addEventListener("click", function () {
+                        const row = button.closest("tr");
+                        const statusCell = row.querySelector("td:nth-child(4)");
+                        const isApprove = button.dataset.action === "approve";
+                        const newStatus = isApprove ? "Approved" : "Cancelled";
+
+                        statusCell.innerHTML =
+                            '<span class="appointment-status ' +
+                            (isApprove ? "approved" : "cancelled") +
+                            '">' + newStatus + '</span>';
+
+                        const actionCell = row.querySelector("td:last-child");
+                        actionCell.innerHTML =
+                            '<button type="button" class="btn-sm btn-view" data-action="view">View</button>';
+
+                        const viewButton = actionCell.querySelector('[data-action="view"]');
+
+                        viewButton.addEventListener("click", function () {
+                            const cells = row.querySelectorAll("td");
+                            document.getElementById("modalClientName").textContent =
+                                cells[2].textContent.trim();
+                            document.getElementById("modalClientInitial").textContent =
+                                cells[2].textContent.trim().charAt(0).toUpperCase();
+                            document.getElementById("modalClientEmail").textContent =
+                                "Appointment information";
+                            document.getElementById("modalAppointmentDate").textContent =
+                                cells[0].textContent.trim();
+                            document.getElementById("modalAppointmentTime").textContent =
+                                cells[1].textContent.trim();
+
+                            const status = cells[3].textContent.trim();
+                            const modalStatus = document.getElementById("modalAppointmentStatus");
+                            modalStatus.textContent = status;
+                            modalStatus.className =
+                                "appointment-status " + status.toLowerCase();
+
+                            modal.classList.add("is-open");
+                            modal.setAttribute("aria-hidden", "false");
+                            document.body.classList.add("appointment-modal-open");
+                            closeButton.focus();
+                        });
+                    });
+                });
         });
     </script>
 }
