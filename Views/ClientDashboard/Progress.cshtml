@@ -1,4 +1,5 @@
-﻿@{
+﻿@model HealthTrack.Models.ProgressViewModel
+@{
     Layout = "~/Views/Shared/_ClientLayout.cshtml";
     ViewData["Title"] = "Progress";
     ViewData["Heading"] = "My Progress";
@@ -23,22 +24,22 @@
     <div class="ht-progress-cards">
         <div class="ht-stat-card weight-card">
             <div class="ht-stat-icon"><i class="bi bi-droplet-fill"></i></div>
-            <div><span>Weight</span><strong>72 kg</strong></div>
+            <div><span>Weight</span><strong>@Model.CurrentWeight.ToString("0.0") kg</strong></div>
         </div>
 
         <div class="ht-stat-card bmi-card">
             <div class="ht-stat-icon"><i class="bi bi-heart-pulse-fill"></i></div>
-            <div><span>BMI</span><strong>23.5</strong></div>
+            <div><span>BMI</span><strong>@Model.CurrentBMI.ToString("0.0")</strong></div>
         </div>
 
         <div class="ht-stat-card calories-card">
             <div class="ht-stat-icon"><i class="bi bi-fire"></i></div>
-            <div><span>Calories Burned</span><strong>1850</strong></div>
+            <div><span>Calories Burned</span><strong>@Model.TotalCaloriesBurned</strong></div>
         </div>
 
         <div class="ht-stat-card workouts-card">
             <div class="ht-stat-icon"><i class="bi bi-lightning-charge-fill"></i></div>
-            <div><span>Workouts</span><strong>20</strong></div>
+            <div><span>Workouts</span><strong>@Model.TotalWorkouts</strong></div>
         </div>
     </div>
 
@@ -79,14 +80,9 @@
 
         <div class="ht-progress-info-value">
             <span>Weight change</span>
-            <strong id="weightChange">-10 kg</strong>
+            <strong id="weightChange">@Model.WeightChange</strong>
         </div>
     </section>
-
-    <div class="ht-progress-note">
-        <i class="bi bi-info-circle"></i>
-        Demonstration data is shown. Connect your health records to display your actual progress.
-    </div>
 </div>
 
 @section Scripts {
@@ -94,152 +90,95 @@
 
     <script>
         (() => {
-            const canvas = document.getElementById("healthProgressChart");
-            if (!canvas || typeof Chart === "undefined") return;
+        const canvas = document.getElementById("healthProgressChart");
+        if (!canvas || typeof Chart === "undefined") return;
 
-            const labels = {
-                3: ["Aug", "Sep", "Oct"],
-                6: ["Jan", "Feb", "Mar", "Apr", "May", "Jun"],
-                12: ["Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
-                    "Jan", "Feb", "Mar", "Apr", "May", "Jun"]
-            };
+        // C# Data to JS Data
+        const allLabels = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.Labels));
+        const allWeightData = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.WeightData));
+        const allBMIData = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.BMIData));
+        const allCaloriesData = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.CaloriesData));
+        const allWorkoutsData = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.WorkoutsData));
 
-            const datasets = {
-                weight: {
-                    label: "Weight (kg)",
-                    values: {
-                        3: [76, 73, 72],
-                        6: [78, 76, 74, 74, 71, 72],
-                        12: [82, 81, 80, 79, 78, 77, 76, 75, 74, 73, 72, 72]
-                    },
-                    summary: "Weight progress over the selected period",
-                    change: "-10 kg"
-                },
-                bmi: {
-                    label: "BMI",
-                    values: {
-                        3: [25.2, 24.1, 23.5],
-                        6: [27.1, 26.4, 25.8, 24.9, 24.0, 23.5],
-                        12: [29, 28.5, 28, 27.4, 27, 26.5, 26, 25.5, 25, 24.5, 24, 23.5]
-                    },
-                    summary: "BMI progress over the selected period",
-                    change: "-5.5"
-                },
-                calories: {
-                    label: "Calories burned",
-                    values: {
-                        3: [1500, 1720, 1850],
-                        6: [1200, 1400, 1550, 1600, 1750, 1850],
-                        12: [900, 1000, 1150, 1200, 1300, 1250, 1400, 1500, 1600, 1700, 1780, 1850]
-                    },
-                    summary: "Calories burned over the selected period",
-                    change: "+650"
-                },
-                workouts: {
-                    label: "Workouts",
-                    values: {
-                        3: [12, 16, 20],
-                        6: [8, 10, 13, 15, 18, 20],
-                        12: [4, 5, 7, 8, 9, 11, 12, 14, 15, 17, 18, 20]
-                    },
-                    summary: "Completed workouts over the selected period",
-                    change: "+16"
-                }
-            };
+        const datasets = {
+        weight: { label: "Weight (kg)", data: allWeightData, summary: "Weight progress" },
+        bmi: { label: "BMI", data: allBMIData, summary: "BMI progress" },
+        calories: { label: "Calories burned", data: allCaloriesData, summary: "Calories burned" },
+        workouts: { label: "Workouts", data: allWorkoutsData, summary: "Completed workouts" }
+        };
 
-            let currentChart = "weight";
-            let currentPeriod = "6";
+        let currentChart = "weight";
+        let currentPeriod = 6; // 3, 6, or 12
 
-            const chart = new Chart(canvas, {
-                type: "line",
-                data: {
-                    labels: labels[currentPeriod],
-                    datasets: [{
-                        label: datasets[currentChart].label,
-                        data: datasets[currentChart].values[currentPeriod],
-                        borderColor: "#0ca77c",
-                        backgroundColor: context => {
-                            const area = context.chart.chartArea;
-                            if (!area) return "rgba(12,167,124,0.12)";
-                            const gradient = context.chart.ctx.createLinearGradient(
-                                0, area.top, 0, area.bottom
-                            );
-                            gradient.addColorStop(0, "rgba(12,167,124,0.30)");
-                            gradient.addColorStop(1, "rgba(12,167,124,0.01)");
-                            return gradient;
-                        },
-                        borderWidth: 2,
-                        pointRadius: 2,
-                        pointHoverRadius: 5,
-                        pointBackgroundColor: "#0ca77c",
-                        fill: true,
-                        tension: 0.35
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    interaction: {
-                        intersect: false,
-                        mode: "index"
-                    },
-                    plugins: {
-                        legend: { display: false }
-                    },
-                    scales: {
-                        x: {
-                            grid: { display: false },
-                            border: { display: false },
-                            ticks: {
-                                color: "#718494",
-                                font: { size: 10 }
-                            }
-                        },
-                        y: {
-                            border: { display: false },
-                            grid: { color: "#edf2f5" },
-                            ticks: {
-                                color: "#718494",
-                                font: { size: 10 }
-                            }
-                        }
-                    }
-                }
-            });
+        // Function to get last N months of data
+        function getChartData() {
+        const labels = allLabels.slice(-currentPeriod);
+        const values = datasets[currentChart].data.slice(-currentPeriod);
+        return { labels, values };
+        }
 
-            function updateChart() {
-                const selected = datasets[currentChart];
+        const initialData = getChartData();
 
-                chart.data.labels = labels[currentPeriod];
-                chart.data.datasets[0].label = selected.label;
-                chart.data.datasets[0].data = selected.values[currentPeriod];
+        const chart = new Chart(canvas, {
+        type: "line",
+        data: {
+        labels: initialData.labels,
+        datasets: [{
+        label: datasets[currentChart].label,
+        data: initialData.values,
+        borderColor: "#0ca77c",
+        backgroundColor: context => {
+        const area = context.chart.chartArea;
+        if (!area) return "rgba(12,167,124,0.12)";
+        const gradient = context.chart.ctx.createLinearGradient(0, area.top, 0, area.bottom);
+        gradient.addColorStop(0, "rgba(12,167,124,0.30)");
+        gradient.addColorStop(1, "rgba(12,167,124,0.01)");
+        return gradient;
+        },
+        borderWidth: 2,
+        pointRadius: 3,
+        pointHoverRadius: 5,
+        pointBackgroundColor: "#0ca77c",
+        fill: true,
+        tension: 0.35
+        }]
+        },
+        options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        interaction: { intersect: false, mode: "index" },
+        plugins: { legend: { display: false } },
+        scales: {
+        x: { grid: { display: false }, border: { display: false }, ticks: { color: "#718494", font: { size: 10 } } },
+        y: { border: { display: false }, grid: { color: "#edf2f5" }, ticks: { color: "#718494", font: { size: 10 } } }
+        }
+        }
+        });
 
-                chart.update();
+        function updateChart() {
+        const { labels, values } = getChartData();
+        chart.data.labels = labels;
+        chart.data.datasets[0].label = datasets[currentChart].label;
+        chart.data.datasets[0].data = values;
+        chart.update();
 
-                document.getElementById("progressChartSummary").textContent =
-                    selected.summary;
+        document.getElementById("progressChartSummary").textContent =
+        `${datasets[currentChart].summary} over the last ${currentPeriod} months`;
+        }
 
-                document.getElementById("weightChange").textContent =
-                    selected.change;
-            }
+        document.querySelectorAll(".ht-progress-tab").forEach(button => {
+        button.addEventListener("click", () => {
+        currentChart = button.dataset.chart;
+        document.querySelectorAll(".ht-progress-tab").forEach(tab => tab.classList.remove("active"));
+        button.classList.add("active");
+        updateChart();
+        });
+        });
 
-            document.querySelectorAll(".ht-progress-tab").forEach(button => {
-                button.addEventListener("click", () => {
-                    currentChart = button.dataset.chart;
-
-                    document.querySelectorAll(".ht-progress-tab")
-                        .forEach(tab => tab.classList.remove("active"));
-
-                    button.classList.add("active");
-                    updateChart();
-                });
-            });
-
-            document.getElementById("progressPeriod")
-                .addEventListener("change", event => {
-                    currentPeriod = event.target.value;
-                    updateChart();
-                });
+        document.getElementById("progressPeriod").addEventListener("change", event => {
+        currentPeriod = Number(event.target.value);
+        updateChart();
+        });
         })();
     </script>
 }

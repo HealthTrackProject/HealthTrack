@@ -5,7 +5,7 @@ namespace HealthTrack.Models
 {
     public class ManageProfileViewModel
     {
-        // ApplicationUser වලින් එන දේවල්
+        // came from ApplicationUser 
         [Required]
         [Display(Name = "Full Name")]
         public string FullName { get; set; }
@@ -19,7 +19,7 @@ namespace HealthTrack.Models
 
         public string? ProfilePictureUrl { get; set; }
 
-        // HealthProfile වලින් එන දේවල්
+        // came from HealthProfile 
         [Required]
         [DataType(DataType.Date)]
         [Display(Name = "Date of Birth")]

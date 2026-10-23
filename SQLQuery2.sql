@@ -1,8 +1,9 @@
-﻿DECLARE @UserId NVARCHAR(450);
-SELECT TOP 1 @UserId = Id FROM AspNetUsers WHERE Email = 'clienttwo@gmail.com';
+﻿DECLARE @ClientId NVARCHAR(450);
+SELECT TOP 1 @ClientId = Id FROM AspNetUsers WHERE Email = 'clienttwo@gmail.com';
 
-INSERT INTO HealthProfiles (UserId, Weight, Height, BMI, DateOfBirth, MedicalNotes)
-VALUES (@UserId, 47.0, 164.0, 17.47, DATEADD(year, -25, GETDATE()), 'Female client, Age 25');
-
-INSERT INTO HealthRecords (ClientId, Weight, Height, BMI, CaloriesBurned, RecordDate, HeartRate, BloodPressure)
-VALUES (@UserId, 47.0, 164.0, 17.47, 200, GETDATE(), 78, '110/70');
+INSERT INTO Notifications (UserId, Title, Message, CreatedAt, IsRead)
+VALUES 
+(@ClientId, 'Workout Reminder', 'Don''t forget your Chest & Arms workout today!', DATEADD(minute, -15, GETDATE()), 0),
+(@ClientId, 'Appointment Confirmed', 'Your session with Trainer Mike is confirmed for tomorrow at 10 AM.', DATEADD(hour, -3, GETDATE()), 0),
+(@ClientId, 'Diet Plan Updated', 'Your trainer has updated your meal plan.', DATEADD(day, -1, GETDATE()), 0),
+(@ClientId, 'Welcome to HealthTrack', 'Start your healthy journey by logging your first workout.', DATEADD(day, -5, GETDATE()), 1);
