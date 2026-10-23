@@ -1,66 +1,106 @@
-﻿@{
+﻿@model HealthTrack.ViewModels.TrainerFeedbackViewModel
+
+@{
     Layout = "~/Views/Shared/_TrainerLayout.cshtml";
     ViewData["Title"] = "Feedback";
     ViewData["Heading"] = "Client Feedback";
-    ViewData["ActivePage"] = "Feedback"; // Sidebar active state
+    ViewData["ActivePage"] = "Feedback";
 }
-
-<div class="trainer-page-header">
-    <h2>Client Feedback</h2>
-</div>
 
 <div class="feedback-grid">
 
-    <!-- LEFT SIDE: Add Feedback Form -->
+    <!-- LEFT: Give New Feedback -->
     <div class="feedback-card">
-        <h3><i class="bi bi-chat-left-text-fill"></i> Give New Feedback</h3>
+        <h3>
+            <i class="bi bi-chat-left-text-fill"></i>
+            Give New Feedback
+        </h3>
 
-        <form id="feedbackForm">
+        <form id="feedbackForm"
+              asp-controller="TrainerDashboard"
+              asp-action="SubmitFeedback"
+              method="post">
+
+            @Html.AntiForgeryToken()
+
             <div class="feedback-form-group">
-                <label>Select Client</label>
-                <select id="clientSelect" required>
+                <label for="clientSelect">Select Client</label>
+
+                <select id="clientSelect" name="ClientId" required>
                     <option value="">-- Choose a Client --</option>
-                    <option value="Kamal Perera">Kamal Perera</option>
-                    <option value="Nimali Silva">Nimali Silva</option>
-                    <option value="Sahan Fernando">Sahan Fernando</option>
-                    <option value="Tharushi Dias">Tharushi Dias</option>
+
+                    @foreach (var client in Model.Clients)
+                    {
+                        <option value="@client.Value">
+                            @client.Text
+                        </option>
+                    }
                 </select>
             </div>
 
             <div class="feedback-form-group">
-                <label>Feedback Message</label>
-                <textarea id="feedbackMessage" placeholder="E.g., Great progress on your weight loss goals this month. Keep up the consistency with your cardio sessions!" required></textarea>
+                <label for="feedbackMessage">Feedback Message</label>
+
+                <textarea id="feedbackMessage"
+                          name="Message"
+                          maxlength="2000"
+                          placeholder="Enter feedback for your client..."
+                          required></textarea>
             </div>
 
-            <button type="submit" class="health-primary-button" style="width: 100%;">
-                <i class="bi bi-send-fill"></i> Submit Feedback
+            <button type="submit"
+                    id="submitFeedbackButton"
+                    class="health-primary-button"
+                    style="width: 100%;">
+                <i class="bi bi-send-fill"></i>
+                Submit Feedback
             </button>
+
+            <p id="feedbackStatus"
+               role="status"
+               aria-live="polite"
+               style="margin-top: 12px;"></p>
         </form>
     </div>
 
-    <!-- RIGHT SIDE: Recent Feedback List -->
+    <!-- RIGHT: Recent Feedback -->
     <div class="feedback-card">
-        <h3><i class="bi bi-clock-history"></i> Recent Feedback</h3>
+        <h3>
+            <i class="bi bi-clock-history"></i>
+            Recent Feedback
+        </h3>
 
         <div class="recent-feedback-list" id="feedbackList">
 
-            <!-- Sample Feedback Item 1 -->
-            <div class="feedback-item">
-                <div class="feedback-item-header">
-                    <h4>Nimali Silva</h4>
-                    <span>Today, 10:30 AM</span>
-                </div>
-                <p>Your diet plan adherence has been excellent. Let's increase the protein intake slightly for the upcoming week to support muscle recovery.</p>
-            </div>
+            @if (Model.RecentFeedback.Any())
+            {
+                foreach (var feedback in Model.RecentFeedback)
+                {
+                    <div class="feedback-item">
+                        <div class="feedback-item-header">
+                            <h4>
+                                @(string.IsNullOrWhiteSpace(
+                                    feedback.Client?.FullName)
+                                    ? "Client"
+                                    : feedback.Client.FullName)
+                            </h4>
 
-            <!-- Sample Feedback Item 2 -->
-            <div class="feedback-item">
-                <div class="feedback-item-header">
-                    <h4>Kamal Perera</h4>
-                    <span>Yesterday, 3:15 PM</span>
-                </div>
-                <p>Great job on completing the HIIT session. Remember to stretch properly afterward to avoid muscle soreness.</p>
-            </div>
+                            <span>
+                                @feedback.CreatedAt
+                              
+                            </span>
+                        </div>
+
+                        <p style="white-space: pre-wrap;">@feedback.Message</p>
+                    </div>
+                }
+            }
+            else
+            {
+                <p id="noFeedbackMessage">
+                    No feedback has been submitted yet.
+                </p>
+            }
 
         </div>
     </div>
@@ -74,40 +114,102 @@
             const clientSelect = document.getElementById("clientSelect");
             const feedbackMessage = document.getElementById("feedbackMessage");
             const feedbackList = document.getElementById("feedbackList");
+            const submitButton = document.getElementById("submitFeedbackButton");
+            const statusMessage = document.getElementById("feedbackStatus");
 
-            form.addEventListener("submit", function (e) {
-                e.preventDefault(); // Prevent page reload
+            form.addEventListener("submit", async function (event) {
+                event.preventDefault();
 
-                const clientName = clientSelect.value;
-                const message = feedbackMessage.value;
+                if (!form.reportValidity()) {
+                    return;
+                }
 
-                if (!clientName || !message) return;
+                if (!clientSelect.value || !feedbackMessage.value.trim()) {
+                        statusMessage.textContent =
+                         "Please select a client and enter feedback.";
+                            return;
+                    }
 
-                // Get current time for display
-                const now = new Date();
-                const timeString = "Today, " + now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                    const originalButtonText = submitButton.innerHTML;
 
-                // Create new feedback HTML element
-                const newFeedback = document.createElement("div");
-                newFeedback.className = "feedback-item";
-                newFeedback.style.animation = "fadeIn 0.5s ease"; // Add a simple animation
-                newFeedback.innerHTML = `
-                    <div class="feedback-item-header">
-                        <h4>${clientName}</h4>
-                        <span>${timeString}</span>
-                    </div>
-                    <p>${message}</p>
-                `;
+                        submitButton.disabled = true;
+                   submitButton.textContent = "Submitting...";
+                        statusMessage.textContent = "";
 
-                // Add to the top of the list
-                feedbackList.prepend(newFeedback);
+                    try {
+                            const response = await fetch(form.action, {
+                                method: "POST",                  body: new FormData(form),
+                                   credentials: "same-origin",
+                                headers: {
+                               "X-Requested-With": "XMLHttpRequest",
+                                "Accept": "application/json"
+                            }
+                        });
 
-                // Reset form
-                form.reset();
+                       const result = await response.json().catch(() => null);
 
-                // Show a quick success alert
-                alert("Feedback submitted successfully!");
+                        if (!response.ok ||
+                            !result ||
+                            !result.success ||
+                                !result.feedback) {
+                        throw new Error(
+                                    result?.message ||
+                                "Unable to submit feedback. Please try again."
+                          );
+                            }
+
+                                const feedback = result.feedback;
+
+                        const emptyMessage =
+                                document.getElementById("noFeedbackMessage");
+
+                        if (emptyMessage) {
+                            emptyMessage.remove();
+                        }
+
+                        // Create the new feedback item safely.
+                           const item = document.createElement("div");
+                            item.className = "feedback-item";
+
+                        const header = document.createElement("div");
+                        header.className = "feedback-item-header";
+
+                        const name = document.createElement("h4");
+                        name.textContent = feedback.clientName;
+
+                            const date = document.createElement("span");
+                        date.textContent = feedback.createdAt;
+
+                            const paragraph = document.createElement("p");
+                       paragraph.style.whiteSpace = "pre-wrap";
+                        paragraph.textContent = feedback.message;
+
+                             header.appendChild(name);
+                            header.appendChild(date);
+                        item.appendChild(header);              item.appendChild(paragraph);
+
+                                   feedbackList.prepend(item);
+
+                            // Keep only the 20 most recent feedback items.
+                        while (
+                              feedbackList.querySelectorAll(".feedback-item").length > 20
+                            ) {
+                        feedbackList.lastElementChild.remove();
+                        }
+
+                        form.reset();
+                            statusMessage.textContent = result.message;
+
+                    } catch (error) {
+                         statusMessage.textContent =
+                            error.message || "An unexpected error occurred.";
+
+                       console.error("Feedback submission error:", error);
+                        }  finally {
+                        submitButton.disabled = false;
+                                submitButton.innerHTML = originalButtonText;
+                        }
+                 });
             });
-        });
     </script>
 }

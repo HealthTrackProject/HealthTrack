@@ -14,14 +14,16 @@ namespace HealthTrack.Data
 
         public DbSet<HealthProfile> HealthProfiles { get; set; }
         public DbSet<WorkoutPlan> WorkoutPlans { get; set; }
+        public DbSet<WorkoutPlanDay> WorkoutPlanDays { get; set; }
         public DbSet<WorkoutLog> WorkoutLogs { get; set; }
         public DbSet<DietPlan> DietPlans { get; set; }
         public DbSet<DietLog> DietLogs { get; set; }
+        public DbSet<DietPlanMeal> DietPlanMeals { get; set; }
         public DbSet<Appointment> Appointments { get; set; }
         public DbSet<HealthRecord> HealthRecords { get; set; }
         public DbSet<ProgressRecord> ProgressRecords { get; set; }
         public DbSet<Notification> Notifications { get; set; }
-
+        public DbSet<ClientFeedback> ClientFeedbacks { get; set; }
         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder);
@@ -59,107 +61,126 @@ namespace HealthTrack.Data
                 .Property(x => x.BMI)
                 .HasPrecision(18, 2);
 
-
-            // HealthProfile → User
+            // HealthProfile -> User
             builder.Entity<HealthProfile>()
                 .HasOne(x => x.User)
                 .WithMany()
                 .HasForeignKey(x => x.UserId)
                 .OnDelete(DeleteBehavior.Restrict);
 
-
-            // WorkoutPlan → Trainer
+            // WorkoutPlan -> Trainer
             builder.Entity<WorkoutPlan>()
                 .HasOne(x => x.Trainer)
                 .WithMany()
                 .HasForeignKey(x => x.TrainerId)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            // WorkoutPlan → Client
+            // WorkoutPlan -> Client
             builder.Entity<WorkoutPlan>()
                 .HasOne(x => x.Client)
                 .WithMany()
                 .HasForeignKey(x => x.ClientId)
                 .OnDelete(DeleteBehavior.Restrict);
 
-
-            // WorkoutLog → Client
+            // WorkoutLog -> Client
             builder.Entity<WorkoutLog>()
                 .HasOne(x => x.Client)
                 .WithMany()
                 .HasForeignKey(x => x.ClientId)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            // WorkoutLog → WorkoutPlan
+            // WorkoutLog -> WorkoutPlan
             builder.Entity<WorkoutLog>()
                 .HasOne(x => x.WorkoutPlan)
                 .WithMany()
                 .HasForeignKey(x => x.WorkoutPlanId)
                 .OnDelete(DeleteBehavior.Restrict);
 
+            // WorkoutPlanDay -> WorkoutPlan
+            builder.Entity<WorkoutPlanDay>()
+                .HasOne(x => x.WorkoutPlan)
+                .WithMany(x => x.WorkoutPlanDays)
+                .HasForeignKey(x => x.WorkoutPlanId)
+                .OnDelete(DeleteBehavior.Cascade);
 
-            // DietPlan → Trainer
+            // DietPlan -> Trainer
             builder.Entity<DietPlan>()
                 .HasOne(x => x.Trainer)
                 .WithMany()
                 .HasForeignKey(x => x.TrainerId)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            // DietPlan → Client
+            // DietPlan -> Client
             builder.Entity<DietPlan>()
                 .HasOne(x => x.Client)
                 .WithMany()
                 .HasForeignKey(x => x.ClientId)
                 .OnDelete(DeleteBehavior.Restrict);
 
-
-            // DietLog → Client
+            // DietLog -> Client
             builder.Entity<DietLog>()
                 .HasOne(x => x.Client)
                 .WithMany()
                 .HasForeignKey(x => x.ClientId)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            // DietLog → DietPlan
+            // DietLog -> DietPlan
             builder.Entity<DietLog>()
                 .HasOne(x => x.DietPlan)
                 .WithMany()
                 .HasForeignKey(x => x.DietPlanId)
                 .OnDelete(DeleteBehavior.Restrict);
-
-
-            // Appointment → Client
+            builder.Entity<DietPlanMeal>()
+                .HasOne(m => m.DietPlan)
+                .WithMany(p => p.Meals)
+                .HasForeignKey(m => m.DietPlanId)
+                .OnDelete(DeleteBehavior.Cascade);
+            // Appointment -> Client
             builder.Entity<Appointment>()
                 .HasOne(x => x.Client)
                 .WithMany()
                 .HasForeignKey(x => x.ClientId)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            // Appointment → Trainer
+            // Appointment -> Trainer
             builder.Entity<Appointment>()
                 .HasOne(x => x.Trainer)
                 .WithMany()
                 .HasForeignKey(x => x.TrainerId)
                 .OnDelete(DeleteBehavior.Restrict);
 
-
-            // HealthRecord → Client
+            // HealthRecord -> Client
             builder.Entity<HealthRecord>()
                 .HasOne(x => x.Client)
                 .WithMany()
                 .HasForeignKey(x => x.ClientId)
                 .OnDelete(DeleteBehavior.Restrict);
 
-
-            // ProgressRecord → Client
+            // ProgressRecord -> Client
             builder.Entity<ProgressRecord>()
                 .HasOne(x => x.Client)
                 .WithMany()
                 .HasForeignKey(x => x.ClientId)
                 .OnDelete(DeleteBehavior.Restrict);
 
+            // feedback -> Trainer
+            builder.Entity<ClientFeedback>()
+                .HasOne(f => f.Trainer)
+                .WithMany()
+                .HasForeignKey(f => f.TrainerId)
+                .OnDelete(DeleteBehavior.Restrict);
 
-            // Notification → User
+            builder.Entity<ClientFeedback>()
+                .HasOne(f => f.Client)
+                .WithMany()
+                .HasForeignKey(f => f.ClientId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            builder.Entity<ClientFeedback>()
+                .Property(f => f.Message)
+                .HasMaxLength(2000)
+                .IsRequired();
+            // Notification -> User
             builder.Entity<Notification>()
                 .HasOne(x => x.User)
                 .WithMany()

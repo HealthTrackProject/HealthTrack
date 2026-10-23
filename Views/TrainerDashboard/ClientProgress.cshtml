@@ -2,7 +2,7 @@
     Layout = "~/Views/Shared/_TrainerLayout.cshtml";
     ViewData["Title"] = "Client Progress";
     ViewData["Heading"] = "Client Progress";
-    ViewData["ActivePage"] = "ClientProgress"; // Sidebar active state
+    ViewData["ActivePage"] = "ClientProgress";
 }
 
 <div class="ht-progress">
@@ -14,14 +14,16 @@
         </div>
 
         <div class="header-controls">
-            <!-- Client Selection Dropdown -->
             <select id="clientSelector" class="select-client-dropdown">
-                <option value="kamal">Kamal Perera</option>
-                <option value="nimali">Nimali Silva</option>
-                <option value="sahan">Sahan Fernando</option>
+                @if (ViewBag.Clients != null)
+                {
+                    foreach (var client in ViewBag.Clients)
+                    {
+                        <option value="@client.Value">@client.Text</option>
+                    }
+                }
             </select>
 
-            <!-- Period Selection Dropdown -->
             <select id="progressPeriod" class="ht-period-select">
                 <option value="3">Last 3 Months</option>
                 <option value="6" selected>Last 6 Months</option>
@@ -30,26 +32,26 @@
         </div>
     </div>
 
-    <!-- STAT CARDS -->
+    <!-- STAT CARDS: Existing design retained -->
     <div class="ht-progress-cards">
         <div class="ht-stat-card weight-card">
             <div class="ht-stat-icon"><i class="bi bi-droplet-fill"></i></div>
-            <div><span>Weight</span><strong id="currentWeight">72 kg</strong></div>
+            <div><span>Weight</span><strong id="currentWeight">—</strong></div>
         </div>
 
         <div class="ht-stat-card bmi-card">
             <div class="ht-stat-icon"><i class="bi bi-heart-pulse-fill"></i></div>
-            <div><span>BMI</span><strong id="currentBMI">23.5</strong></div>
+            <div><span>BMI</span><strong id="currentBMI">—</strong></div>
         </div>
 
         <div class="ht-stat-card calories-card">
             <div class="ht-stat-icon"><i class="bi bi-fire"></i></div>
-            <div><span>Calories Burned</span><strong id="currentCalories">1850</strong></div>
+            <div><span>Calories Burned</span><strong id="currentCalories">—</strong></div>
         </div>
 
         <div class="ht-stat-card workouts-card">
             <div class="ht-stat-icon"><i class="bi bi-lightning-charge-fill"></i></div>
-            <div><span>Workouts</span><strong id="currentWorkouts">20</strong></div>
+            <div><span>Workouts</span><strong id="currentWorkouts">—</strong></div>
         </div>
     </div>
 
@@ -72,7 +74,7 @@
         </div>
     </section>
 
-    <!-- INFO BOX -->
+    <!-- PROGRESS OVERVIEW -->
     <section class="ht-progress-info">
         <div>
             <h3><i class="bi bi-graph-down-arrow"></i> Progress Overview</h3>
@@ -81,10 +83,9 @@
 
         <div class="ht-progress-info-value">
             <span>Change</span>
-            <strong id="weightChange">-10 kg</strong>
+            <strong id="weightChange">—</strong>
         </div>
     </section>
-
 </div>
 
 @section Scripts {
@@ -92,158 +93,280 @@
 
     <script>
         (() => {
-        const canvas = document.getElementById("healthProgressChart");
-        if (!canvas || typeof Chart === "undefined") return;
+            const canvas = document.getElementById("healthProgressChart");
+            const clientSelector = document.getElementById("clientSelector");
+            const periodSelector = document.getElementById("progressPeriod");
 
-        // Labels
-        const labels = {
-        3: ["Aug", "Sep", "Oct"],
-        6: ["Jan", "Feb", "Mar", "Apr", "May", "Jun"],
-        12: ["Jul", "Aug", "Sep", "Oct", "Nov", "Dec", "Jan", "Feb", "Mar", "Apr", "May", "Jun"]
-        };
+            if (!canvas || typeof Chart === "undefined") {
+                console.error("Chart.js could not be loaded.");
+                return;
+            }
 
-        // Trainer Blue Chart Color
-        const primaryColor = "#1E88E5";
+            const endpoint = '@Url.Action("GetClientProgress", "TrainerDashboard")';
+            const primaryColor = "#1E88E5";
 
-        // Mock Data
-        const datasets = {
-        weight: {
-        label: "Weight (kg)",
-        values: {
-        3: [76, 73, 72],
-        6: [78, 76, 74, 74, 71, 72],
-        12: [82, 81, 80, 79, 78, 77, 76, 75, 74, 73, 72, 72]
-        },
-        summary: "Weight progress over the selected period",
-        change: "-10 kg"
-        },
-        bmi: {
-        label: "BMI",
-        values: {
-        3: [25.2, 24.1, 23.5],
-        6: [27.1, 26.4, 25.8, 24.9, 24.0, 23.5],
-        12: [29, 28.5, 28, 27.4, 27, 26.5, 26, 25.5, 25, 24.5, 24, 23.5]
-        },
-        summary: "BMI progress over the selected period",
-        change: "-5.5"
-        },
-        calories: {
-        label: "Calories burned",
-        values: {
-        3: [1500, 1720, 1850],
-        6: [1200, 1400, 1550, 1600, 1750, 1850],
-        12: [900, 1000, 1150, 1200, 1300, 1250, 1400, 1500, 1600, 1700, 1780, 1850]
-        },
-        summary: "Calories burned over the selected period",
-        change: "+650"
-        },
-        workouts: {
-        label: "Workouts",
-        values: {
-        3: [12, 16, 20],
-        6: [8, 10, 13, 15, 18, 20],
-        12: [4, 5, 7, 8, 9, 11, 12, 14, 15, 17, 18, 20]
-        },
-        summary: "Completed workouts over the selected period",
-        change: "+16"
-        }
-        };
+            const chartInfo = {
+                weight: {
+                    label: "Weight (kg)",
+                    summary: "Weight progress over the selected period"
+                },
+                bmi: {
+                    label: "BMI",
+                    summary: "BMI progress over the selected period"
+                },
+                calories: {
+                    label: "Calories burned",
+                    summary: "Calories burned over the selected period"
+                },
+                workouts: {
+                    label: "Workouts",
+                    summary: "Completed workouts over the selected period"
+                }
+            };
 
-        let currentChart = "weight";
-        let currentPeriod = "6";
+            let currentChart = "weight";
+            let progressData = null;
+            let requestId = 0;
 
-        // Initialize Chart
-        const chart = new Chart(canvas, {
-        type: "line",
-        data: {
-        labels: labels[currentPeriod],
-        datasets: [{
-        label: datasets[currentChart].label,
-        data: datasets[currentChart].values[currentPeriod],
-        borderColor: primaryColor,
-        backgroundColor: context => {
-        const area = context.chart.chartArea;
-        if (!area) return "rgba(30, 136, 229, 0.12)";
-        const gradient = context.chart.ctx.createLinearGradient(0, area.top, 0, area.bottom);
-        gradient.addColorStop(0, "rgba(30, 136, 229, 0.30)"); // Trainer Blue
-        gradient.addColorStop(1, "rgba(30, 136, 229, 0.01)");
-        return gradient;
-        },
-        borderWidth: 2,
-        pointRadius: 3,
-        pointHoverRadius: 6,
-        pointBackgroundColor: primaryColor,
-        fill: true,
-        tension: 0.35
-        }]
-        },
-        options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        interaction: {
-        intersect: false,
-        mode: "index"
-        },
-        plugins: {
-        legend: { display: false }
-        },
-        scales: {
-        x: {
-        grid: { display: false },
-        border: { display: false },
-        ticks: { color: "#718494", font: { size: 11 } }
-        },
-        y: {
-        border: { display: false },
-        grid: { color: "#edf2f5" },
-        ticks: { color: "#718494", font: { size: 11 } }
-        }
-        }
-        }
-        });
+            const chart = new Chart(canvas, {
+                type: "line",
+                data: {
+                    labels: [],
+                    datasets: [{
+                        label: "Weight (kg)",
+                        data: [],
+                        borderColor: primaryColor,
+                        backgroundColor: context => {
+                            const area = context.chart.chartArea;
 
-        // Update Chart Function
-        function updateChart() {
-        const selected = datasets[currentChart];
+                            if (!area) {
+                                return "rgba(30, 136, 229, 0.12)";
+                            }
 
-        chart.data.labels = labels[currentPeriod];
-        chart.data.datasets[0].label = selected.label;
-        chart.data.datasets[0].data = selected.values[currentPeriod];
+                            const gradient =
+                                context.chart.ctx.createLinearGradient(
+                                    0, area.top, 0, area.bottom
+                                );
 
-        chart.update();
+                            gradient.addColorStop(
+                                0, "rgba(30, 136, 229, 0.30)"
+                            );
 
-        document.getElementById("progressChartSummary").textContent = selected.summary;
-        document.getElementById("weightChange").textContent = selected.change;
-        }
+                            gradient.addColorStop(
+                                1, "rgba(30, 136, 229, 0.01)"
+                            );
 
-        // Tab Switching
-        document.querySelectorAll(".ht-progress-tab").forEach(button => {
-        button.addEventListener("click", () => {
-        currentChart = button.dataset.chart;
-        document.querySelectorAll(".ht-progress-tab").forEach(tab => tab.classList.remove("active"));
-        button.classList.add("active");
-        updateChart();
-        });
-        });
+                            return gradient;
+                        },
+                        borderWidth: 2,
+                        pointRadius: 3,
+                        pointHoverRadius: 6,
+                        pointBackgroundColor: primaryColor,
+                        fill: true,
+                        tension: 0.35,
+                        spanGaps: false
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: {
+                        intersect: false,
+                        mode: "index"
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        x: {
+                            grid: {
+                                display: false
+                            },
+                            border: {
+                                display: false
+                            },
+                            ticks: {
+                                color: "#718494",
+                                font: {
+                                    size: 11
+                                }
+                            }
+                        },
+                        y: {
+                            border: {
+                                display: false
+                            },
+                            grid: {
+                                color: "#edf2f5"
+                            },
+                            ticks: {
+                                color: "#718494",
+                                font: {
+                                    size: 11
+                                }
+                            }
+                        }
+                    }
+                }
+            });
 
-        // Period Selection
-        document.getElementById("progressPeriod").addEventListener("change", event => {
-        currentPeriod = event.target.value;
-        updateChart();
-        });
+            function setSummary(message) {
+                document.getElementById("progressChartSummary").textContent =
+                    message;
+            }
 
-        // Client Selection (Mock Logic)
-        document.getElementById("clientSelector").addEventListener("change", event => {
-        // In a real app, you would fetch data for the selected client ID here.
-        // For now, we'll just show a simple alert or change the data slightly.
-        const selectedClient = event.target.options[event.target.selectedIndex].text;
-        document.getElementById("progressChartSummary").textContent = `Loading data for ${selectedClient}...`;
+            function clearData(message) {
+                progressData = null;
 
-        // Simulate loading delay
-        setTimeout(() => {
-        updateChart();
-        }, 500);
-        });
+                chart.data.labels = [];
+                chart.data.datasets[0].data = [];
+                chart.update();
+
+                document.getElementById("currentWeight").textContent = "—";
+                document.getElementById("currentBMI").textContent = "—";
+                document.getElementById("currentCalories").textContent = "—";
+                document.getElementById("currentWorkouts").textContent = "—";
+                document.getElementById("weightChange").textContent = "—";
+
+                setSummary(message);
+            }
+
+            function updateChart() {
+                if (!progressData) return;
+
+                const selected = chartInfo[currentChart];
+
+                chart.data.labels = progressData.labels || [];
+                chart.data.datasets[0].label = selected.label;
+                chart.data.datasets[0].data =
+                    progressData.datasets[currentChart] || [];
+
+                chart.update();
+
+                setSummary(selected.summary);
+
+                const change =
+                    progressData.changes?.[currentChart] ?? "No data";
+
+                document.getElementById("weightChange").textContent = change;
+
+                const selectedOption =
+                    clientSelector.options[clientSelector.selectedIndex];
+
+                const clientName = selectedOption
+                    ? selectedOption.text
+                    : "selected client";
+
+                document.querySelector(".ht-progress-info p").textContent =
+                    `Progress summary for ${clientName}.`;
+            }
+
+            function updateStatistics(data) {
+                document.getElementById("currentWeight").textContent =
+                    data.currentWeight == null
+                        ? "—"
+                        : `${Number(data.currentWeight).toFixed(1)} kg`;
+
+                document.getElementById("currentBMI").textContent =
+                    data.currentBMI == null
+                        ? "—"
+                        : Number(data.currentBMI).toFixed(1);
+
+                document.getElementById("currentCalories").textContent =
+                    data.currentCalories == null
+                        ? "—"
+                        : Number(data.currentCalories).toLocaleString();
+
+                document.getElementById("currentWorkouts").textContent =
+                    data.currentWorkouts == null
+                        ? "—"
+                        : Number(data.currentWorkouts).toLocaleString();
+            }
+
+            async function loadProgress() {
+                const clientId = clientSelector.value;
+                const currentRequest = ++requestId;
+
+                if (!clientId) {
+                    clearData("No clients are available for progress tracking.");
+                    return;
+                }
+
+                setSummary("Loading client progress...");
+
+                try {
+                    const url = new URL(endpoint, window.location.origin);
+
+                    url.searchParams.set("clientId", clientId);
+                    url.searchParams.set("months", periodSelector.value);
+
+                    const response = await fetch(url, {
+                        method: "GET",
+                        headers: {
+                            "Accept": "application/json"
+                        },
+                        credentials: "same-origin"
+                    });
+
+                    if (!response.ok) {
+                        if (response.status === 403) {
+                            throw new Error(
+                                "You do not have access to this client's progress."
+                            );
+                        }
+
+                        if (response.status === 401) {
+                            throw new Error(
+                                "Your session has expired. Please sign in again."
+                            );
+                        }
+
+                        throw new Error(
+                            "Unable to load client progress. Please try again."
+                        );
+                    }
+
+                    const result = await response.json();
+
+                    // Prevent an older request replacing newer selected data.
+                    if (currentRequest !== requestId) return;
+
+                    progressData = result;
+
+                    updateStatistics(result);
+                    updateChart();
+                } catch (error) {
+                    if (currentRequest !== requestId) return;
+
+                    clearData(
+                        error.message || "Error loading client progress."
+                    );
+
+                    console.error("Client progress error:", error);
+                }
+            }
+
+            document.querySelectorAll(".ht-progress-tab")
+                .forEach(button => {
+                    button.addEventListener("click", () => {
+                        currentChart = button.dataset.chart;
+
+                        document.querySelectorAll(".ht-progress-tab")
+                            .forEach(tab =>
+                                tab.classList.remove("active")
+                            );
+
+                        button.classList.add("active");
+                        updateChart();
+                    });
+                });
+
+            clientSelector.addEventListener("change", loadProgress);
+            periodSelector.addEventListener("change", loadProgress);
+
+            loadProgress();
         })();
     </script>
 }

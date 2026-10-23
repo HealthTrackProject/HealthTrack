@@ -1,141 +1,752 @@
-﻿@{
+﻿@model HealthTrack.ViewModels.TrainerDietPlanViewModel
+
+@{
     Layout = "~/Views/Shared/_TrainerLayout.cshtml";
     ViewData["Title"] = "Diet Plans";
     ViewData["Heading"] = "Diet Plans";
     ViewData["ActivePage"] = "DietPlans";
 }
 
-<div class="trainer-page-header">
-    <h2>Create Diet Plan</h2>
-</div>
+<div class="diet-form-container">
 
-<div class="workout-form-container">
-    <form action="#" method="post">
+    <div class="form-page-heading">
+        <h2><i class="bi bi-egg-fried"></i> Create Diet Plan</h2>
+        <p>Create a personalized meal schedule for your client.</p>
+    </div>
 
-        <!-- Select Client -->
-        <div class="form-group-row">
-            <label>Select Client</label>
-            <select class="form-control">
-                <option value="">-- Select a Client --</option>
-                <option value="1">Kamal Perera</option>
-                <option value="2">Nimali Silva</option>
-                <option value="3">Sahan Fernando</option>
-            </select>
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="diet-success">
+            <i class="bi bi-check-circle-fill"></i>
+            @TempData["SuccessMessage"]
         </div>
+    }
 
-        <!-- Plan Name -->
-        <div class="form-group-row">
-            <label>Plan Name</label>
-            <input type="text" class="form-control" placeholder="e.g. Keto Diet Plan" />
-        </div>
+    <div asp-validation-summary="ModelOnly"
+         class="diet-validation-summary"></div>
 
-        <!-- Description -->
-        <div class="form-group-row">
-            <label>Description</label>
-            <textarea class="form-control" rows="3" placeholder="e.g. High protein, low carb diet plan"></textarea>
-        </div>
+    <form asp-controller="TrainerDashboard"
+          asp-action="DietPlans"
+          method="post"
+          id="dietPlanForm">
 
-        <!-- Schedule Section (Meals) -->
-        <div class="schedule-section">
-            <div class="form-group-row">
-                <label>Schedule</label>
-                <div style="flex: 1;">
-                    <div id="diet-schedule-container">
+        @Html.AntiForgeryToken()
 
-                        <!-- Breakfast (Default Row) -->
-                        <div class="schedule-item">
-                            <div class="schedule-day-info">
-                                <!-- Added Image Here -->
-                                <img src="https://images.unsplash.com/photo-1517673132405-a56a62b18caf?w=100&h=100&fit=crop" class="meal-img" alt="Breakfast" />
-                                <div class="schedule-text">
-                                    <strong>Breakfast</strong>
-                                    <span>8:00 AM</span>
-                                </div>
-                            </div>
-                            <textarea class="form-control" rows="2">Oatmeal, Banana, Almonds</textarea>
-                            <button type="button" class="btn-delete-day" onclick="this.parentElement.remove()">
-                                <i class="bi bi-trash"></i>
-                            </button>
-                        </div>
+        <!-- Client dropdown -->
+        <div class="diet-form-row">
+            <label asp-for="ClientId">Select Client</label>
 
-                        <!-- Lunch (Default Row) -->
-                        <div class="schedule-item">
-                            <div class="schedule-day-info">
-                                <!-- Added Image Here -->
-                                <img src="https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=100&h=100&fit=crop" class="meal-img" alt="Lunch" />
-                                <div class="schedule-text">
-                                    <strong>Lunch</strong>
-                                    <span>1:00 PM</span>
-                                </div>
-                            </div>
-                            <textarea class="form-control" rows="2">Grilled Chicken, Brown Rice, Salad</textarea>
-                            <button type="button" class="btn-delete-day" onclick="this.parentElement.remove()">
-                                <i class="bi bi-trash"></i>
-                            </button>
-                        </div>
+            <div class="diet-field">
+                <select asp-for="ClientId"
+                        asp-items="Model.Clients"
+                        class="diet-control">
+                    <option value="">-- Select a Client --</option>
+                </select>
 
-                    </div>
-
-                    <!-- Add Meal Button -->
-                    <button type="button" class="btn-add-day" id="addMealBtn">
-                        <i class="bi bi-plus"></i> Add Meal
-                    </button>
-                </div>
+                <span asp-validation-for="ClientId"
+                      class="diet-error"></span>
             </div>
         </div>
 
-        <!-- Save Button -->
-        <div class="form-actions-bottom">
-            <button type="submit" class="btn-save-plan">Save Plan</button>
+        <!-- Plan name -->
+        <div class="diet-form-row">
+            <label asp-for="PlanName">Plan Name</label>
+
+            <div class="diet-field">
+                <input asp-for="PlanName"
+                       class="diet-control"
+                       placeholder="e.g. Balanced Diet Plan" />
+
+                <span asp-validation-for="PlanName"
+                      class="diet-error"></span>
+            </div>
+        </div>
+
+        <!-- Description -->
+        <div class="diet-form-row">
+            <label asp-for="Description">Description</label>
+
+            <div class="diet-field">
+                <textarea asp-for="Description"
+                          class="diet-control diet-description"
+                          rows="3"
+                          placeholder="e.g. Balanced nutrition plan for healthy weight management"></textarea>
+            </div>
+        </div>
+
+        <!-- Start date -->
+        <div class="diet-form-row">
+            <label asp-for="StartDate">Start Date</label>
+
+            <div class="diet-field">
+                <input asp-for="StartDate"
+                       type="date"
+                       asp-format="{0:yyyy-MM-dd}"
+                       class="diet-control" />
+
+                <span asp-validation-for="StartDate"
+                      class="diet-error"></span>
+            </div>
+        </div>
+
+        <!-- End date -->
+        <div class="diet-form-row">
+            <label asp-for="EndDate">End Date</label>
+
+            <div class="diet-field">
+                <input asp-for="EndDate"
+                       type="date"
+                       asp-format="{0:yyyy-MM-dd}"
+                       class="diet-control" />
+
+                <span asp-validation-for="EndDate"
+                      class="diet-error"></span>
+            </div>
+        </div>
+
+        <!-- Vertical meal schedule: normal page scrolling, no carousel -->
+        <div class="diet-schedule-section">
+            <div class="diet-schedule-label">
+                <label>Meal Schedule</label>
+                <p>Scroll horizontally to view meals. Click Add Meal to append a new card with its own default food image.</p>
+            </div>
+
+            <div class="diet-schedule-content">
+                <div id="mealContainer">
+                    @for (int i = 0; i < Model.Meals.Count; i++)
+                    {
+                        <div class="meal-card">
+                            <div class="meal-card-header">
+                                <strong class="meal-heading">Meal @(i + 1)</strong>
+                                <button type="button" class="meal-delete" title="Remove meal" aria-label="Remove meal">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </div>
+
+                            <div class="meal-fields">
+                                <div class="meal-two-columns">
+                                    <div>
+                                        <label>Meal Name</label>
+                                        <input name="Meals[@i].MealType" value="@Model.Meals[i].MealType"
+                                               class="diet-control" required placeholder="e.g. Breakfast" />
+                                    </div>
+                                    <div>
+                                        <label>Meal Time</label>
+                                        <input name="Meals[@i].MealTime" value="@Model.Meals[i].MealTime"
+                                               type="time" class="diet-control" />
+                                    </div>
+                                </div>
+
+                                <div class="meal-preview">
+                                    <img class="meal-selected-preview"
+                                         src="@(string.IsNullOrWhiteSpace(Model.Meals[i].ImageUrl) ? "https://images.unsplash.com/photo-1525351484163-7529414344d8?auto=format&fit=crop&w=400&q=80" : Model.Meals[i].ImageUrl)"
+                                         alt="Meal food image"
+                                         loading="lazy"
+                                         onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1512621776951-a57141f2eefd?auto=format&fit=crop&w=400&q=80';" />
+                                    <div class="meal-preview-copy">
+                                        <strong class="preview-meal-name">@(string.IsNullOrWhiteSpace(Model.Meals[i].MealType) ? "Meal" : Model.Meals[i].MealType)</strong>
+                                        <span class="meal-preview-time">@(string.IsNullOrWhiteSpace(Model.Meals[i].MealTime) ? "Time not set" : Model.Meals[i].MealTime)</span>
+                                    </div>
+                                </div>
+                                <input type="hidden" name="Meals[@i].ImageUrl"
+                                       value="@(string.IsNullOrWhiteSpace(Model.Meals[i].ImageUrl) ? "https://images.unsplash.com/photo-1525351484163-7529414344d8?auto=format&fit=crop&w=400&q=80" : Model.Meals[i].ImageUrl)"
+                                       class="meal-image-url" />
+
+                                <div>
+                                    <label>Food Description</label>
+                                    <textarea name="Meals[@i].FoodDescription" class="diet-control"
+                                              rows="3" required placeholder="Enter food details">@Model.Meals[i].FoodDescription</textarea>
+                                </div>
+
+                                <div class="meal-two-columns">
+                                    <div>
+                                        <label>Calories (kcal)</label>
+                                        <input name="Meals[@i].Calories" value="@Model.Meals[i].Calories"
+                                               type="number" min="0" max="10000" class="diet-control" required />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+
+                <div class="meal-schedule-footer">
+                    <button type="button" id="addMealBtn" class="btn-add-meal">
+                        <i class="bi bi-plus-circle"></i> Add Meal
+                    </button>
+                    <span class="meal-limit-hint"><i class="bi bi-list-check"></i> Maximum 20 meals</span>
+                </div>
+                <p id="mealError" class="diet-error" role="alert"></p>
+            </div>
+        </div>
+
+        <div class="diet-form-actions">
+            <button type="submit" class="btn-save-diet">
+                <i class="bi bi-check-circle"></i>
+                Save Diet Plan
+            </button>
         </div>
 
     </form>
 </div>
 
+<style>
+    .diet-form-container {
+        width: 100%;
+        min-width: 0;
+        box-sizing: border-box;
+        padding: 30px;
+        margin-bottom: 30px;
+        background: #fff;
+        border: 1px solid #e1eaf4;
+        border-radius: 16px;
+        box-shadow: 0 5px 20px rgba(25,65,110,.05)
+    }
+
+    .form-page-heading {
+        margin-bottom: 32px
+    }
+
+        .form-page-heading h2 {
+            margin: 0 0 8px;
+            color: #173b63;
+            font-size: 28px;
+            font-weight: 750
+        }
+
+            .form-page-heading h2 i {
+                color: #2580d8;
+                margin-right: 8px
+            }
+
+        .form-page-heading p {
+            margin: 0;
+            color: #71839a;
+            line-height: 1.6
+        }
+
+    .diet-form-row {
+        display: grid;
+        grid-template-columns: 190px minmax(0,1fr);
+        align-items: start;
+        gap: 20px;
+        width: 100%;
+        min-width: 0;
+        margin-bottom: 24px
+    }
+
+        .diet-form-row > label {
+            padding-top: 13px;
+            color: #243b53;
+            font-weight: 650
+        }
+
+    .diet-field {
+        width: 100%;
+        min-width: 0
+    }
+
+    .diet-control {
+        display: block;
+        width: 100%;
+        min-width: 0;
+        min-height: 48px;
+        padding: 12px 15px;
+        box-sizing: border-box;
+        color: #243447;
+        background: #fff;
+        border: 1px solid #d8e3ef;
+        border-radius: 10px;
+        font: inherit;
+        transition: border-color .2s,box-shadow .2s
+    }
+
+        .diet-control:focus {
+            outline: none;
+            border-color: #2580d8;
+            box-shadow: 0 0 0 3px rgba(37,128,216,.12)
+        }
+
+    .diet-description {
+        min-height: 105px;
+        resize: vertical
+    }
+
+    .diet-error {
+        display: block;
+        margin-top: 6px;
+        color: #b42318;
+        font-size: 13px
+    }
+
+    .diet-validation-summary:empty {
+        display: none
+    }
+
+    .diet-validation-summary {
+        margin-bottom: 16px;
+        color: #b42318
+    }
+
+    .diet-success {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 14px 16px;
+        margin-bottom: 20px;
+        color: #067647;
+        background: #ecfdf3;
+        border: 1px solid #abefc6;
+        border-radius: 10px
+    }
+
+    .diet-schedule-section {
+        display: grid;
+        grid-template-columns: 190px minmax(0,1fr);
+        align-items: start;
+        gap: 20px;
+        margin-top: 32px;
+        min-width: 0
+    }
+
+    .diet-schedule-label {
+        padding-top: 8px
+    }
+
+        .diet-schedule-label label {
+            display: block;
+            margin-bottom: 8px;
+            color: #243b53;
+            font-weight: 700
+        }
+
+        .diet-schedule-label p {
+            margin: 0;
+            color: #71839a;
+            font-size: 13px;
+            line-height: 1.6
+        }
+
+    .diet-schedule-content {
+        min-width: 0;
+        width: 100%
+    }
+
+    #mealContainer {
+        display: flex;
+        flex-direction: row;
+        align-items: stretch;
+        gap: 18px;
+        width: 100%;
+        min-width: 0;
+        overflow-x: auto;
+        overflow-y: hidden;
+        padding: 4px 2px 16px;
+        scroll-snap-type: x mandatory;
+        scrollbar-width: thin
+    }
+
+    .meal-card {
+        display: flex;
+        flex: 0 0 min(560px, 88%);
+        flex-direction: column;
+        gap: 18px;
+        width: min(560px, 88%);
+        min-width: 300px;
+        margin: 0;
+        padding: 20px;
+        scroll-snap-align: start;
+        box-sizing: border-box;
+        background: linear-gradient(180deg,#f7faff,#fff);
+        border: 1px solid #dce7f3;
+        border-radius: 13px
+    }
+
+    .meal-card-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        padding-bottom: 13px;
+        border-bottom: 1px solid #e5edf6
+    }
+
+    .meal-heading {
+        color: #1769aa;
+        font-size: 20px;
+        font-weight: 750
+    }
+
+    .meal-delete {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        width: 42px;
+        height: 42px;
+        color: #d92d20;
+        background: #fff1f0;
+        border: 1px solid #ffd5d2;
+        border-radius: 9px;
+        cursor: pointer
+    }
+
+        .meal-delete:hover {
+            color: #fff;
+            background: #d92d20
+        }
+
+    .meal-fields {
+        display: flex;
+        flex-direction: column;
+        gap: 18px;
+        min-width: 0
+    }
+
+        .meal-fields label {
+            display: block;
+            margin-bottom: 8px;
+            color: #243b53;
+            font-size: 14px;
+            font-weight: 650
+        }
+
+        .meal-fields .diet-control {
+            min-height: 46px;
+            padding: 10px 12px;
+            font-size: 14px
+        }
+
+        .meal-fields textarea.diet-control {
+            min-height: 85px;
+            resize: vertical
+        }
+
+    .meal-two-columns {
+        display: grid;
+        grid-template-columns: repeat(2,minmax(0,1fr));
+        gap: 14px;
+        min-width: 0
+    }
+
+    .meal-preview {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        min-height: 75px;
+        min-width: 0
+    }
+
+        .meal-preview img, .meal-placeholder {
+            width: 100px;
+            height: 75px;
+            flex-shrink: 0;
+            object-fit: cover;
+            border-radius: 9px;
+            border: 1px solid #e0e8f1
+        }
+
+    .meal-placeholder {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #7790aa;
+        background: #edf3fa;
+        font-size: 23px
+    }
+
+    .meal-preview-copy strong, .meal-preview-time {
+        display: block
+    }
+
+    .meal-preview-copy strong {
+        color: #243b53;
+        margin-bottom: 5px
+    }
+
+    .meal-preview-time {
+        color: #71839a;
+        font-size: 13px
+    }
+
+    .meal-schedule-footer {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 12px;
+        margin-top: 16px
+    }
+
+    .btn-add-meal {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 11px 17px;
+        color: #1769aa;
+        background: #fff;
+        border: 1px solid #78afe5;
+        border-radius: 9px;
+        font: inherit;
+        font-weight: 650;
+        cursor: pointer
+    }
+
+        .btn-add-meal:hover {
+            color: #fff;
+            background: #1769aa
+        }
+
+        .btn-add-meal:disabled {
+            opacity: .5;
+            cursor: not-allowed
+        }
+
+    .meal-limit-hint {
+        color: #71839a;
+        font-size: 12px
+    }
+
+    .diet-form-actions {
+        display: flex;
+        justify-content: flex-end;
+        margin-top: 30px;
+        padding-top: 22px;
+        border-top: 1px solid #edf1f6
+    }
+
+    .btn-save-diet {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        padding: 13px 24px;
+        color: #fff;
+        background: linear-gradient(135deg,#1769aa,#2585dc);
+        border: 0;
+        border-radius: 9px;
+        font: inherit;
+        font-weight: 650;
+        cursor: pointer;
+        box-shadow: 0 4px 10px rgba(23,105,170,.15)
+    }
+
+        .btn-save-diet:hover {
+            background: #12568f;
+            transform: translateY(-1px)
+        }
+
+    @@media(max-width:900px) {
+        .diet-form-row, .diet-schedule-section {
+            grid-template-columns: 1fr;
+            gap: 9px
+        }
+
+            .diet-form-row > label {
+                padding-top: 0
+            }
+
+        .diet-schedule-label {
+            padding-top: 0
+        }
+    }
+
+    @@media(max-width:600px) {
+        .diet-form-container {
+            padding: 16px
+        }
+
+        .form-page-heading h2 {
+            font-size: 23px
+        }
+
+        .meal-two-columns {
+            grid-template-columns: 1fr
+        }
+
+        .meal-card {
+            flex-basis: 88%;
+            min-width: 280px
+        }
+
+        .meal-schedule-footer {
+            align-items: flex-start;
+            flex-direction: column
+        }
+
+        .diet-form-actions {
+            justify-content: stretch
+        }
+
+        .btn-save-diet {
+            width: 100%
+        }
+
+        .meal-card {
+            padding: 14px
+        }
+    }
+</style>
+
 @section Scripts {
+    <partial name="_ValidationScriptsPartial" />
     <script>
         document.addEventListener("DOMContentLoaded", function () {
-            const addMealBtn = document.getElementById("addMealBtn");
-            const scheduleContainer = document.getElementById("diet-schedule-container");
+            const form = document.getElementById("dietPlanForm");
+            const container = document.getElementById("mealContainer");
+            const addButton = document.getElementById("addMealBtn");
+            const error = document.getElementById("mealError");
 
-            // Standard meal types to cycle through
-            const mealTypes = [
-                { name: "Snacks", time: "4:00 PM", img: "https://images.unsplash.com/photo-1488477181946-6428a0291777?w=100&h=100&fit=crop" },
-                { name: "Pre-Workout", time: "5:30 PM", img: "https://images.unsplash.com/photo-1579722820308-d74e571900a9?w=100&h=100&fit=crop" },
-                { name: "Dinner", time: "8:00 PM", img: "https://images.unsplash.com/photo-1467003909585-2f8a72700288?w=100&h=100&fit=crop" },
-                { name: "Late Night Snack", time: "10:00 PM", img: "https://images.unsplash.com/photo-1490645935967-10de6ba17061?w=100&h=100&fit=crop" }
+            // 20 public food image URLs. A meal receives a fixed default image by its position.
+            // Images are not selectable in the form; each card stores its assigned URL in a hidden field.
+            const publicMealImages = [
+                { name: "Eggs and toast", url: "https://images.unsplash.com/photo-1525351484163-7529414344d8?auto=format&fit=crop&w=400&q=80" },
+                { name: "Pancakes", url: "https://images.unsplash.com/photo-1528207776546-365bb710ee93?auto=format&fit=crop&w=400&q=80" },
+                { name: "Salad bowl", url: "https://images.unsplash.com/photo-1512621776951-a57141f2eefd?auto=format&fit=crop&w=400&q=80" },
+                { name: "Rice meal", url: "https://images.unsplash.com/photo-1512058564366-18510be2db19?auto=format&fit=crop&w=400&q=80" },
+                { name: "Grilled chicken", url: "https://images.unsplash.com/photo-1532550907401-a500c9a57435?auto=format&fit=crop&w=400&q=80" },
+                { name: "Fish meal", url: "https://images.unsplash.com/photo-1519708227418-c8fd9a32b7a2?auto=format&fit=crop&w=400&q=80" },
+                { name: "Vegetables", url: "https://images.unsplash.com/photo-1540420773420-3366772f4999?auto=format&fit=crop&w=400&q=80" },
+                { name: "Fruit bowl", url: "https://images.unsplash.com/photo-1490645935967-10de6ba17061?auto=format&fit=crop&w=400&q=80" },
+                { name: "Pasta", url: "https://images.unsplash.com/photo-1473093295043-cdd812d0e601?auto=format&fit=crop&w=400&q=80" },
+                { name: "Soup", url: "https://images.unsplash.com/photo-1547592180-85f173990554?auto=format&fit=crop&w=400&q=80" },
+                { name: "Sandwich", url: "https://images.unsplash.com/photo-1553909489-cd47e0ef937f?auto=format&fit=crop&w=400&q=80" },
+                { name: "Smoothie", url: "https://images.unsplash.com/photo-1505252585461-04db1eb84625?auto=format&fit=crop&w=400&q=80" },
+                { name: "Yogurt bowl", url: "https://images.unsplash.com/photo-1488477181946-6428a0291777?auto=format&fit=crop&w=400&q=80" },
+                { name: "Noodles", url: "https://images.unsplash.com/photo-1569718212165-3a8278d5f624?auto=format&fit=crop&w=400&q=80" },
+                { name: "Healthy wrap", url: "https://images.unsplash.com/photo-1626700051175-6818013e1d4f?auto=format&fit=crop&w=400&q=80" },
+                { name: "Steak and vegetables", url: "https://images.unsplash.com/photo-1546833999-b9f581a1996d?auto=format&fit=crop&w=400&q=80" },
+                { name: "Berries", url: "https://images.unsplash.com/photo-1490474418585-ba9bad8fd0ea?auto=format&fit=crop&w=400&q=80" },
+                { name: "Nuts and seeds", url: "https://images.unsplash.com/photo-1505576399270-565b52d4ac71?auto=format&fit=crop&w=400&q=80" },
+                { name: "Healthy meal bowl", url: "https://images.unsplash.com/photo-1511690743698-d9d85f2fbf38?auto=format&fit=crop&w=400&q=80" },
+                { name: "Chicken and greens", url: "https://images.unsplash.com/photo-1547592180-85f173990554?auto=format&fit=crop&w=400&q=80" }
             ];
-            let mealIndex = 0;
 
-            addMealBtn.addEventListener("click", function () {
-                if (mealIndex >= mealTypes.length) {
-                    alert("You have added all standard meals.");
+            function getCards() {
+                return Array.from(container.querySelectorAll(".meal-card"));
+            }
+
+            function reindexMeals() {
+                const cards = getCards();
+                cards.forEach((card, index) => {
+                    const heading = card.querySelector(".meal-heading");
+                    if (heading) heading.textContent = `Meal ${index + 1}`;
+                    card.querySelectorAll("[name]").forEach(input => {
+                        input.name = input.name.replace(/Meals\[\d+\]/g, `Meals[${index}]`);
+                    });
+                });
+                addButton.disabled = cards.length >= 20;
+                addButton.title = cards.length >= 20 ? "Maximum 20 meals allowed" : "Add a meal";
+            }
+
+            function updatePreview(card) {
+                const name = card.querySelector('[name$=".MealType"]')?.value.trim() || "Meal";
+                const time = card.querySelector('[name$=".MealTime"]')?.value || "Time not set";
+                const preview = card.querySelector(".meal-preview");
+                preview.querySelector(".preview-meal-name").textContent = name;
+                preview.querySelector(".meal-preview-time").textContent = time;
+            }
+
+            function createMeal(index) {
+                const card = document.createElement("div");
+                card.className = "meal-card";
+                const image = publicMealImages[index % publicMealImages.length];
+                card.innerHTML = `
+                            <div class="meal-card-header">
+                                <strong class="meal-heading">Meal ${index + 1}</strong>
+                                <button type="button" class="meal-delete" title="Remove meal" aria-label="Remove meal">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </div>
+                            <div class="meal-fields">
+                                <div class="meal-two-columns">
+                                    <div><label>Meal Name</label>
+                                        <input name="Meals[${index}].MealType" class="diet-control" required placeholder="e.g. Breakfast" /></div>
+                                    <div><label>Meal Time</label>
+                                        <input name="Meals[${index}].MealTime" type="time" class="diet-control" /></div>
+                                </div>
+                                <div class="meal-preview">
+                                    <img class="meal-selected-preview" src="${image.url}" alt="${image.name}" loading="lazy"
+                                         onerror="this.onerror=null;this.src='${publicMealImages[2].url}';" />
+                                    <div class="meal-preview-copy"><strong class="preview-meal-name">Meal</strong>
+                                        <span class="meal-preview-time">Time not set</span></div>
+                                </div>
+                                <input type="hidden" name="Meals[${index}].ImageUrl" value="${image.url}" class="meal-image-url" />
+                                <div><label>Food Description</label>
+                                    <textarea name="Meals[${index}].FoodDescription" class="diet-control" rows="3" required placeholder="Enter food details"></textarea></div>
+                                <div><label>Calories (kcal)</label>
+                                    <input name="Meals[${index}].Calories" type="number" min="0" max="10000" value="0" class="diet-control" required /></div>
+                            </div>`;
+                return card;
+            }
+
+            // Assign a relevant default food image to each existing card if none was saved.
+            getCards().forEach((card, index) => {
+                const hiddenImage = card.querySelector('[name$=".ImageUrl"]');
+                const previewImage = card.querySelector(".meal-selected-preview");
+                if (hiddenImage && !hiddenImage.value.trim()) {
+                    hiddenImage.value = publicMealImages[index % publicMealImages.length].url;
+                }
+                if (previewImage) {
+                    previewImage.src = hiddenImage?.value || publicMealImages[index % publicMealImages.length].url;
+                    previewImage.style.display = "";
+                }
+                updatePreview(card);
+            });
+
+            addButton.addEventListener("click", function () {
+                const cards = getCards();
+                if (cards.length >= 20) {
+                    error.textContent = "You can add a maximum of 20 meals.";
                     return;
                 }
-
-                const meal = mealTypes[mealIndex];
-                mealIndex++;
-
-                // Create new schedule item HTML (Includes Image)
-                const newRow = document.createElement("div");
-                newRow.className = "schedule-item";
-                newRow.innerHTML = `
-                    <div class="schedule-day-info">
-                        <img src="${meal.img}" class="meal-img" alt="${meal.name}" />
-                        <div class="schedule-text">
-                            <strong>${meal.name}</strong>
-                            <span>${meal.time}</span>
-                        </div>
-                    </div>
-                    <textarea class="form-control" rows="2" placeholder="Enter meal details..."></textarea>
-                    <button type="button" class="btn-delete-day" onclick="this.parentElement.remove(); mealIndex--;">
-                        <i class="bi bi-trash"></i>
-                    </button>
-                `;
-
-                // Append to container
-                scheduleContainer.appendChild(newRow);
+                error.textContent = "";
+                const card = createMeal(cards.length);
+                container.appendChild(card);
+                reindexMeals();
+                container.scrollTo({ left: container.scrollWidth, behavior: "smooth" });
+                card.querySelector('[name$=".MealType"]').focus({ preventScroll: true });
             });
+
+            container.addEventListener("click", function (event) {
+                const button = event.target.closest(".meal-delete");
+                if (!button) return;
+                if (getCards().length === 1) {
+                    error.textContent = "At least one meal is required. Add another meal before removing this one.";
+                    return;
+                }
+                button.closest(".meal-card").remove();
+                reindexMeals();
+                error.textContent = "";
+            });
+
+            container.addEventListener("input", function (event) {
+                const card = event.target.closest(".meal-card");
+                if (!card) return;
+                if (event.target.matches('[name$=".MealType"], [name$=".MealTime"]')) {
+                    updatePreview(card);
+                }
+            });
+
+            form.addEventListener("submit", function (event) {
+                reindexMeals();
+                const cards = getCards();
+                if (cards.length < 1 || cards.length > 20) {
+                    event.preventDefault();
+                    error.textContent = "Please add between 1 and 20 meals.";
+                    return;
+                }
+                const invalidCard = cards.find(card => {
+                    return !card.querySelector('[name$=".MealType"]').value.trim() ||
+                        !card.querySelector('[name$=".FoodDescription"]').value.trim();
+                });
+                if (invalidCard) {
+                    event.preventDefault();
+                    error.textContent = "Please enter a meal name and food description for every meal.";
+                    invalidCard.scrollIntoView({ behavior: "smooth", block: "start" });
+                }
+            });
+            reindexMeals();
         });
     </script>
 }
