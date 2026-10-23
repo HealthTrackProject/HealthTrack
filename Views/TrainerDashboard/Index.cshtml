@@ -3,7 +3,7 @@
 @{
     Layout = "~/Views/Shared/_TrainerLayout.cshtml";
     ViewData["Title"] = "Trainer Dashboard";
-    ViewData["Heading"] = "Welcome, Trainer";
+    ViewData["Heading"] = "Welcome Nimal Trainer";
     ViewData["ActivePage"] = "Dashboard";
 }
 
@@ -44,7 +44,7 @@
 
 </div>
 
-<!-- DASHBOARD GRID -->
+<!-- RECENT CLIENTS AND UPCOMING APPOINTMENTS -->
 <div class="dashboard-grid">
 
     <!-- RECENT CLIENTS -->
@@ -52,6 +52,7 @@
 
         <div class="card-header">
             <h3>Recent Clients</h3>
+
             <a asp-controller="TrainerDashboard"
                asp-action="MyClient"
                style="font-size:12px;color:var(--primary);font-weight:600;">
@@ -66,28 +67,22 @@
             {
                 foreach (var client in Model.RecentClients)
                 {
-                    var displayName = string.IsNullOrWhiteSpace(client.FullName)
-                        ? (client.Email ?? "Client")
-                        : client.FullName;
-
-                    var pictureUrl = string.IsNullOrWhiteSpace(client.ProfilePictureUrl)
-                        ? null
-                        : (client.ProfilePictureUrl.StartsWith("http://", StringComparison.OrdinalIgnoreCase) ||
-                           client.ProfilePictureUrl.StartsWith("https://", StringComparison.OrdinalIgnoreCase) ||
-                           client.ProfilePictureUrl.StartsWith("/", StringComparison.Ordinal))
-                            ? client.ProfilePictureUrl
-                            : Url.Content("~/uploads/profiles/" + client.ProfilePictureUrl);
-
                     <div class="client-item">
 
                         <div class="client-info">
 
-                            @if (!string.IsNullOrWhiteSpace(pictureUrl))
+                            @if (!string.IsNullOrWhiteSpace(client.ProfilePictureUrl))
                             {
-                                <img src="@pictureUrl"
+                                <img src="@(
+                                    client.ProfilePictureUrl.StartsWith("http",
+                                        StringComparison.OrdinalIgnoreCase)
+                                    || client.ProfilePictureUrl.StartsWith("/")
+                                    ? client.ProfilePictureUrl
+                                    : "/uploads/profiles/" + client.ProfilePictureUrl
+                                )"
                                      class="client-img"
-                                     alt="@displayName"
-                                     onerror="this.style.display='none';this.nextElementSibling.style.display='flex';" />
+                                     alt="Client profile"
+                                     onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />
 
                                 <div class="client-img client-avatar-placeholder"
                                      style="display:none;">
@@ -102,7 +97,12 @@
                             }
 
                             <div class="client-details">
-                                <h4>@displayName</h4>
+                                <h4>
+                                    @(string.IsNullOrWhiteSpace(client.FullName)
+                                        ? "Client"
+                                        : client.FullName)
+                                </h4>
+
                                 <p>@(client.Email ?? "No email available")</p>
                             </div>
 
@@ -121,7 +121,7 @@
             else
             {
                 <p class="empty-message">
-                    No clients found for your account.
+                    No clients found for this trainer.
                 </p>
             }
 
@@ -148,30 +148,24 @@
             {
                 foreach (var appointment in Model.UpcomingAppointments)
                 {
-                    var appointmentDate = appointment.AppointmentDate.Date;
-                    var today = DateTime.Today;
-
-                    var dayLabel = appointmentDate == today
-                        ? "Today"
-                        : appointmentDate == today.AddDays(1)
-                            ? "Tomorrow"
-                            : appointment.AppointmentDate.ToString("dd MMM");
-
-                    var clientName = appointment.Client == null
-                        ? "Client"
-                        : (string.IsNullOrWhiteSpace(appointment.Client.FullName)
-                            ? (appointment.Client.Email ?? "Client")
-                            : appointment.Client.FullName);
-
                     <div class="appointment-item">
 
                         <div class="appointment-time">
-                            <span>@dayLabel</span>
-                            <span>@appointment.AppointmentDate.ToString("hh:mm tt")</span>
+                            <span>
+                                @appointment.AppointmentDate.ToString("dd MMM")
+                            </span>
+
+                            <span>
+                                @appointment.AppointmentDate.ToString("hh:mm tt")
+                            </span>
                         </div>
 
                         <div class="appointment-details">
-                            <h4>Client: @clientName</h4>
+
+                            <h4>
+                                Client:
+                                @(appointment.Client?.FullName ?? "Unknown Client")
+                            </h4>
 
                             <p>
                                 @(string.IsNullOrWhiteSpace(appointment.Reason)
@@ -180,8 +174,9 @@
                             </p>
 
                             <small>
-                                Status: @appointment.Status
+                                Status: @(appointment.Status ?? "Pending")
                             </small>
+
                         </div>
 
                     </div>
@@ -190,7 +185,7 @@
             else
             {
                 <p class="empty-message">
-                    You have no upcoming appointments.
+                    No upcoming appointments.
                 </p>
             }
 
@@ -212,6 +207,14 @@
         flex-shrink: 0;
     }
 
+    .client-img {
+        width: 44px;
+        height: 44px;
+        border-radius: 50%;
+        object-fit: cover;
+        flex-shrink: 0;
+    }
+
     .empty-message {
         padding: 16px 0;
         color: #777;
@@ -229,3 +232,4 @@
         color: #777;
     }
 </style>
+
