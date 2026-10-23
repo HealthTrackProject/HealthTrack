@@ -1037,7 +1037,7 @@ namespace HealthTrack.Controllers
                 ? "Personal Trainer"
                 : roles.FirstOrDefault() ?? "Trainer";
 
-            var model = new ManageProfileViewModel
+            var model = new TrainerManageProfileViewModel
             {
                 FullName = user.FullName,
                 Email = user.Email ?? string.Empty,
@@ -1054,7 +1054,7 @@ namespace HealthTrack.Controllers
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> UpdateProfile(
-     ManageProfileViewModel model)
+     TrainerManageProfileViewModel model)
         {
             var user = await _userManager.GetUserAsync(User);
 

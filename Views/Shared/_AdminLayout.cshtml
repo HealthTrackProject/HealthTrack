@@ -34,11 +34,6 @@
                 <a asp-controller="AdminDashboard" asp-action="ManageUser" class="side-link @(ViewData["ActivePage"]?.ToString() == "ManageUser" ? "active" : "")">
                     <i class="bi bi-people-fill"></i> <span>Manage Users</span>
                 </a>
-                <a asp-controller="AdminDashboard" asp-action="ManageClient" class="side-link @(ViewData["ActivePage"]?.ToString() == "ManageClient" ? "active" : "")">
-                    <i class="bi bi-person-badge-fill"></i> <span>Manage Clients</span>
-                </a>
-                <a asp-controller="AdminDashboard" asp-action="ManageTrainers" class="side-link @(ViewData["ActivePage"]?.ToString() == "ManageTrainers" ? "active" : "")">
-                    <i class="bi bi-person-video3"></i> <span>Manage Trainers</span>
                 </a>
                 <a asp-controller="AdminDashboard" asp-action="Appointments" class="side-link @(ViewData["ActivePage"]?.ToString() == "Appointments" ? "active" : "")">
                     <i class="bi bi-calendar-check-fill"></i> <span>Appointments</span>
