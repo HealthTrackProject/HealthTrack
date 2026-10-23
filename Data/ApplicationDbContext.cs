@@ -23,7 +23,7 @@ namespace HealthTrack.Data
         public DbSet<HealthRecord> HealthRecords { get; set; }
         public DbSet<ProgressRecord> ProgressRecords { get; set; }
         public DbSet<Notification> Notifications { get; set; }
-
+        public DbSet<ClientFeedback> ClientFeedbacks { get; set; }
         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder);
@@ -163,6 +163,23 @@ namespace HealthTrack.Data
                 .HasForeignKey(x => x.ClientId)
                 .OnDelete(DeleteBehavior.Restrict);
 
+            // feedback -> Trainer
+            builder.Entity<ClientFeedback>()
+                .HasOne(f => f.Trainer)
+                .WithMany()
+                .HasForeignKey(f => f.TrainerId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            builder.Entity<ClientFeedback>()
+                .HasOne(f => f.Client)
+                .WithMany()
+                .HasForeignKey(f => f.ClientId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            builder.Entity<ClientFeedback>()
+                .Property(f => f.Message)
+                .HasMaxLength(2000)
+                .IsRequired();
             // Notification -> User
             builder.Entity<Notification>()
                 .HasOne(x => x.User)

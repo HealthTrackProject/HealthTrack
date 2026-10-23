@@ -129,6 +129,39 @@ namespace HealthTrack.Data.Migrations
                     b.ToTable("Appointments");
                 });
 
+            modelBuilder.Entity("HealthTrack.Models.ClientFeedback", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("ClientId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Message")
+                        .IsRequired()
+                        .HasMaxLength(2000)
+                        .HasColumnType("nvarchar(2000)");
+
+                    b.Property<string>("TrainerId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ClientId");
+
+                    b.HasIndex("TrainerId");
+
+                    b.ToTable("ClientFeedbacks");
+                });
+
             modelBuilder.Entity("HealthTrack.Models.DietLog", b =>
                 {
                     b.Property<int>("DietLogId")
@@ -635,6 +668,25 @@ namespace HealthTrack.Data.Migrations
                 });
 
             modelBuilder.Entity("HealthTrack.Models.Appointment", b =>
+                {
+                    b.HasOne("HealthTrack.Models.ApplicationUser", "Client")
+                        .WithMany()
+                        .HasForeignKey("ClientId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("HealthTrack.Models.ApplicationUser", "Trainer")
+                        .WithMany()
+                        .HasForeignKey("TrainerId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Client");
+
+                    b.Navigation("Trainer");
+                });
+
+            modelBuilder.Entity("HealthTrack.Models.ClientFeedback", b =>
                 {
                     b.HasOne("HealthTrack.Models.ApplicationUser", "Client")
                         .WithMany()

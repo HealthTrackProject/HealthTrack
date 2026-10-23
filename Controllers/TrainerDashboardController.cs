@@ -716,16 +716,283 @@ namespace HealthTrack.Controllers
 
             return RedirectToAction(nameof(Appointments));
         }
-        public IActionResult ClientProgress()
+        public async Task<IActionResult> ClientProgress()
         {
+            var trainer = await _userManager.GetUserAsync(User);
+
+            if (trainer == null)
+                return Challenge();
+
+            var workoutIds = await _context.WorkoutPlans
+                .Where(x => x.TrainerId == trainer.Id)
+                .Select(x => x.ClientId)
+                .ToListAsync();
+
+            var dietIds = await _context.DietPlans
+                .Where(x => x.TrainerId == trainer.Id)
+                .Select(x => x.ClientId)
+                .ToListAsync();
+
+            var appointmentIds = await _context.Appointments
+                .Where(x => x.TrainerId == trainer.Id)
+                .Select(x => x.ClientId)
+                .ToListAsync();
+
+            var clientIds = workoutIds
+                .Concat(dietIds)
+                .Concat(appointmentIds)
+                .Where(x => !string.IsNullOrWhiteSpace(x))
+                .Distinct()
+                .ToList();
+
+            var clients = await _context.Users
+                .Where(x => clientIds.Contains(x.Id))
+                .OrderBy(x => x.FullName)
+                .Select(x => new Microsoft.AspNetCore.Mvc.Rendering.SelectListItem
+                {
+                    Value = x.Id,
+                    Text = string.IsNullOrWhiteSpace(x.FullName)
+                        ? (x.Email ?? "Client")
+                        : x.FullName
+                })
+                .ToListAsync();
+
+            ViewBag.Clients = clients;
+
+            ViewData["Title"] = "Client Progress";
+            ViewData["Heading"] = "Client Progress";
+            ViewData["ActivePage"] = "ClientProgress";
+
             return View();
         }
 
-        public IActionResult Feedback()
+        [HttpGet]
+        public async Task<IActionResult> GetClientProgress(
+            string clientId, int months = 6)
         {
-            return View();
-        }
+            if (months != 3 && months != 6 && months != 12)
+                months = 6;
 
+            var trainer = await _userManager.GetUserAsync(User);
+
+            if (trainer == null)
+                return Unauthorized();
+
+            if (string.IsNullOrWhiteSpace(clientId))
+                return BadRequest(new { message = "Select a client." });
+
+            var allowed = await _context.WorkoutPlans.AnyAsync(x =>
+                              x.TrainerId == trainer.Id && x.ClientId == clientId)
+                          || await _context.DietPlans.AnyAsync(x =>
+                              x.TrainerId == trainer.Id && x.ClientId == clientId)
+                          || await _context.Appointments.AnyAsync(x =>
+                              x.TrainerId == trainer.Id && x.ClientId == clientId);
+
+            if (!allowed)
+                return Forbid();
+
+            var records = await _context.ProgressRecords
+                .AsNoTracking()
+                .Where(x => x.ClientId == clientId)
+                .OrderBy(x => x.RecordDate)
+                .ToListAsync();
+
+            var health = await _context.HealthRecords
+                .AsNoTracking()
+                .Where(x => x.ClientId == clientId)
+                .OrderByDescending(x => x.RecordDate)
+                .FirstOrDefaultAsync();
+
+            var latest = records.LastOrDefault();
+
+            var labels = new List<string>();
+            var weight = new List<decimal?>();
+            var bmi = new List<decimal?>();
+            var calories = new List<int?>();
+            var workouts = new List<int?>();
+
+            for (int i = months - 1; i >= 0; i--)
+            {
+                var month = DateTime.Today.AddMonths(-i);
+
+                labels.Add(month.ToString("MMM"));
+
+                var record = records
+                    .Where(x => x.RecordDate.Year == month.Year
+                             && x.RecordDate.Month == month.Month)
+                    .LastOrDefault();
+
+                weight.Add(record == null ? null : record.Weight);
+                bmi.Add(record == null ? null : record.BMI);
+                calories.Add(record == null ? null : record.CaloriesBurned);
+                workouts.Add(record == null ? null : record.WorkoutsCompleted);
+            }
+
+            var first = records.FirstOrDefault();
+            var last = latest;
+
+            return Json(new
+            {
+                currentWeight = latest?.Weight ?? health?.Weight,
+                currentBMI = latest?.BMI ?? health?.BMI,
+                currentCalories = latest?.CaloriesBurned ?? health?.CaloriesBurned,
+                currentWorkouts = latest?.WorkoutsCompleted ?? 0,
+
+                labels,
+
+                datasets = new
+                {
+                    weight,
+                    bmi,
+                    calories,
+                    workouts
+                },
+
+                changes = new
+                {
+                    weight = first == null || last == null
+                        ? "No data"
+                        : $"{last.Weight - first.Weight:+0.##;-0.##;0} kg",
+
+                    bmi = first == null || last == null
+                        ? "No data"
+                        : $"{last.BMI - first.BMI:+0.##;-0.##;0}",
+
+                    calories = first == null || last == null
+                        ? "No data"
+                        : $"{last.CaloriesBurned - first.CaloriesBurned:+0;-0;0}",
+
+                    workouts = first == null || last == null
+                        ? "No data"
+                        : $"{last.WorkoutsCompleted - first.WorkoutsCompleted:+0;-0;0}"
+                }
+            });
+        }
+        [HttpGet]
+        [HttpGet]
+        public async Task<IActionResult> Feedback()
+        {
+            var trainer = await _userManager.GetUserAsync(User);
+
+            if (trainer == null)
+                return Challenge();
+
+            // Fetch only clients assigned to this trainer
+            var clients = await _context.Appointments
+                .Where(a => a.TrainerId == trainer.Id)
+                .Select(a => a.ClientId)
+                .Distinct()
+                .ToListAsync();
+
+            var model = new TrainerFeedbackViewModel
+            {
+                Clients = await _context.Users
+                    .Where(u => clients.Contains(u.Id))
+                    .OrderBy(u => u.FullName)
+                    .Select(u => new SelectListItem
+                    {
+                        Value = u.Id,
+                        Text = u.FullName
+                    })
+                    .ToListAsync(),
+
+                RecentFeedback = await _context.ClientFeedbacks
+                    .AsNoTracking()
+                    .Include(f => f.Client)
+                    .Where(f => f.TrainerId == trainer.Id)
+                    .OrderByDescending(f => f.CreatedAt)
+                    .Take(20)
+                    .ToListAsync()
+            };
+
+            ViewData["Title"] = "Feedback";
+            ViewData["Heading"] = "Client Feedback";
+            ViewData["ActivePage"] = "Feedback";
+
+            return View(model);
+        }
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> SubmitFeedback(
+    TrainerFeedbackViewModel model)
+        {
+            var trainer = await _userManager.GetUserAsync(User);
+
+            if (trainer == null)
+                return Challenge();
+
+            if (string.IsNullOrWhiteSpace(model.ClientId) ||
+                string.IsNullOrWhiteSpace(model.Message))
+            {
+                return BadRequest(new
+                {
+                    success = false,
+                    message = "Please select a client and enter feedback."
+                });
+            }
+
+            if (model.Message.Trim().Length > 2000)
+            {
+                return BadRequest(new
+                {
+                    success = false,
+                    message = "Feedback cannot exceed 2000 characters."
+                });
+            }
+
+            var clientIds = new[]
+            {
+        "88d9de3e-bc16-4084-8aed-942449522436",
+        "4db66317-c8cb-428a-b67d-bce5e2d45dc9"
+    };
+
+            if (!clientIds.Contains(model.ClientId))
+            {
+                return BadRequest(new
+                {
+                    success = false,
+                    message = "Invalid client selected."
+                });
+            }
+
+            var client = await _context.Users
+                .FirstOrDefaultAsync(u => u.Id == model.ClientId);
+
+            if (client == null)
+            {
+                return BadRequest(new
+                {
+                    success = false,
+                    message = "Client not found."
+                });
+            }
+
+            var feedback = new ClientFeedback
+            {
+                TrainerId = trainer.Id,
+                ClientId = client.Id,
+                Message = model.Message.Trim(),
+                CreatedAt = DateTime.UtcNow
+            };
+
+            _context.ClientFeedbacks.Add(feedback);
+
+            await _context.SaveChangesAsync();
+
+            return Json(new
+            {
+                success = true,
+                message = "Feedback sent successfully.",
+                feedback = new
+                {
+                    clientName = client.FullName,
+                    message = feedback.Message,
+                    createdAt = feedback.CreatedAt
+                        .ToLocalTime()
+                        .ToString("dd MMM yyyy, hh:mm tt")
+                }
+            });
+        }
         // --------------------------------------------------
         // 3. TRAINER NOTIFICATIONS
         // --------------------------------------------------
@@ -762,45 +1029,20 @@ namespace HealthTrack.Controllers
             var user = await _userManager.GetUserAsync(User);
 
             if (user == null)
-            {
                 return Challenge();
-            }
 
             var roles = await _userManager.GetRolesAsync(user);
 
-            ViewBag.Role = roles.Count > 0
-                ? roles[0]
-                : "Trainer";
-
-            var healthProfile = await _context.HealthProfiles
-                .FirstOrDefaultAsync(p => p.UserId == user.Id);
-
-            if (healthProfile == null)
-            {
-                healthProfile = new HealthProfile
-                {
-                    UserId = user.Id,
-                    Weight = 0,
-                    Height = 0,
-                    DateOfBirth = DateTime.Now.AddYears(-25)
-                };
-            }
+            ViewBag.Role = roles.Contains("Trainer")
+                ? "Personal Trainer"
+                : roles.FirstOrDefault() ?? "Trainer";
 
             var model = new ManageProfileViewModel
             {
                 FullName = user.FullName,
-                Email = user.Email,
+                Email = user.Email ?? string.Empty,
                 PhoneNumber = user.PhoneNumber,
-                ProfilePictureUrl = user.ProfilePictureUrl,
-
-                DateOfBirth = healthProfile.DateOfBirth == default
-                    ? DateTime.Now.AddYears(-25)
-                    : healthProfile.DateOfBirth,
-
-                Weight = healthProfile.Weight,
-                Height = healthProfile.Height,
-                BMI = healthProfile.BMI,
-                MedicalNotes = healthProfile.MedicalNotes
+                ProfilePictureUrl = user.ProfilePictureUrl
             };
 
             return View(model);
@@ -812,68 +1054,34 @@ namespace HealthTrack.Controllers
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> UpdateProfile(
-            ManageProfileViewModel model)
+     ManageProfileViewModel model)
         {
-            if (!ModelState.IsValid)
-            {
-                TempData["Error"] =
-                    "Please check the information you entered.";
-
-                return RedirectToAction(nameof(MyProfile));
-            }
-
             var user = await _userManager.GetUserAsync(User);
 
             if (user == null)
-            {
                 return Challenge();
-            }
 
-            user.FullName = model.FullName;
-            user.PhoneNumber = model.PhoneNumber;
-
-            var identityResult = await _userManager.UpdateAsync(user);
-
-            if (!identityResult.Succeeded)
+            if (string.IsNullOrWhiteSpace(model.FullName))
             {
-                TempData["Error"] =
-                    string.Join(" ", identityResult.Errors
-                        .Select(e => e.Description));
-
+                TempData["Error"] = "Full name is required.";
                 return RedirectToAction(nameof(MyProfile));
             }
 
-            var healthProfile = await _context.HealthProfiles
-                .FirstOrDefaultAsync(p => p.UserId == user.Id);
+            user.FullName = model.FullName.Trim();
+            user.PhoneNumber = string.IsNullOrWhiteSpace(model.PhoneNumber)
+                ? null
+                : model.PhoneNumber.Trim();
 
-            if (healthProfile == null)
+            var result = await _userManager.UpdateAsync(user);
+
+            if (!result.Succeeded)
             {
-                healthProfile = new HealthProfile
-                {
-                    UserId = user.Id
-                };
+                TempData["Error"] = string.Join(
+                    " ",
+                    result.Errors.Select(e => e.Description));
 
-                _context.HealthProfiles.Add(healthProfile);
+                return RedirectToAction(nameof(MyProfile));
             }
-
-            healthProfile.DateOfBirth = model.DateOfBirth;
-            healthProfile.Weight = model.Weight;
-            healthProfile.Height = model.Height;
-            healthProfile.MedicalNotes = model.MedicalNotes;
-
-            if (model.Height > 0)
-            {
-                decimal heightInMeters = model.Height / 100m;
-
-                healthProfile.BMI =
-                    model.Weight / (heightInMeters * heightInMeters);
-            }
-            else
-            {
-                healthProfile.BMI = 0;
-            }
-
-            await _context.SaveChangesAsync();
 
             TempData["Success"] = "Profile updated successfully.";
 
