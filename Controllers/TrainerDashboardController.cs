@@ -768,75 +768,165 @@ namespace HealthTrack.Controllers
 
         [HttpGet]
         public async Task<IActionResult> GetClientProgress(
-            string clientId, int months = 6)
+    string clientId, int months = 6)
         {
+            // 1. Validate the selected period.
             if (months != 3 && months != 6 && months != 12)
+            {
                 months = 6;
+            }
 
+            // 2. Get the logged-in trainer.
             var trainer = await _userManager.GetUserAsync(User);
 
             if (trainer == null)
+            {
                 return Unauthorized();
+            }
 
             if (string.IsNullOrWhiteSpace(clientId))
+            {
                 return BadRequest(new { message = "Select a client." });
+            }
 
-            var allowed = await _context.WorkoutPlans.AnyAsync(x =>
-                              x.TrainerId == trainer.Id && x.ClientId == clientId)
-                          || await _context.DietPlans.AnyAsync(x =>
-                              x.TrainerId == trainer.Id && x.ClientId == clientId)
-                          || await _context.Appointments.AnyAsync(x =>
-                              x.TrainerId == trainer.Id && x.ClientId == clientId);
+            // 3. Verify that this client is assigned to this trainer.
+            bool allowed =
+                await _context.WorkoutPlans.AnyAsync(x =>
+                    x.TrainerId == trainer.Id &&
+                    x.ClientId == clientId)
+                ||
+                await _context.DietPlans.AnyAsync(x =>
+                    x.TrainerId == trainer.Id &&
+                    x.ClientId == clientId)
+                ||
+                await _context.Appointments.AnyAsync(x =>
+                    x.TrainerId == trainer.Id &&
+                    x.ClientId == clientId);
 
             if (!allowed)
+            {
                 return Forbid();
+            }
 
+            // 4. Calculate the selected date range.
+            DateTime today = DateTime.Today;
+            DateTime periodStart = today.AddMonths(-months);
+            DateTime periodEnd = today.AddDays(1);
+
+            // 5. Get this client's progress records for weight and BMI.
             var records = await _context.ProgressRecords
                 .AsNoTracking()
-                .Where(x => x.ClientId == clientId)
+                .Where(x =>
+                    x.ClientId == clientId &&
+                    x.RecordDate >= periodStart &&
+                    x.RecordDate < periodEnd)
                 .OrderBy(x => x.RecordDate)
                 .ToListAsync();
 
+            // 6. Get the client's latest health record.
             var health = await _context.HealthRecords
                 .AsNoTracking()
                 .Where(x => x.ClientId == clientId)
                 .OrderByDescending(x => x.RecordDate)
                 .FirstOrDefaultAsync();
 
-            var latest = records.LastOrDefault();
+            // 7. Get actual workout logs for this client and period.
+            var workoutLogs = await _context.WorkoutLogs
+                .AsNoTracking()
+                .Where(x =>
+                    x.ClientId == clientId &&
+                    x.WorkoutDate >= periodStart &&
+                    x.WorkoutDate < periodEnd)
+                .OrderBy(x => x.WorkoutDate)
+                .ToListAsync();
 
+            // 8. Calculate actual calories and workout count.
+            // Each WorkoutLog row counts as one logged workout entry.
+            decimal totalCalories = workoutLogs
+                .Sum(x => Convert.ToDecimal(x.CaloriesBurned));
+
+            int totalWorkouts = workoutLogs.Count;
+
+            // 9. Prepare chart labels and data.
             var labels = new List<string>();
             var weight = new List<decimal?>();
             var bmi = new List<decimal?>();
             var calories = new List<int?>();
             var workouts = new List<int?>();
 
-            for (int i = months - 1; i >= 0; i--)
+            // Include the selected number of calendar months,
+            // including the current month.
+            DateTime firstMonth = new DateTime(
+                periodStart.Year,
+                periodStart.Month,
+                1);
+
+            DateTime currentMonth = new DateTime(
+                today.Year,
+                today.Month,
+                1);
+
+            for (DateTime month = firstMonth;
+                 month <= currentMonth;
+                 month = month.AddMonths(1))
             {
-                var month = DateTime.Today.AddMonths(-i);
+                labels.Add(month.ToString("MMM yyyy"));
 
-                labels.Add(month.ToString("MMM"));
-
-                var record = records
-                    .Where(x => x.RecordDate.Year == month.Year
-                             && x.RecordDate.Month == month.Month)
+                // Latest progress snapshot within this month.
+                var monthlyRecord = records
+                    .Where(x =>
+                        x.RecordDate.Year == month.Year &&
+                        x.RecordDate.Month == month.Month)
                     .LastOrDefault();
 
-                weight.Add(record == null ? null : record.Weight);
-                bmi.Add(record == null ? null : record.BMI);
-                calories.Add(record == null ? null : record.CaloriesBurned);
-                workouts.Add(record == null ? null : record.WorkoutsCompleted);
+                weight.Add(monthlyRecord == null
+                    ? null
+                    : monthlyRecord.Weight);
+
+                bmi.Add(monthlyRecord == null
+                    ? null
+                    : monthlyRecord.BMI);
+
+                // Sum calories from actual workout logs for this month.
+                decimal monthlyCalories = workoutLogs
+                    .Where(x =>
+                        x.WorkoutDate.Year == month.Year &&
+                        x.WorkoutDate.Month == month.Month)
+                    .Sum(x => Convert.ToDecimal(x.CaloriesBurned));
+
+                calories.Add((int)Math.Round(monthlyCalories));
+
+                // Count actual workout log entries for this month.
+                int monthlyWorkouts = workoutLogs.Count(x =>
+                    x.WorkoutDate.Year == month.Year &&
+                    x.WorkoutDate.Month == month.Month);
+
+                workouts.Add(monthlyWorkouts);
             }
 
-            var first = records.FirstOrDefault();
-            var last = latest;
+            // 10. Calculate weight and BMI changes from progress records.
+            var firstRecord = records.FirstOrDefault();
+            var lastRecord = records.LastOrDefault();
 
+            string weightChange =
+                firstRecord == null || lastRecord == null
+                    ? "No data"
+                    : $"{lastRecord.Weight - firstRecord.Weight:+0.##;-0.##;0} kg";
+
+            string bmiChange =
+                firstRecord == null || lastRecord == null
+                    ? "No data"
+                    : $"{lastRecord.BMI - firstRecord.BMI:+0.##;-0.##;0}";
+
+            // 11. Return data to the existing frontend.
             return Json(new
             {
-                currentWeight = latest?.Weight ?? health?.Weight,
-                currentBMI = latest?.BMI ?? health?.BMI,
-                currentCalories = latest?.CaloriesBurned ?? health?.CaloriesBurned,
-                currentWorkouts = latest?.WorkoutsCompleted ?? 0,
+                currentWeight = lastRecord?.Weight ?? health?.Weight,
+                currentBMI = lastRecord?.BMI ?? health?.BMI,
+
+                // These values come from WorkoutLogs.
+                currentCalories = (int)Math.Round(totalCalories),
+                currentWorkouts = totalWorkouts,
 
                 labels,
 
@@ -850,21 +940,12 @@ namespace HealthTrack.Controllers
 
                 changes = new
                 {
-                    weight = first == null || last == null
-                        ? "No data"
-                        : $"{last.Weight - first.Weight:+0.##;-0.##;0} kg",
+                    weight = weightChange,
+                    bmi = bmiChange,
 
-                    bmi = first == null || last == null
-                        ? "No data"
-                        : $"{last.BMI - first.BMI:+0.##;-0.##;0}",
-
-                    calories = first == null || last == null
-                        ? "No data"
-                        : $"{last.CaloriesBurned - first.CaloriesBurned:+0;-0;0}",
-
-                    workouts = first == null || last == null
-                        ? "No data"
-                        : $"{last.WorkoutsCompleted - first.WorkoutsCompleted:+0;-0;0}"
+                    // Actual workout log totals for the selected period.
+                    calories = (int)Math.Round(totalCalories),
+                    workouts = totalWorkouts
                 }
             });
         }
