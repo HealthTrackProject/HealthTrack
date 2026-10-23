@@ -49,175 +49,169 @@
 </section>
 
 <!-- UPCOMING ACTIVITIES AND CHARTS -->
+<!-- UPCOMING ACTIVITIES AND CHARTS -->
 <section class="dashboard-grid">
 
-    <!-- UPCOMING ACTIVITIES -->
-    <article class="content-card activities-card">
-        <div class="card-header">
-            <h3>Upcoming Activities</h3>
-            <i class="bi bi-three-dots"></i>
-        </div>
+    <!-- LEFT COLUMN -->
+    <div class="dashboard-col">
 
-        <div class="activity-list">
-            @if (Model.UpcomingActivities.Any())
-            {
-                @foreach (var activity in Model.UpcomingActivities)
+        <!-- UPCOMING ACTIVITIES -->
+        <article class="content-card activities-card">
+            <div class="card-header">
+                <h3>Upcoming Activities</h3>
+                <i class="bi bi-three-dots"></i>
+            </div>
+
+            <div class="activity-list">
+                @if (Model.UpcomingActivities.Any())
                 {
-                    <div class="activity-item">
-                        <div class="activity-icon @activity.Color">
-                            <i class="bi @activity.Icon"></i>
+                    @foreach (var activity in Model.UpcomingActivities)
+                    {
+                        <div class="activity-item">
+                            <div class="activity-icon @activity.Color">
+                                <i class="bi @activity.Icon"></i>
+                            </div>
+                            <div>
+                                <h4>@activity.Title</h4>
+                                <p>@activity.Time</p>
+                            </div>
                         </div>
-                        <div>
-                            <h4>@activity.Title</h4>
-                            <p>@activity.Time</p>
-                        </div>
-                    </div>
+                    }
                 }
-            }
-            else
-            {
-                <p style="color: var(--muted); font-size: 13px;">No upcoming activities.</p>
-            }
-        </div>
-    </article>
-
-    <!-- WEEKLY CALORIES BURNED -->
-    <article class="content-card calories-card">
-        <div class="card-header">
-            <div>
-                <h3>Weekly Calories Burned</h3>
-                <p class="graph-subtitle">Your estimated daily activity</p>
+                else
+                {
+                    <p style="color: var(--muted); font-size: 13px;">No upcoming activities.</p>
+                }
             </div>
-            <span class="graph-badge">
-                <i class="bi bi-fire"></i> This Week
-            </span>
-        </div>
+        </article>
 
-        <div class="calories-summary">
-            <div>
-                <span>Total This Week</span>
-                <h2 id="weeklyCalories">0 <small>kcal</small></h2>
+        <!-- WEEKLY CALORIES BURNED -->
+        <article class="content-card calories-card">
+            <div class="card-header">
+                <div>
+                    <h3>Weekly Calories Burned</h3>
+                    <p class="graph-subtitle">Your estimated daily activity</p>
+                </div>
+                <span class="graph-badge">
+                    <i class="bi bi-fire"></i> This Week
+                </span>
             </div>
-            <div class="calories-summary-icon">
-                <i class="bi bi-lightning-charge"></i>
+
+            <div class="calories-summary">
+                <div>
+                    <span>Total This Week</span>
+                    <h2 id="weeklyCalories">0 <small>kcal</small></h2>
+                </div>
+                <div class="calories-summary-icon">
+                    <i class="bi bi-lightning-charge"></i>
+                </div>
             </div>
-        </div>
 
-        <div class="calories-chart-container">
-            <svg class="calories-chart" viewBox="0 0 700 240" preserveAspectRatio="none" role="img" aria-label="Calories burned from Monday to Sunday">
-                <defs>
-                    <linearGradient id="caloriesFill" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stop-color="#1687f8" stop-opacity="0.20" />
-                        <stop offset="100%" stop-color="#1687f8" stop-opacity="0.01" />
-                    </linearGradient>
-                </defs>
-
-                <!-- Grid lines -->
-                <line class="calories-grid-line" x1="45" y1="30" x2="680" y2="30" />
-                <line class="calories-grid-line" x1="45" y1="75" x2="680" y2="75" />
-                <line class="calories-grid-line" x1="45" y1="120" x2="680" y2="120" />
-                <line class="calories-grid-line" x1="45" y1="165" x2="680" y2="165" />
-                <line class="calories-grid-line" x1="45" y1="210" x2="680" y2="210" />
-
-                <!-- Y-Axis Labels -->
-                <text class="calories-axis-label" x="2" y="34">600</text>
-                <text class="calories-axis-label" x="2" y="79">450</text>
-                <text class="calories-axis-label" x="2" y="124">300</text>
-                <text class="calories-axis-label" x="2" y="169">150</text>
-                <text class="calories-axis-label" x="12" y="214">0</text>
-
-                <!-- Chart Elements (Values will be updated via JS) -->
-                <path id="caloriesArea" d="" fill="url(#caloriesFill)" />
-                <polyline id="caloriesLine" class="calories-line" points="" />
-                <g id="caloriesPoints" fill="#1687f8"></g>
-            </svg>
-        </div>
-
-        <div class="calories-day-labels">
-            <span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span><span>Sun</span>
-        </div>
-
-        <div class="calories-legend">
-            <span class="legend-dot"></span>
-            Estimated calories burned per day
-        </div>
-    </article>
-
-    <!-- WEIGHT PROGRESS -->
-    <article class="content-card weight-progress-card">
-        <div class="card-header">
-            <h3>Weight Progress</h3>
-            <select class="card-select" id="weightPeriod" aria-label="Select progress period">
-                <option value="6">Last 6 Months</option>
-                <option value="3">Last 3 Months</option>
-                <option value="12">Last 12 Months</option>
-            </select>
-        </div>
-
-        <div class="chart-container">
-            <svg class="weight-chart" viewBox="0 0 340 230" preserveAspectRatio="none" role="img" aria-label="Weight progress chart">
-                <defs>
-                    <linearGradient id="weightFill" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stop-color="#20bd79" stop-opacity="0.25" />
-                        <stop offset="100%" stop-color="#20bd79" stop-opacity="0.01" />
-                    </linearGradient>
-                </defs>
-
-                <!-- Grid Lines -->
-                <line class="chart-grid-line" x1="38" y1="20" x2="330" y2="20" />
-                <line class="chart-grid-line" x1="38" y1="75" x2="330" y2="75" />
-                <line class="chart-grid-line" x1="38" y1="130" x2="330" y2="130" />
-                <line class="chart-grid-line" x1="38" y1="185" x2="330" y2="185" />
-
-                <!-- Y-Axis Labels (Static for now) -->
-                <text class="chart-label" x="4" y="24">80</text>
-                <text class="chart-label" x="4" y="79">75</text>
-                <text class="chart-label" x="4" y="134">70</text>
-                <text class="chart-label" x="4" y="189">65</text>
-
-                <!-- Chart Elements (Values will be updated via JS) -->
-                <path id="weightArea" d="" fill="url(#weightFill)" />
-                <polyline id="weightLine" class="chart-line" points="" />
-                <circle id="weightPoint" cx="0" cy="0" r="4" fill="#20bd79" />
-            </svg>
-        </div>
-
-        <div class="chart-months" id="chartMonths">
-            <!-- Populated by JS -->
-        </div>
-
-        <div class="chart-data-list" id="chartDataList">
-            <!-- Populated by JS -->
-        </div>
-    </article>
-
-    <!-- DAILY HEALTH TIPS -->
-    <article class="content-card health-tips-card">
-        <div class="card-header">
-            <h3><i class="bi bi-lightbulb"></i> Daily Health Tips</h3>
-        </div>
-        <div class="health-tip-item">
-            <div class="tip-icon green"><i class="bi bi-droplet"></i></div>
-            <div>
-                <h4>Stay Hydrated</h4>
-                <p>Drink water regularly throughout the day.</p>
+            <div class="calories-chart-container">
+                <svg class="calories-chart" viewBox="0 0 700 240" preserveAspectRatio="none" role="img" aria-label="Calories burned from Monday to Sunday">
+                    <defs>
+                        <linearGradient id="caloriesFill" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0%" stop-color="#1687f8" stop-opacity="0.20" />
+                            <stop offset="100%" stop-color="#1687f8" stop-opacity="0.01" />
+                        </linearGradient>
+                    </defs>
+                    <line class="calories-grid-line" x1="45" y1="30" x2="680" y2="30" />
+                    <line class="calories-grid-line" x1="45" y1="75" x2="680" y2="75" />
+                    <line class="calories-grid-line" x1="45" y1="120" x2="680" y2="120" />
+                    <line class="calories-grid-line" x1="45" y1="165" x2="680" y2="165" />
+                    <line class="calories-grid-line" x1="45" y1="210" x2="680" y2="210" />
+                    <text class="calories-axis-label" x="2" y="34">600</text>
+                    <text class="calories-axis-label" x="2" y="79">450</text>
+                    <text class="calories-axis-label" x="2" y="124">300</text>
+                    <text class="calories-axis-label" x="2" y="169">150</text>
+                    <text class="calories-axis-label" x="12" y="214">0</text>
+                    <path id="caloriesArea" d="" fill="url(#caloriesFill)" />
+                    <polyline id="caloriesLine" class="calories-line" points="" />
+                    <g id="caloriesPoints" fill="#1687f8"></g>
+                </svg>
             </div>
-        </div>
-        <div class="health-tip-item">
-            <div class="tip-icon blue"><i class="bi bi-person-walking"></i></div>
-            <div>
-                <h4>Keep Moving</h4>
-                <p>Include regular physical activity in your routine.</p>
+
+            <div class="calories-day-labels">
+                <span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span><span>Sun</span>
             </div>
-        </div>
-        <div class="health-tip-item">
-            <div class="tip-icon orange"><i class="bi bi-egg-fried"></i></div>
-            <div>
-                <h4>Eat Balanced Meals</h4>
-                <p>Choose a variety of nutritious foods.</p>
+
+            <div class="calories-legend">
+                <span class="legend-dot"></span>
+                Estimated calories burned per day
             </div>
-        </div>
-    </article>
+        </article>
+
+    </div>
+
+    <!-- RIGHT COLUMN -->
+    <div class="dashboard-col">
+
+        <!-- WEIGHT PROGRESS -->
+        <article class="content-card weight-progress-card">
+            <div class="card-header">
+                <h3>Weight Progress</h3>
+                <select class="card-select" id="weightPeriod" aria-label="Select progress period">
+                    <option value="6">Last 6 Months</option>
+                    <option value="3">Last 3 Months</option>
+                    <option value="12">Last 12 Months</option>
+                </select>
+            </div>
+
+            <div class="chart-container">
+                <svg class="weight-chart" viewBox="0 0 340 230" preserveAspectRatio="none" role="img" aria-label="Weight progress chart">
+                    <defs>
+                        <linearGradient id="weightFill" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0%" stop-color="#20bd79" stop-opacity="0.25" />
+                            <stop offset="100%" stop-color="#20bd79" stop-opacity="0.01" />
+                        </linearGradient>
+                    </defs>
+                    <line class="chart-grid-line" x1="38" y1="20" x2="330" y2="20" />
+                    <line class="chart-grid-line" x1="38" y1="75" x2="330" y2="75" />
+                    <line class="chart-grid-line" x1="38" y1="130" x2="330" y2="130" />
+                    <line class="chart-grid-line" x1="38" y1="185" x2="330" y2="185" />
+                    <text class="chart-label" x="4" y="24">80</text>
+                    <text class="chart-label" x="4" y="79">75</text>
+                    <text class="chart-label" x="4" y="134">70</text>
+                    <text class="chart-label" x="4" y="189">65</text>
+                    <path id="weightArea" d="" fill="url(#weightFill)" />
+                    <polyline id="weightLine" class="chart-line" points="" />
+                    <circle id="weightPoint" cx="0" cy="0" r="4" fill="#20bd79" />
+                </svg>
+            </div>
+
+            <div class="chart-months" id="chartMonths"></div>
+            <div class="chart-data-list" id="chartDataList"></div>
+        </article>
+
+        <!-- DAILY HEALTH TIPS -->
+        <article class="content-card health-tips-card">
+            <div class="card-header">
+                <h3><i class="bi bi-lightbulb"></i> Daily Health Tips</h3>
+            </div>
+            <div class="health-tip-item">
+                <div class="tip-icon green"><i class="bi bi-droplet"></i></div>
+                <div>
+                    <h4>Stay Hydrated</h4>
+                    <p>Drink water regularly throughout the day.</p>
+                </div>
+            </div>
+            <div class="health-tip-item">
+                <div class="tip-icon blue"><i class="bi bi-person-walking"></i></div>
+                <div>
+                    <h4>Keep Moving</h4>
+                    <p>Include regular physical activity in your routine.</p>
+                </div>
+            </div>
+            <div class="health-tip-item">
+                <div class="tip-icon orange"><i class="bi bi-egg-fried"></i></div>
+                <div>
+                    <h4>Eat Balanced Meals</h4>
+                    <p>Choose a variety of nutritious foods.</p>
+                </div>
+            </div>
+        </article>
+
+    </div>
 
 </section>
 
@@ -290,43 +284,35 @@
                 renderWeightChart();
             }
 
-            // --- CALORIES CHART LOGIC ---
-            const calorieLine = document.getElementById("caloriesLine");
-            const calorieArea = document.getElementById("caloriesArea");
-            const caloriePoints = document.getElementById("caloriesPoints");
-            const weeklyCalories = document.getElementById("weeklyCalories");
+                    // --- CALORIES CHART LOGIC ---
+        const calorieLine = document.getElementById("caloriesLine");
+        const calorieArea = document.getElementById("caloriesArea");
+        const caloriePoints = document.getElementById("caloriesPoints");
+        const weeklyCalories = document.getElementById("weeklyCalories");
 
-            if (calorieLine && calorieArea && caloriePoints && weeklyCalories) {
-                if (calorieData.length === 0) {
-                    // Show default flat line if no workouts this week
-                    calorieLine.setAttribute("points", "45,210 680,210");
-                } else {
-                    const left = 45, right = 680, top = 30, bottom = 210;
-                    // Find max calorie for scaling (min 600 to look good)
-                    const maxCalories = Math.max(600, ...calorieData.map(d => d.calories));
+        if (calorieLine && calorieArea && caloriePoints && weeklyCalories) {
+            const left = 45, right = 680, top = 30, bottom = 210;
 
-                    const points = calorieData.map((item, index) => {
-                        const x = left + index * (right - left) / (calorieData.length > 1 ? calorieData.length - 1 : 1);
-                        const y = bottom - (item.calories / maxCalories) * (bottom - top);
-                        return { ...item, x, y };
-                    });
+            // Max calories for Y-axis scaling (at least 500)
+            const maxCalories = Math.max(500, ...calorieData.map(d => d.calories));
 
-                    const first = points[0];
-                    const last = points[points.length - 1];
+            const points = calorieData.map((item, index) => {
+                const x = left + index * (right - left) / 6; // Always 7 points (indices 0-6)
+                const y = bottom - (item.calories / maxCalories) * (bottom - top);
+                return { ...item, x, y };
+            });
 
-                    calorieLine.setAttribute("points", points.map(p => `${p.x},${p.y}`).join(" "));
+            const first = points[0];
+            const last = points[points.length - 1];
 
-                    if (points.length > 1) {
-                        calorieArea.setAttribute("d", `M${first.x},${first.y} ` + points.slice(1).map(p => `L${p.x},${p.y}`).join(" ") + ` L${last.x},${bottom} L${first.x},${bottom} Z`);
-                    }
+            calorieLine.setAttribute("points", points.map(p => `${p.x},${p.y}`).join(" "));
+            calorieArea.setAttribute("d", `M${first.x},${first.y} ` + points.slice(1).map(p => `L${p.x},${p.y}`).join(" ") + ` L${last.x},${bottom} L${first.x},${bottom} Z`);
+            caloriePoints.innerHTML = points.map(p => `<circle cx="${p.x}" cy="${p.y}" r="5"></circle>`).join("");
 
-                    caloriePoints.innerHTML = points.map(p => `<circle cx="${p.x}" cy="${p.y}" r="5"></circle>`).join("");
-                }
-
-                // Calculate total calories (already calculated in Controller, but let's sum it here too for safety)
-                const total = calorieData.reduce((sum, item) => sum + item.calories, 0);
-                weeklyCalories.innerHTML = `${total.toLocaleString()} <small>kcal</small>`;
-            }
+            // Update total calories
+            const total = calorieData.reduce((sum, item) => sum + item.calories, 0);
+            weeklyCalories.innerHTML = `${total.toLocaleString()} <small>kcal</small>`;
+        }
         })();
     </script>
 }
