@@ -1,124 +1,235 @@
-﻿@{
+﻿@model HealthTrack.ViewModels.TrainerDashboardViewModel
+
+@{
     Layout = "~/Views/Shared/_TrainerLayout.cshtml";
     ViewData["Title"] = "Trainer Dashboard";
-    ViewData["Heading"] = "Welcome, Trainer";
+    ViewData["Heading"] = "Welcome Nimal Trainer";
     ViewData["ActivePage"] = "Dashboard";
 }
 
-<div class="welcome-section">
-    <div>
-        <h2>Dashboard Overview</h2>
-        <p>Here is what's happening with your clients today.</p>
-    </div>
-</div>
-
 <!-- STAT CARDS -->
 <div class="stats-grid">
+
     <div class="stat-card blue">
-        <div class="stat-icon"><i class="bi bi-people-fill"></i></div>
-        <h3>25</h3>
+        <div class="stat-icon">
+            <i class="bi bi-people-fill"></i>
+        </div>
+        <h3>@Model.TotalClients</h3>
         <p>Total Clients</p>
     </div>
+
     <div class="stat-card orange">
-        <div class="stat-icon"><i class="bi bi-calendar-check-fill"></i></div>
-        <h3>5</h3>
+        <div class="stat-icon">
+            <i class="bi bi-calendar-check-fill"></i>
+        </div>
+        <h3>@Model.PendingAppointments</h3>
         <p>Pending Appointments</p>
     </div>
+
     <div class="stat-card green">
-        <div class="stat-icon"><i class="bi bi-clipboard2-pulse-fill"></i></div>
-        <h3>12</h3>
+        <div class="stat-icon">
+            <i class="bi bi-clipboard2-pulse-fill"></i>
+        </div>
+        <h3>@Model.ActivePlans</h3>
         <p>Active Plans</p>
     </div>
+
     <div class="stat-card purple">
-        <div class="stat-icon"><i class="bi bi-check-circle-fill"></i></div>
-        <h3>18</h3>
+        <div class="stat-icon">
+            <i class="bi bi-check-circle-fill"></i>
+        </div>
+        <h3>@Model.CompletedPlans</h3>
         <p>Completed Plans</p>
     </div>
+
 </div>
 
-<!-- DASHBOARD GRID -->
+<!-- RECENT CLIENTS AND UPCOMING APPOINTMENTS -->
 <div class="dashboard-grid">
 
     <!-- RECENT CLIENTS -->
     <div class="content-card">
+
         <div class="card-header">
             <h3>Recent Clients</h3>
+
+            <a asp-controller="TrainerDashboard"
+               asp-action="MyClient"
+               style="font-size:12px;color:var(--primary);font-weight:600;">
+                View All
+            </a>
         </div>
+
         <div class="client-list">
-            <div class="client-item">
-                <div class="client-info">
-                    <img src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100&h=100&fit=crop" class="client-img" alt="Kamal" />
-                    <div class="client-details">
-                        <h4>Kamal Perera</h4>
-                        <p>Joined 2 days ago</p>
-                    </div>
-                </div>
-                <button class="btn-view-small">View</button>
-            </div>
 
-            <div class="client-item">
-                <div class="client-info">
-                    <img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&fit=crop" class="client-img" alt="Nimali" />
-                    <div class="client-details">
-                        <h4>Nimali Silva</h4>
-                        <p>Joined 1 week ago</p>
-                    </div>
-                </div>
-                <button class="btn-view-small">View</button>
-            </div>
+            @if (Model.RecentClients != null &&
+                 Model.RecentClients.Any())
+            {
+                foreach (var client in Model.RecentClients)
+                {
+                    <div class="client-item">
 
-            <div class="client-item">
-                <div class="client-info">
-                    <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop" class="client-img" alt="Sahan" />
-                    <div class="client-details">
-                        <h4>Sahan Fernando</h4>
-                        <p>Joined 2 weeks ago</p>
+                        <div class="client-info">
+
+                            @if (!string.IsNullOrWhiteSpace(client.ProfilePictureUrl))
+                            {
+                                <img src="@(
+                                    client.ProfilePictureUrl.StartsWith("http",
+                                        StringComparison.OrdinalIgnoreCase)
+                                    || client.ProfilePictureUrl.StartsWith("/")
+                                    ? client.ProfilePictureUrl
+                                    : "/uploads/profiles/" + client.ProfilePictureUrl
+                                )"
+                                     class="client-img"
+                                     alt="Client profile"
+                                     onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />
+
+                                <div class="client-img client-avatar-placeholder"
+                                     style="display:none;">
+                                    <i class="bi bi-person-fill"></i>
+                                </div>
+                            }
+                            else
+                            {
+                                <div class="client-img client-avatar-placeholder">
+                                    <i class="bi bi-person-fill"></i>
+                                </div>
+                            }
+
+                            <div class="client-details">
+                                <h4>
+                                    @(string.IsNullOrWhiteSpace(client.FullName)
+                                        ? "Client"
+                                        : client.FullName)
+                                </h4>
+
+                                <p>@(client.Email ?? "No email available")</p>
+                            </div>
+
+                        </div>
+
+                        <a asp-controller="TrainerDashboard"
+                           asp-action="ClientProgress"
+                           asp-route-id="@client.Id"
+                           class="btn-view-small">
+                            View
+                        </a>
+
                     </div>
-                </div>
-                <button class="btn-view-small">View</button>
-            </div>
+                }
+            }
+            else
+            {
+                <p class="empty-message">
+                    No clients found for this trainer.
+                </p>
+            }
+
         </div>
     </div>
 
     <!-- UPCOMING APPOINTMENTS -->
     <div class="content-card">
+
         <div class="card-header">
             <h3>Upcoming Appointments</h3>
-            <a href="#" style="font-size: 12px; color: var(--primary); font-weight: 600;">View All</a>
+
+            <a asp-controller="TrainerDashboard"
+               asp-action="Appointments"
+               style="font-size:12px;color:var(--primary);font-weight:600;">
+                View All
+            </a>
         </div>
+
         <div class="appointment-list">
-            <div class="appointment-item">
-                <div class="appointment-time">
-                    <span>Today</span>
-                    <span>10:00 AM</span>
-                </div>
-                <div class="appointment-details">
-                    <h4>Client: Kamal Perera</h4>
-                    <p>Initial Fitness Assessment</p>
-                </div>
-            </div>
 
-            <div class="appointment-item">
-                <div class="appointment-time" style="background: #fff3e0; color: #fa9419;">
-                    <span>Today</span>
-                    <span>2:00 PM</span>
-                </div>
-                <div class="appointment-details">
-                    <h4>Client: Nimali Silva</h4>
-                    <p>Diet Plan Review</p>
-                </div>
-            </div>
+            @if (Model.UpcomingAppointments != null &&
+                 Model.UpcomingAppointments.Any())
+            {
+                foreach (var appointment in Model.UpcomingAppointments)
+                {
+                    <div class="appointment-item">
 
-            <div class="appointment-item">
-                <div class="appointment-time" style="background: #f3edff; color: #9650f7;">
-                    <span>Tomorrow</span>
-                    <span>11:00 AM</span>
-                </div>
-                <div class="appointment-details">
-                    <h4>Client: Sahan Fernando</h4>
-                    <p>Workout Progress Check</p>
-                </div>
-            </div>
+                        <div class="appointment-time">
+                            <span>
+                                @appointment.AppointmentDate.ToString("dd MMM")
+                            </span>
+
+                            <span>
+                                @appointment.AppointmentDate.ToString("hh:mm tt")
+                            </span>
+                        </div>
+
+                        <div class="appointment-details">
+
+                            <h4>
+                                Client:
+                                @(appointment.Client?.FullName ?? "Unknown Client")
+                            </h4>
+
+                            <p>
+                                @(string.IsNullOrWhiteSpace(appointment.Reason)
+                                    ? "Appointment"
+                                    : appointment.Reason)
+                            </p>
+
+                            <small>
+                                Status: @(appointment.Status ?? "Pending")
+                            </small>
+
+                        </div>
+
+                    </div>
+                }
+            }
+            else
+            {
+                <p class="empty-message">
+                    No upcoming appointments.
+                </p>
+            }
+
         </div>
     </div>
+
 </div>
+
+<style>
+    .client-avatar-placeholder {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        background: #e8f5ee;
+        color: var(--primary);
+        font-size: 22px;
+        overflow: hidden;
+        flex-shrink: 0;
+    }
+
+    .client-img {
+        width: 44px;
+        height: 44px;
+        border-radius: 50%;
+        object-fit: cover;
+        flex-shrink: 0;
+    }
+
+    .empty-message {
+        padding: 16px 0;
+        color: #777;
+        font-size: 14px;
+    }
+
+    .btn-view-small {
+        text-decoration: none;
+        cursor: pointer;
+    }
+
+    .appointment-details small {
+        display: block;
+        margin-top: 5px;
+        color: #777;
+    }
+</style>
+

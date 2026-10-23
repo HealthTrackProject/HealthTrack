@@ -23,8 +23,6 @@ namespace HealthTrack.Controllers
             _userManager = userManager;
             _context = context;
         }
-
-        // ---- Dashboard Index ----
         public async Task<IActionResult> Index()
         {
             var user = await _userManager.GetUserAsync(User);

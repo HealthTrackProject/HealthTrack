@@ -1,4 +1,7 @@
-﻿namespace HealthTrack.Models
+﻿using System;
+using System.Collections.Generic;
+
+namespace HealthTrack.Models
 {
     public class WorkoutPlan
     {
@@ -19,5 +22,9 @@
         public ApplicationUser? Trainer { get; set; }
 
         public ApplicationUser? Client { get; set; }
+
+        // One workout plan can have multiple workout days.
+        public ICollection<WorkoutPlanDay> WorkoutPlanDays { get; set; }
+            = new List<WorkoutPlanDay>();
     }
 }

@@ -1,151 +1,363 @@
-﻿@{
+﻿@model List<HealthTrack.Models.Appointment>
+
+@{
     Layout = "~/Views/Shared/_TrainerLayout.cshtml";
     ViewData["Title"] = "Appointments";
-    ViewData["Heading"] = "Appointments";
-    ViewData["ActivePage"] = "Appointments"; // Sidebar active state
+    ViewData["Heading"] = "Manage Appointments";
+    ViewData["ActivePage"] = "Appointments";
 }
 
-<div class="trainer-page-header">
-    <h2>Client Appointments</h2>
+<style>
+    .appointments-page {
+        padding: 24px;
+        color: #1e293b;
+    }
+
+    .appointments-heading {
+        margin-bottom: 22px;
+    }
+
+        .appointments-heading h2 {
+            margin: 0 0 6px;
+            font-size: 25px;
+            font-weight: 700;
+        }
+
+        .appointments-heading p {
+            margin: 0;
+            color: #64748b;
+        }
+
+    .appointment-message {
+        padding: 12px 16px;
+        margin-bottom: 16px;
+        border-radius: 8px;
+    }
+
+    .appointment-success {
+        background: #dcfce7;
+        color: #166534;
+    }
+
+    .appointment-error {
+        background: #fee2e2;
+        color: #991b1b;
+    }
+
+    .appointments-table-wrapper {
+        overflow-x: auto;
+        background: #fff;
+        border: 1px solid #e2e8f0;
+        border-radius: 12px;
+        box-shadow: 0 4px 16px rgba(15, 23, 42, .04);
+    }
+
+    .appointments-table {
+        width: 100%;
+        min-width: 850px;
+        border-collapse: collapse;
+    }
+
+        .appointments-table th {
+            padding: 16px;
+            text-align: left;
+            background: #f8fafc;
+            color: #64748b;
+            font-size: 13px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .appointments-table td {
+            padding: 16px;
+            border-bottom: 1px solid #eef2f7;
+            vertical-align: middle;
+        }
+
+        .appointments-table tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+    .appointment-client-name {
+        font-weight: 650;
+        margin-bottom: 4px;
+    }
+
+    .appointment-client-email,
+    .appointment-reason {
+        color: #64748b;
+        font-size: 13px;
+        overflow-wrap: anywhere;
+    }
+
+    .appointment-status {
+        display: inline-block;
+        padding: 6px 10px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 650;
+        white-space: nowrap;
+    }
+
+    .status-pending {
+        background: #fef3c7;
+        color: #92400e;
+    }
+
+    .status-confirmed {
+        background: #dbeafe;
+        color: #1d4ed8;
+    }
+
+    .status-completed {
+        background: #dcfce7;
+        color: #166534;
+    }
+
+    .status-cancelled {
+        background: #fee2e2;
+        color: #991b1b;
+    }
+
+    .appointment-actions {
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 7px;
+    }
+
+        .appointment-actions form {
+            margin: 0;
+        }
+
+    .appointment-btn {
+        padding: 8px 11px;
+        border: 1px solid #dbe3ee;
+        border-radius: 7px;
+        background: #fff;
+        color: #334155;
+        cursor: pointer;
+        font-size: 12px;
+        font-weight: 600;
+    }
+
+        .appointment-btn:hover {
+            background: #f1f5f9;
+        }
+
+        .appointment-btn.confirm {
+            color: #1d4ed8;
+            border-color: #bfdbfe;
+        }
+
+        .appointment-btn.complete {
+            color: #15803d;
+            border-color: #bbf7d0;
+        }
+
+        .appointment-btn.cancel {
+            color: #b91c1c;
+            border-color: #fecaca;
+        }
+
+    .appointment-empty {
+        padding: 45px 20px;
+        text-align: center;
+        color: #64748b;
+    }
+
+        .appointment-empty i {
+            display: block;
+            font-size: 34px;
+            margin-bottom: 10px;
+        }
+
+    @@media (max-width: 768px) {
+        .appointments-page {
+            padding: 14px;
+        }
+    }
+</style>
+
+<div class="appointments-page">
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="appointment-message appointment-success">
+            @TempData["Success"]
+        </div>
+    }
+
+    @if (TempData["Error"] != null)
+    {
+        <div class="appointment-message appointment-error">
+            @TempData["Error"]
+        </div>
+    }
+
+    <div class="appointments-table-wrapper">
+        <table class="appointments-table">
+            <thead>
+                <tr>
+                    <th>Client</th>
+                    <th>Date &amp; Time</th>
+                    <th>Reason</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                @if (Model != null && Model.Any())
+                {
+                    foreach (var appointment in Model)
+                    {
+                        var status = appointment.Status ?? "Pending";
+
+                        var statusClass = status.ToLowerInvariant() switch
+                        {
+                            "confirmed" => "status-confirmed",
+                            "completed" => "status-completed",
+                            "cancelled" => "status-cancelled",
+                            _ => "status-pending"
+                        };
+
+                        <tr>
+                            <td>
+                                <div class="appointment-client-name">
+                                    @(appointment.Client?.FullName
+                                        ?? appointment.Client?.UserName
+                                        ?? "Client")
+                                </div>
+
+                                <div class="appointment-client-email">
+                                    @(appointment.Client?.Email
+                                        ?? "No email available")
+                                </div>
+                            </td>
+
+                            <td>
+                                @appointment.AppointmentDate.ToString("dd MMM yyyy")
+                                <br />
+                                <span class="appointment-client-email">
+                                    @appointment.AppointmentDate.ToString("hh:mm tt")
+                                </span>
+                            </td>
+
+                            <td>
+                                @(string.IsNullOrWhiteSpace(appointment.Reason)
+                                    ? "No reason provided"
+                                    : appointment.Reason)
+                            </td>
+
+                            <td>
+                                <span class="appointment-status @statusClass">
+                                    @status
+                                </span>
+                            </td>
+
+                            <td>
+                                <div class="appointment-actions">
+
+                                    @if (!status.Equals(
+                                        "Confirmed",
+                                        StringComparison.OrdinalIgnoreCase)
+                                        && !status.Equals(
+                                        "Completed",
+                                        StringComparison.OrdinalIgnoreCase)
+                                        && !status.Equals(
+                                        "Cancelled",
+                                        StringComparison.OrdinalIgnoreCase))
+                                    {
+                                        <form asp-controller="TrainerDashboard"
+                                              asp-action="UpdateAppointmentStatus"
+                                              method="post">
+                                            @Html.AntiForgeryToken()
+
+                                            <input type="hidden"
+                                                   name="appointmentId"
+                                                   value="@appointment.AppointmentId" />
+
+                                            <input type="hidden"
+                                                   name="status"
+                                                   value="Confirmed" />
+
+                                            <button type="submit"
+                                                    class="appointment-btn confirm">
+                                                Confirm
+                                            </button>
+                                        </form>
+                                    }
+
+                                    @if (status.Equals(
+                                        "Confirmed",
+                                        StringComparison.OrdinalIgnoreCase))
+                                    {
+                                        <form asp-controller="TrainerDashboard"
+                                              asp-action="UpdateAppointmentStatus"
+                                              method="post">
+                                            @Html.AntiForgeryToken()
+
+                                            <input type="hidden"
+                                                   name="appointmentId"
+                                                   value="@appointment.AppointmentId" />
+
+                                            <input type="hidden"
+                                                   name="status"
+                                                   value="Completed" />
+
+                                            <button type="submit"
+                                                    class="appointment-btn complete">
+                                                Complete
+                                            </button>
+                                        </form>
+                                    }
+
+                                    @if (!status.Equals(
+                                        "Completed",
+                                        StringComparison.OrdinalIgnoreCase)
+                                        && !status.Equals(
+                                        "Cancelled",
+                                        StringComparison.OrdinalIgnoreCase))
+                                    {
+                                        <form asp-controller="TrainerDashboard"
+                                              asp-action="UpdateAppointmentStatus"
+                                              method="post"
+                                              onsubmit="return confirm('Cancel this appointment?');">
+                                            @Html.AntiForgeryToken()
+
+                                            <input type="hidden"
+                                                   name="appointmentId"
+                                                   value="@appointment.AppointmentId" />
+
+                                            <input type="hidden"
+                                                   name="status"
+                                                   value="Cancelled" />
+
+                                            <button type="submit"
+                                                    class="appointment-btn cancel">
+                                                Cancel
+                                            </button>
+                                        </form>
+                                    }
+
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="5">
+                            <div class="appointment-empty">
+                                <i class="bi bi-calendar2-x"></i>
+                                <strong>No appointments found</strong>
+                                <p>You do not have any appointments yet.</p>
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
 </div>
-
-<!-- Tabs -->
-<div class="trainer-tabs">
-    <button class="trainer-tab active" data-target="pendingTab">Pending</button>
-    <button class="trainer-tab" data-target="approvedTab">Approved</button>
-    <button class="trainer-tab" data-target="cancelledTab">Cancelled</button>
-</div>
-
-<!-- TABLES CONTAINER -->
-<div class="client-table-wrapper">
-
-    <!-- 1. PENDING TABLE -->
-    <table class="client-table" id="pendingTab">
-        <thead>
-            <tr>
-                <th>Date</th>
-                <th>Time</th>
-                <th>Client</th>
-                <th>Status</th>
-                <th>Actions</th>
-            </tr>
-        </thead>
-        <tbody>
-            <tr>
-                <td>10 Apr 2025</td>
-                <td>10:00 AM</td>
-                <td>Kamal Perera</td>
-                <td><span class="badge badge-pending">Pending</span></td>
-                <td>
-                    <div class="action-buttons">
-                        <button class="btn-sm btn-approve">Approve</button>
-                        <button class="btn-sm btn-cancel">Cancel</button>
-                    </div>
-                </td>
-            </tr>
-            <tr>
-                <td>12 Apr 2025</td>
-                <td>2:00 PM</td>
-                <td>Nimali Silva</td>
-                <td><span class="badge badge-pending">Pending</span></td>
-                <td>
-                    <div class="action-buttons">
-                        <button class="btn-sm btn-approve">Approve</button>
-                        <button class="btn-sm btn-cancel">Cancel</button>
-                    </div>
-                </td>
-            </tr>
-            <tr>
-                <td>20 Apr 2025</td>
-                <td>3:00 PM</td>
-                <td>Tharushi Dias</td>
-                <td><span class="badge badge-pending">Pending</span></td>
-                <td>
-                    <div class="action-buttons">
-                        <button class="btn-sm btn-approve">Approve</button>
-                        <button class="btn-sm btn-cancel">Cancel</button>
-                    </div>
-                </td>
-            </tr>
-        </tbody>
-    </table>
-
-    <!-- 2. APPROVED TABLE (Hidden by default) -->
-    <table class="client-table" id="approvedTab" style="display: none;">
-        <thead>
-            <tr>
-                <th>Date</th>
-                <th>Time</th>
-                <th>Client</th>
-                <th>Status</th>
-                <th>Actions</th>
-            </tr>
-        </thead>
-        <tbody>
-            <tr>
-                <td>15 Apr 2025</td>
-                <td>11:00 AM</td>
-                <td>Sahan Fernando</td>
-                <td><span class="badge badge-approved">Approved</span></td>
-                <td>
-                    <div class="action-buttons">
-                        <button class="btn-sm btn-view">View</button>
-                    </div>
-                </td>
-            </tr>
-        </tbody>
-    </table>
-
-    <!-- 3. CANCELLED TABLE (Hidden by default) -->
-    <table class="client-table" id="cancelledTab" style="display: none;">
-        <thead>
-            <tr>
-                <th>Date</th>
-                <th>Time</th>
-                <th>Client</th>
-                <th>Status</th>
-                <th>Actions</th>
-            </tr>
-        </thead>
-        <tbody>
-            <tr>
-                <td>05 Apr 2025</td>
-                <td>9:00 AM</td>
-                <td>Kamal Perera</td>
-                <td><span class="badge badge-cancelled">Cancelled</span></td>
-                <td>
-                    <div class="action-buttons">
-                        <button class="btn-sm btn-view">View</button>
-                    </div>
-                </td>
-            </tr>
-        </tbody>
-    </table>
-
-</div>
-
-@section Scripts {
-    <script>
-        document.addEventListener("DOMContentLoaded", function () {
-            const tabs = document.querySelectorAll(".trainer-tab");
-            const tables = document.querySelectorAll(".client-table");
-
-            tabs.forEach(tab => {
-                tab.addEventListener("click", function () {
-                    // 1. Remove active class from all tabs
-                    tabs.forEach(t => t.classList.remove("active"));
-
-                    // 2. Add active class to clicked tab
-                    this.classList.add("active");
-
-                    // 3. Hide all tables
-                    tables.forEach(table => table.style.display = "none");
-
-                    // 4. Show the targeted table
-                    const targetId = this.getAttribute("data-target");
-                    document.getElementById(targetId).style.display = "table";
-                });
-            });
-        });
-    </script>
-}
