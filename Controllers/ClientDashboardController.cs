@@ -24,7 +24,7 @@ namespace HealthTrack.Controllers
             _context = context;
         }
 
-        
+
         public async Task<IActionResult> Index()
         {
             var user = await _userManager.GetUserAsync(User);

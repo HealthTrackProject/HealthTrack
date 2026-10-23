@@ -205,6 +205,43 @@ namespace HealthTrack.Data.Migrations
                     b.ToTable("DietPlans");
                 });
 
+            modelBuilder.Entity("HealthTrack.Models.DietPlanMeal", b =>
+                {
+                    b.Property<int>("DietPlanMealId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("DietPlanMealId"));
+
+                    b.Property<int>("Calories")
+                        .HasColumnType("int");
+
+                    b.Property<int>("DietPlanId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("FoodDescription")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ImageUrl")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("MealTime")
+                        .HasMaxLength(30)
+                        .HasColumnType("nvarchar(30)");
+
+                    b.Property<string>("MealType")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.HasKey("DietPlanMealId");
+
+                    b.HasIndex("DietPlanId");
+
+                    b.ToTable("DietPlanMeals");
+                });
+
             modelBuilder.Entity("HealthTrack.Models.HealthProfile", b =>
                 {
                     b.Property<int>("HealthProfileId")
@@ -429,6 +466,37 @@ namespace HealthTrack.Data.Migrations
                     b.ToTable("WorkoutPlans");
                 });
 
+            modelBuilder.Entity("HealthTrack.Models.WorkoutPlanDay", b =>
+                {
+                    b.Property<int>("WorkoutPlanDayId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("WorkoutPlanDayId"));
+
+                    b.Property<string>("DayName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("DayNumber")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Exercises")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("MuscleGroup")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("WorkoutPlanId")
+                        .HasColumnType("int");
+
+                    b.HasKey("WorkoutPlanDayId");
+
+                    b.HasIndex("WorkoutPlanId");
+
+                    b.ToTable("WorkoutPlanDays");
+                });
+
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>
                 {
                     b.Property<string>("Id")
@@ -623,6 +691,17 @@ namespace HealthTrack.Data.Migrations
                     b.Navigation("Trainer");
                 });
 
+            modelBuilder.Entity("HealthTrack.Models.DietPlanMeal", b =>
+                {
+                    b.HasOne("HealthTrack.Models.DietPlan", "DietPlan")
+                        .WithMany("Meals")
+                        .HasForeignKey("DietPlanId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("DietPlan");
+                });
+
             modelBuilder.Entity("HealthTrack.Models.HealthProfile", b =>
                 {
                     b.HasOne("HealthTrack.Models.ApplicationUser", "User")
@@ -705,6 +784,17 @@ namespace HealthTrack.Data.Migrations
                     b.Navigation("Trainer");
                 });
 
+            modelBuilder.Entity("HealthTrack.Models.WorkoutPlanDay", b =>
+                {
+                    b.HasOne("HealthTrack.Models.WorkoutPlan", "WorkoutPlan")
+                        .WithMany("WorkoutPlanDays")
+                        .HasForeignKey("WorkoutPlanId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("WorkoutPlan");
+                });
+
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
                 {
                     b.HasOne("Microsoft.AspNetCore.Identity.IdentityRole", null)
@@ -754,6 +844,16 @@ namespace HealthTrack.Data.Migrations
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("HealthTrack.Models.DietPlan", b =>
+                {
+                    b.Navigation("Meals");
+                });
+
+            modelBuilder.Entity("HealthTrack.Models.WorkoutPlan", b =>
+                {
+                    b.Navigation("WorkoutPlanDays");
                 });
 #pragma warning restore 612, 618
         }

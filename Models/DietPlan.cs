@@ -1,4 +1,7 @@
-﻿namespace HealthTrack.Models
+﻿using System;
+using System.Collections.Generic;
+
+namespace HealthTrack.Models
 {
     public class DietPlan
     {
@@ -19,5 +22,8 @@
         public ApplicationUser? Trainer { get; set; }
 
         public ApplicationUser? Client { get; set; }
+
+        public ICollection<DietPlanMeal> Meals { get; set; }
+            = new List<DietPlanMeal>();
     }
 }

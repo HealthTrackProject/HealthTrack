@@ -1,13 +1,12 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Http;
-using Microsoft.EntityFrameworkCore;
-
+﻿using HealthTrack.Data;
 using HealthTrack.Models;
-using HealthTrack.Data;
 using HealthTrack.ViewModels;
-
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -359,15 +358,292 @@ namespace HealthTrack.Controllers
                 message = $"Diet plan '{dietPlan.PlanName}' was assigned successfully."
             });
         }
-        public IActionResult WorkoutPlans()
+        [HttpGet]
+        public async Task<IActionResult> WorkoutPlans()
         {
-            return View();
+            var trainer = await _userManager.GetUserAsync(User);
+
+            if (trainer == null)
+                return Challenge();
+
+            var clients = await _userManager.GetUsersInRoleAsync("Client");
+
+            var model = new TrainerWorkoutPlanViewModel
+            {
+                StartDate = DateTime.Today,
+                EndDate = DateTime.Today.AddMonths(1),
+
+                Clients = clients
+                    .OrderBy(c => c.FullName)
+                    .Select(c => new SelectListItem
+                    {
+                        Value = c.Id,
+                        Text = string.IsNullOrWhiteSpace(c.FullName)
+                            ? c.Email ?? "Client"
+                            : c.FullName
+                    })
+                    .ToList()
+            };
+
+            ViewData["Title"] = "Workout Plans";
+            ViewData["Heading"] = "Workout Plans";
+            ViewData["ActivePage"] = "WorkoutPlans";
+
+            return View(model);
         }
 
-        public IActionResult DietPlans()
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> WorkoutPlans(
+            TrainerWorkoutPlanViewModel model)
         {
-            return View();
+            var trainer = await _userManager.GetUserAsync(User);
+
+            if (trainer == null)
+                return Challenge();
+
+            var clients = await _userManager.GetUsersInRoleAsync("Client");
+
+            // Refill the dropdown if validation fails.
+            model.Clients = clients
+                .OrderBy(c => c.FullName)
+                .Select(c => new SelectListItem
+                {
+                    Value = c.Id,
+                    Text = string.IsNullOrWhiteSpace(c.FullName)
+                        ? c.Email ?? "Client"
+                        : c.FullName
+                })
+                .ToList();
+
+            if (model.EndDate.Date < model.StartDate.Date)
+            {
+                ModelState.AddModelError(
+                    nameof(model.EndDate),
+                    "End date must be on or after the start date.");
+            }
+
+            var selectedClient = clients.FirstOrDefault(
+                c => c.Id == model.ClientId);
+
+            if (selectedClient == null)
+            {
+                ModelState.AddModelError(
+                    nameof(model.ClientId),
+                    "Please select a valid client.");
+            }
+
+            if (model.Days == null || model.Days.Count == 0)
+            {
+                ModelState.AddModelError(
+                    nameof(model.Days),
+                    "Please add at least one workout day.");
+            }
+            else if (model.Days.Count > 7)
+            {
+                ModelState.AddModelError(
+                    nameof(model.Days),
+                    "You can add a maximum of seven workout days.");
+            }
+
+            if (!ModelState.IsValid)
+            {
+                ViewData["Title"] = "Workout Plans";
+                ViewData["Heading"] = "Workout Plans";
+                ViewData["ActivePage"] = "WorkoutPlans";
+
+                return View(model);
+            }
+
+            var workoutPlan = new WorkoutPlan
+            {
+                TrainerId = trainer.Id,
+                ClientId = model.ClientId,
+                PlanName = model.PlanName.Trim(),
+                Description = model.Description?.Trim(),
+                StartDate = model.StartDate.Date,
+                EndDate = model.EndDate.Date
+            };
+
+            _context.WorkoutPlans.Add(workoutPlan);
+            await _context.SaveChangesAsync();
+
+            // Save the individual workout days.
+            var workoutDays = model.Days.Select((day, index) =>
+                new WorkoutPlanDay
+                {
+                    WorkoutPlanId = workoutPlan.WorkoutPlanId,
+                    DayNumber = index + 1,
+                    DayName = string.IsNullOrWhiteSpace(day.DayName)
+                        ? $"Day {index + 1}"
+                        : day.DayName.Trim(),
+                    MuscleGroup = day.MuscleGroup?.Trim(),
+                    Exercises = day.Exercises?.Trim()
+                }).ToList();
+
+            _context.WorkoutPlanDays.AddRange(workoutDays);
+            await _context.SaveChangesAsync();
+
+            TempData["SuccessMessage"] = "Workout plan saved successfully!";
+
+            return RedirectToAction(nameof(WorkoutPlans));
         }
+
+        [HttpGet]
+        public async Task<IActionResult> DietPlans()
+        {
+            var trainer = await _userManager.GetUserAsync(User);
+
+            if (trainer == null)
+                return Challenge();
+
+            var clients = await _userManager.GetUsersInRoleAsync("Client");
+
+            var model = new TrainerDietPlanViewModel
+            {
+                StartDate = DateTime.Today,
+                EndDate = DateTime.Today.AddDays(30),
+
+                Clients = clients
+                    .OrderBy(c => c.FullName)
+                    .Select(c => new SelectListItem
+                    {
+                        Value = c.Id,
+                        Text = string.IsNullOrWhiteSpace(c.FullName)
+                            ? (c.Email ?? "Client")
+                            : c.FullName
+                    })
+                    .ToList()
+            };
+
+            ViewData["Title"] = "Diet Plans";
+            ViewData["Heading"] = "Diet Plans";
+            ViewData["ActivePage"] = "DietPlans";
+
+            return View(model);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DietPlans(
+            TrainerDietPlanViewModel model)
+        {
+            var trainer = await _userManager.GetUserAsync(User);
+
+            if (trainer == null)
+                return Challenge();
+
+            // Reload the clients dropdown if validation fails.
+            var clients = await _userManager.GetUsersInRoleAsync("Client");
+
+            model.Clients = clients
+                .OrderBy(c => c.FullName)
+                .Select(c => new SelectListItem
+                {
+                    Value = c.Id,
+                    Text = string.IsNullOrWhiteSpace(c.FullName)
+                        ? (c.Email ?? "Client")
+                        : c.FullName
+                })
+                .ToList();
+
+            var selectedClient = clients.FirstOrDefault(
+                c => c.Id == model.ClientId);
+
+            if (selectedClient == null)
+            {
+                ModelState.AddModelError(
+                    nameof(model.ClientId),
+                    "Please select a valid client.");
+            }
+
+            if (model.StartDate == default ||
+                model.EndDate == default ||
+                model.EndDate.Date < model.StartDate.Date)
+            {
+                ModelState.AddModelError(
+                    nameof(model.EndDate),
+                    "End date must be on or after the start date.");
+            }
+
+            if (model.Meals == null ||
+                model.Meals.Count == 0 ||
+                model.Meals.Count > 20)
+            {
+                ModelState.AddModelError(
+                    nameof(model.Meals),
+                    "Please add between 1 and 20 meals.");
+            }
+            else
+            {
+                foreach (var meal in model.Meals)
+                {
+                    if (string.IsNullOrWhiteSpace(meal.MealType))
+                    {
+                        ModelState.AddModelError(
+                            nameof(model.Meals),
+                            "Every meal must have a name.");
+                    }
+
+                    if (string.IsNullOrWhiteSpace(meal.FoodDescription))
+                    {
+                        ModelState.AddModelError(
+                            nameof(model.Meals),
+                            "Enter food details for every meal.");
+                    }
+
+                    if (meal.Calories < 0 || meal.Calories > 10000)
+                    {
+                        ModelState.AddModelError(
+                            nameof(model.Meals),
+                            "Calories must be between 0 and 10,000.");
+                    }
+                }
+            }
+
+            if (!ModelState.IsValid)
+            {
+                ViewData["Title"] = "Diet Plans";
+                ViewData["Heading"] = "Diet Plans";
+                ViewData["ActivePage"] = "DietPlans";
+
+                return View(model);
+            }
+
+            var dietPlan = new DietPlan
+            {
+                TrainerId = trainer.Id,
+                ClientId = selectedClient!.Id,
+                PlanName = model.PlanName.Trim(),
+
+                Description = string.IsNullOrWhiteSpace(model.Description)
+                    ? null
+                    : model.Description.Trim(),
+
+                StartDate = model.StartDate.Date,
+                EndDate = model.EndDate.Date,
+
+                Meals = model.Meals.Select(meal => new DietPlanMeal
+                {
+                    MealType = meal.MealType.Trim(),
+                    MealTime = meal.MealTime,
+                    FoodDescription = meal.FoodDescription.Trim(),
+                    Calories = meal.Calories,
+                    ImageUrl = string.IsNullOrWhiteSpace(meal.ImageUrl)
+                        ? null
+                        : meal.ImageUrl.Trim()
+                }).ToList()
+            };
+
+            _context.DietPlans.Add(dietPlan);
+            await _context.SaveChangesAsync();
+
+            TempData["SuccessMessage"] =
+                "Diet plan and meals saved successfully!";
+
+            return RedirectToAction(nameof(DietPlans));
+        }
+
 
         [Authorize(Roles = "Trainer")]
         public async Task<IActionResult> Appointments()
