@@ -1,4 +1,5 @@
-﻿@{
+﻿@model HealthTrack.Models.ClientAppointmentsViewModel
+@{
     Layout = "~/Views/Shared/_ClientLayout.cshtml";
     ViewData["Title"] = "Appointments";
     ViewData["Heading"] = "My Appointments";
@@ -12,28 +13,15 @@
             <h2>My Appointments</h2>
             <p>Manage your appointments and stay on top of your health.</p>
         </div>
-        <button type="button"
-                class="ca-request-btn"
-                id="caRequestBtn">
-            <i class="bi bi-plus-lg"></i>
-            Request Appointment
+        <button type="button" class="ca-request-btn" id="caRequestBtn">
+            <i class="bi bi-plus-lg"></i> Request Appointment
         </button>
     </div>
 
     <div class="ca-card">
-
         <div class="ca-tabs">
-            <button type="button"
-                    class="ca-tab active"
-                    data-tab="upcoming">
-                Upcoming
-            </button>
-
-            <button type="button"
-                    class="ca-tab"
-                    data-tab="past">
-                Past Appointments
-            </button>
+            <button type="button" class="ca-tab active" data-tab="upcoming">Upcoming</button>
+            <button type="button" class="ca-tab" data-tab="past">Past Appointments</button>
         </div>
 
         <div class="ca-table-wrapper">
@@ -48,119 +36,136 @@
                     </tr>
                 </thead>
 
+                <!-- UPCOMING APPOINTMENTS -->
                 <tbody id="caUpcoming">
-                    <tr>
-                        <td>10 Apr 2025</td>
-                        <td>10:00 AM</td>
-                        <td>John Silva</td>
-                        <td>
-                            <span class="ca-status approved">
-                                Approved
-                            </span>
-                        </td>
-                        <td>
-                            <button type="button"
-                                    class="ca-action view"
-                                    data-view="John Silva | 10 Apr 2025 | 10:00 AM | Approved">
-                                View
-                            </button>
-                        </td>
-                    </tr>
-
-                    <tr>
-                        <td>15 Apr 2025</td>
-                        <td>2:00 PM</td>
-                        <td>Sarah Perera</td>
-                        <td>
-                            <span class="ca-status pending">
-                                Pending
-                            </span>
-                        </td>
-                        <td>
-                            <button type="button"
-                                    class="ca-action cancel"
-                                    data-cancel>
-                                Cancel
-                            </button>
-                        </td>
-                    </tr>
-
-                    <tr>
-                        <td>22 Apr 2025</td>
-                        <td>11:00 AM</td>
-                        <td>John Silva</td>
-                        <td>
-                            <span class="ca-status approved">
-                                Approved
-                            </span>
-                        </td>
-                        <td>
-                            <button type="button"
-                                    class="ca-action view"
-                                    data-view="John Silva | 22 Apr 2025 | 11:00 AM | Approved">
-                                View
-                            </button>
-                        </td>
-                    </tr>
+                    @if (Model.UpcomingAppointments.Any())
+                    {
+                        @foreach (var appt in Model.UpcomingAppointments)
+                        {
+                            <tr>
+                                <td>@appt.AppointmentDate.ToString("dd MMM yyyy")</td>
+                                <td>@appt.AppointmentDate.ToString("hh:mm tt")</td>
+                                <td>@(appt.Trainer?.FullName ?? "Any Available")</td>
+                                <td>
+                                    <span class="ca-status @appt.Status.ToLower()">
+                                        @appt.Status
+                                    </span>
+                                </td>
+                                <td>
+                                    @if (appt.Status == "Pending")
+                                    {
+                                        <!-- Cancel Form -->
+                                        <form asp-action="CancelAppointment" asp-controller="ClientDashboard" asp-route-id="@appt.AppointmentId" method="post" style="display:inline;">
+                                            @Html.AntiForgeryToken()
+                                            <button type="submit" class="ca-action cancel" onclick="return confirm('Are you sure you want to cancel this appointment?');">
+                                                Cancel
+                                            </button>
+                                        </form>
+                                    }
+                                    else
+                                    {
+                                        <button type="button" class="ca-action view"
+                                                data-view="@appt.Trainer?.FullName | @appt.AppointmentDate.ToString("dd MMM yyyy") | @appt.AppointmentDate.ToString("hh:mm tt") | @appt.Status | @appt.Reason">
+                                            View
+                                        </button>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr><td colspan="5" style="text-align:center;">No upcoming appointments.</td></tr>
+                    }
                 </tbody>
 
+                <!-- PAST APPOINTMENTS -->
                 <tbody id="caPast" hidden>
-                    <tr>
-                        <td>20 Mar 2025</td>
-                        <td>9:00 AM</td>
-                        <td>Sarah Perera</td>
-                        <td>
-                            <span class="ca-status approved">
-                                Approved
-                            </span>
-                        </td>
-                        <td>
-                            <button type="button"
-                                    class="ca-action view"
-                                    data-view="Sarah Perera | 20 Mar 2025 | 9:00 AM | Approved">
-                                View
-                            </button>
-                        </td>
-                    </tr>
+                    @if (Model.PastAppointments.Any())
+                    {
+                        @foreach (var appt in Model.PastAppointments)
+                        {
+                            <tr>
+                                <td>@appt.AppointmentDate.ToString("dd MMM yyyy")</td>
+                                <td>@appt.AppointmentDate.ToString("hh:mm tt")</td>
+                                <td>@(appt.Trainer?.FullName ?? "Any Available")</td>
+                                <td>
+                                    <span class="ca-status @appt.Status.ToLower()">
+                                        @appt.Status
+                                    </span>
+                                </td>
+                                <td>
+                                    <button type="button" class="ca-action view"
+                                            data-view="@appt.Trainer?.FullName | @appt.AppointmentDate.ToString("dd MMM yyyy") | @appt.AppointmentDate.ToString("hh:mm tt") | @appt.Status | @appt.Reason">
+                                        View
+                                    </button>
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr><td colspan="5" style="text-align:center;">No past appointments.</td></tr>
+                    }
                 </tbody>
             </table>
         </div>
 
-        <div class="ca-empty" id="caEmpty" hidden>
-            <i class="bi bi-calendar-x"></i>
-            <h3>No appointments found</h3>
-            <p>Your appointments will appear here.</p>
-        </div>
-
         <div class="ca-footer">
-            <span id="caSummary">Showing 3 appointments</span>
+            <span id="caSummary">Showing @Model.UpcomingAppointments.Count upcoming appointments</span>
             <span><i class="bi bi-heart-pulse"></i> HealthTrack</span>
         </div>
     </div>
 </div>
 
-<!-- Frontend preview modal -->
+<!-- REQUEST APPOINTMENT MODAL -->
 <div class="ca-modal" id="caModal" hidden>
     <div class="ca-modal-content">
-        <button type="button"
-                class="ca-modal-close"
-                id="caModalClose"
-                aria-label="Close">
-            &times;
-        </button>
+        <button type="button" class="ca-modal-close" id="caModalClose" aria-label="Close">&times;</button>
 
         <div class="ca-modal-icon">
             <i class="bi bi-calendar-check"></i>
         </div>
 
-        <h3 id="caModalTitle">Appointment Details</h3>
-        <p id="caModalText"></p>
-        <div id="appointmentFormHost"></div>
-        <button type="button"
-                class="ca-request-btn"
-                id="caModalOk">
-            Close
-        </button>
+        <h3 id="caModalTitle">Request Appointment</h3>
+        <p id="caModalText" class="text-muted small mb-3">Choose a preferred date and time for your appointment.</p>
+
+        <!-- FORM: Submits to Controller -->
+        <form asp-action="RequestAppointment" asp-controller="ClientDashboard" method="post" style="text-align: left;">
+            @Html.AntiForgeryToken()
+
+            <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+                <div class="health-form-group" style="flex: 1;">
+                    <label>Preferred Date</label>
+                    <input type="date" name="appointmentDate" id="appointmentDate" required />
+                </div>
+                <div class="health-form-group" style="flex: 1;">
+                    <label>Preferred Time</label>
+                    <input type="time" name="appointmentTime" required />
+                </div>
+            </div>
+
+            <div class="health-form-group" style="margin-bottom: 15px;">
+                <label>Preferred Trainer</label>
+                <select name="preferredTrainerId" class="form-control">
+                    <option value="">Any available trainer</option>
+                    @foreach (var trainer in Model.AvailableTrainers)
+                    {
+                        <option value="@trainer.Id">@trainer.FullName</option>
+                    }
+                </select>
+            </div>
+
+            <div class="health-form-group" style="margin-bottom: 20px;">
+                <label>Reason for appointment</label>
+                <textarea name="reason" rows="3" required placeholder="Briefly describe your request"></textarea>
+            </div>
+
+            <div style="display: flex; justify-content: flex-end; gap: 10px;">
+                <button type="button" class="health-secondary-button" id="cancelAppointmentForm">Cancel</button>
+                <button type="submit" class="ca-request-btn">Submit Request</button>
+            </div>
+        </form>
     </div>
 </div>
 
@@ -170,7 +175,6 @@
             const upcoming = document.getElementById("caUpcoming");
             const past = document.getElementById("caPast");
             const tabs = document.querySelectorAll(".ca-tab");
-            const empty = document.getElementById("caEmpty");
             const summary = document.getElementById("caSummary");
             const modal = document.getElementById("caModal");
             const modalTitle = document.getElementById("caModalTitle");
@@ -180,106 +184,86 @@
 
             function showTab(tab) {
                 activeTab = tab;
-
                 tabs.forEach(button => {
-                    button.classList.toggle(
-                        "active",
-                        button.dataset.tab === tab
-                    );
+                    button.classList.toggle("active", button.dataset.tab === tab);
                 });
 
                 upcoming.hidden = tab !== "upcoming";
                 past.hidden = tab !== "past";
 
-                const body = tab === "upcoming" ? upcoming : past;
-                const count = body.querySelectorAll("tr").length;
-
-                empty.hidden = count > 0;
-                summary.textContent =
-                    `Showing ${count} ${tab === "upcoming" ? "upcoming" : "past"} appointments`;
+                if (tab === "upcoming") {
+                    summary.textContent = `Showing ${upcoming.querySelectorAll("tr").length} upcoming appointments`;
+                } else {
+                    summary.textContent = `Showing ${past.querySelectorAll("tr").length} past appointments`;
+                }
             }
 
-            function openModal(title, text) {
-                modalTitle.textContent = title;
+            function openDetailsModal(text) {
+                modalTitle.textContent = "Appointment Details";
                 modalText.textContent = text;
-                document.getElementById("appointmentFormHost").innerHTML = "";
-                document.getElementById("caModalOk").hidden = false;
+                document.getElementById("appointmentFormHost").innerHTML = ""; // Clear form if any
+
+                // Hide form, show text
+                document.querySelector(".ca-modal form").style.display = "none";
+                document.querySelector(".ca-modal-content > p#caModalText").style.display = "block";
+                document.getElementById("cancelAppointmentForm").style.display = "none";
+                // We need an OK button or let the X close it. Let's just use the X.
+
+                modal.hidden = false;
+            }
+
+            function openRequestForm() {
+                modalTitle.textContent = "Request Appointment";
+                modalText.textContent = "Choose a preferred date and time for your appointment.";
+
+                // Show form, hide text
+                document.querySelector(".ca-modal form").style.display = "block";
+                document.querySelector(".ca-modal-content > p#caModalText").style.display = "block"; // Actually we want this text
+
+                // Set min date to today
+                const today = new Date().toISOString().split('T')[0];
+                document.getElementById("appointmentDate").min = today;
+
                 modal.hidden = false;
             }
 
             function closeModal() {
                 modal.hidden = true;
-                document.getElementById("appointmentFormHost").innerHTML = "";
-                document.getElementById("caModalOk").hidden = false;
             }
 
             tabs.forEach(button => {
-                button.addEventListener("click", () => {
-                    showTab(button.dataset.tab);
-                });
+                button.addEventListener("click", () => showTab(button.dataset.tab));
             });
 
+            // View Button Click
             document.addEventListener("click", event => {
                 const viewButton = event.target.closest("[data-view]");
-                const cancelButton = event.target.closest("[data-cancel]");
-
                 if (viewButton) {
-                    openModal(
-                        "Appointment Details",
-                        viewButton.dataset.view
-                    );
-                }
+                    // Show simple text details instead of form
+                    modalTitle.textContent = "Appointment Details";
+                    modalText.textContent = viewButton.dataset.view;
 
-                if (cancelButton) {
-                    const row = cancelButton.closest("tr");
+                    // Hide the form if it's there
+                    const form = document.querySelector(".ca-modal form");
+                    if(form) form.style.display = "none";
 
-                    if (!confirm("Remove this sample appointment from the list?")) {
-                        return;
-                    }
+                    // Change close button logic to just close
+                    document.getElementById("caModalClose").style.display = "block";
 
-                    // Frontend preview only: does not change the database.
-                    row.remove();
-                    showTab(activeTab);
+                    modal.hidden = false;
                 }
             });
 
+            // Request Button Click
             document.getElementById("caRequestBtn").addEventListener("click", () => {
-                openModal("Request Appointment", "Choose a preferred date and time for your appointment.");
-                const host = document.getElementById("appointmentFormHost");
-                const today = new Date();
-                const localToday = new Date(today.getTime() - today.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
-                host.innerHTML = `<form id="appointmentRequestForm" class="ht-modal-form">
-                            <div class="ht-form-field"><label for="appointmentDate">Preferred date</label><input id="appointmentDate" name="date" type="date" min="${localToday}" required></div>
-                            <div class="ht-form-field"><label for="appointmentTime">Preferred time</label><input id="appointmentTime" name="time" type="time" required></div>
-                            <div class="ht-form-field full-width"><label for="appointmentTrainer">Preferred trainer</label><input id="appointmentTrainer" name="trainer" maxlength="100" placeholder="Any available trainer" value="Any available trainer"></div>
-                            <div class="ht-form-field full-width"><label for="appointmentReason">Reason for appointment</label><textarea id="appointmentReason" name="reason" maxlength="500" required placeholder="Briefly describe your request"></textarea></div>
-                            <div class="ht-form-message">Demo only: this request is added to the page and is not sent to a trainer or saved in the database.</div>
-                            <div class="ht-form-actions"><button type="button" class="ht-secondary-button" id="cancelAppointmentForm">Cancel</button><button type="submit" class="ca-request-btn">Submit request</button></div>
-                        </form>`;
-                document.getElementById("caModalOk").hidden = true;
-                document.getElementById("appointmentRequestForm").addEventListener("submit", event => {
-                    event.preventDefault(); const form = event.currentTarget;
-                    const dateValue = form.elements.date.value; const timeValue = form.elements.time.value; const trainer = form.elements.trainer.value.trim() || "Any available trainer"; const reason = form.elements.reason.value.trim();
-                    const row = document.createElement("tr");
-                    const dateCell = document.createElement("td"); dateCell.textContent = new Date(dateValue + "T00:00:00").toLocaleDateString(undefined, { day: "2-digit", month: "short", year: "numeric" });
-                    const timeCell = document.createElement("td"); const [hour, minute] = timeValue.split(":").map(Number); const dt = new Date(); dt.setHours(hour, minute, 0, 0); timeCell.textContent = dt.toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" });
-                    const trainerCell = document.createElement("td"); trainerCell.textContent = trainer; const statusCell = document.createElement("td"); const badge = document.createElement("span"); badge.className = "ca-status pending"; badge.textContent = "Pending"; statusCell.appendChild(badge);
-                    const actionCell = document.createElement("td"); const view = document.createElement("button"); view.type = "button"; view.className = "ca-action view"; view.textContent = "View"; view.dataset.view = `${trainer} | ${dateCell.textContent} | ${timeCell.textContent} | Pending | ${reason}`; actionCell.appendChild(view);
-                    row.append(dateCell, timeCell, trainerCell, statusCell, actionCell); upcoming.prepend(row); closeModal(); showTab("upcoming");
-                });
-                document.getElementById("cancelAppointmentForm").addEventListener("click", closeModal);
+                openRequestForm();
             });
 
-            document.getElementById("caModalClose")
-                .addEventListener("click", closeModal);
-
-            document.getElementById("caModalOk")
-                .addEventListener("click", closeModal);
-
+            // Close Modal
+            document.getElementById("caModalClose").addEventListener("click", closeModal);
+            document.getElementById("cancelAppointmentForm").addEventListener("click", closeModal);
             modal.addEventListener("click", event => {
-                if (event.target === modal) {
-                    closeModal();
-                }
+                if (event.target === modal) closeModal();
             });
 
             showTab("upcoming");

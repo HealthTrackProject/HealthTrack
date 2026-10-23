@@ -362,9 +362,88 @@ namespace HealthTrack.Controllers
             return RedirectToAction("Diet");
         }
 
-        public IActionResult Appointments()
+        // 1. GET: When load the Appointments Page 
+        public async Task<IActionResult> Appointments()
         {
-            return View();
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null) return RedirectToPage("/Account/Login", new { area = "Identity" });
+
+            // Get appointments of that user from the database
+            var appointments = await _context.Appointments
+                .Include(a => a.Trainer)
+                .Where(a => a.ClientId == user.Id)
+                .OrderBy(a => a.AppointmentDate)
+                .ToListAsync();
+
+            var now = DateTime.Now;
+
+            // Get list of available trainers (for dropdown)
+            var trainers = await _userManager.GetUsersInRoleAsync("Trainer");
+
+            var model = new ClientAppointmentsViewModel
+            {
+                UpcomingAppointments = appointments.Where(a => a.AppointmentDate >= now).ToList(),
+                PastAppointments = appointments.Where(a => a.AppointmentDate < now).OrderByDescending(a => a.AppointmentDate).ToList(),
+                AvailableTrainers = trainers.ToList()
+            };
+
+            return View(model);
+        }
+
+        // 2. POST: When requesting a new Appointment
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> RequestAppointment(DateTime appointmentDate, string appointmentTime, string preferredTrainerId, string reason)
+        {
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null) return RedirectToPage("/Account/Login", new { area = "Identity" });
+
+            // Date+Time=DateTime
+            var dateStr = appointmentDate.ToString("yyyy-MM-dd");
+            var timeStr = appointmentTime;
+            DateTime finalDateTime = DateTime.Parse($"{dateStr} {timeStr}");
+
+            // if choose "Any available trainer", get first Trainer of the list
+            if (string.IsNullOrEmpty(preferredTrainerId))
+            {
+                var trainers = await _userManager.GetUsersInRoleAsync("Trainer");
+                preferredTrainerId = trainers.FirstOrDefault()?.Id;
+
+                if (preferredTrainerId == null) return RedirectToAction("Appointments"); // if no trainers available, just redirect back
+            }
+
+            var newAppointment = new Appointment
+            {
+                ClientId = user.Id,
+                TrainerId = preferredTrainerId,
+                AppointmentDate = finalDateTime,
+                Reason = reason,
+                Status = "Pending" // new appointments are always Pending
+            };
+
+            _context.Appointments.Add(newAppointment);
+            await _context.SaveChangesAsync();
+
+            return RedirectToAction("Appointments");
+        }
+
+        // 3. POST: When cancelling an Appointment
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> CancelAppointment(int id)
+        {
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null) return RedirectToPage("/Account/Login", new { area = "Identity" });
+
+            var appointment = await _context.Appointments.FirstOrDefaultAsync(a => a.AppointmentId == id && a.ClientId == user.Id);
+
+            if (appointment != null)
+            {
+                appointment.Status = "Cancelled"; //  update the Status without deleting the record
+                await _context.SaveChangesAsync();
+            }
+
+            return RedirectToAction("Appointments");
         }
         public IActionResult Progress()
         {
