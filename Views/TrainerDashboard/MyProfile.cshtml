@@ -1,4 +1,5 @@
 ﻿@model HealthTrack.Models.ManageProfileViewModel
+
 @{
     Layout = "~/Views/Shared/_TrainerLayout.cshtml";
     ViewData["Title"] = "My Profile";
@@ -7,22 +8,41 @@
 }
 
 <section class="health-page">
+
     <div class="health-page-header">
-        <div>
-            <h2>My Profile</h2>
-            <p>Manage your personal information and account settings.</p>
-        </div>
-        <button type="button" class="health-primary-button" id="editProfileBtn">
-            <i class="bi bi-pencil-square"></i> Edit Profile
+        <button type="button"
+                class="health-primary-button"
+                id="editProfileBtn">
+            <i class="bi bi-pencil-square"></i>
+            Edit Profile
         </button>
     </div>
 
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success">
+            @TempData["Success"]
+        </div>
+    }
+
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger">
+            @TempData["Error"]
+        </div>
+    }
+
     <div class="health-panel">
+
         <div class="profile-header">
+
             <div class="profile-avatar-container">
                 @if (!string.IsNullOrEmpty(Model.ProfilePictureUrl))
                 {
-                    <img src="~/uploads/profiles/@Model.ProfilePictureUrl" alt="Profile Picture" class="profile-img" />
+                    <img src="@Url.Content(
+                         "~/uploads/profiles/" + Model.ProfilePictureUrl)"
+                         alt="Trainer Profile Picture"
+                         class="profile-img" />
                 }
                 else
                 {
@@ -30,107 +50,158 @@
                         <i class="bi bi-person-fill"></i>
                     </div>
                 }
-                <button type="button" class="edit-avatar-btn" id="editAvatarBtn" title="Change Profile Picture">
+
+                <button type="button"
+                        class="edit-avatar-btn"
+                        id="editAvatarBtn"
+                        title="Change Profile Picture">
                     <i class="bi bi-camera-fill"></i>
                 </button>
             </div>
+
             <div class="profile-info">
                 <h3>@Model.FullName</h3>
-                <p><i class="bi bi-envelope"></i> @Model.Email</p>
-                <p><i class="bi bi-telephone"></i> @(string.IsNullOrEmpty(Model.PhoneNumber) ? "Not provided" : Model.PhoneNumber)</p>
-                <span class="profile-role" style="background: #e3f2fd; color: #1E88E5;">@ViewBag.Role</span>
+
+                <p>
+                    <i class="bi bi-envelope"></i>
+                    @Model.Email
+                </p>
+
+                <p>
+                    <i class="bi bi-telephone"></i>
+                    @(string.IsNullOrWhiteSpace(Model.PhoneNumber)
+                        ? "Not provided"
+                        : Model.PhoneNumber)
+                </p>
+
+                <span class="profile-role"
+                      style="background: #e3f2fd; color: #1E88E5;">
+                    @ViewBag.Role
+                </span>
             </div>
+
         </div>
 
         <hr class="profile-divider" />
 
-        <h3 style="margin-bottom: 20px; font-size: 18px; color: var(--text);">Health Details</h3>
+        <h3 style="margin-bottom: 20px; font-size: 18px; color: var(--text);">
+            Professional Information
+        </h3>
+
         <div class="health-summary-grid" style="margin-bottom: 30px;">
+
             <article class="health-summary-card weight">
-                <div class="health-summary-icon"><i class="bi bi-person-standing"></i></div>
-                <p>Weight</p>
-                <h3>@Model.Weight <span>kg</span></h3>
+                <div class="health-summary-icon">
+                    <i class="bi bi-person-badge"></i>
+                </div>
+                <p>Full Name</p>
+                <h3 style="font-size: 18px;">
+                    @Model.FullName
+                </h3>
             </article>
 
             <article class="health-summary-card height">
-                <div class="health-summary-icon"><i class="bi bi-rulers"></i></div>
-                <p>Height</p>
-                <h3>@Model.Height <span>cm</span></h3>
+                <div class="health-summary-icon">
+                    <i class="bi bi-envelope"></i>
+                </div>
+                <p>Email Address</p>
+                <h3 style="font-size: 15px; overflow-wrap: anywhere;">
+                    @Model.Email
+                </h3>
             </article>
 
             <article class="health-summary-card bmi">
-                <div class="health-summary-icon"><i class="bi bi-clipboard2-pulse"></i></div>
-                <p>Body Mass Index (BMI)</p>
-                <h3>@Model.BMI.ToString("0.0")</h3>
+                <div class="health-summary-icon">
+                    <i class="bi bi-telephone"></i>
+                </div>
+                <p>Phone Number</p>
+                <h3 style="font-size: 18px;">
+                    @(string.IsNullOrWhiteSpace(Model.PhoneNumber)
+                        ? "Not provided"
+                        : Model.PhoneNumber)
+                </h3>
             </article>
 
             <article class="health-summary-card heart">
-                <div class="health-summary-icon"><i class="bi bi-calendar-heart"></i></div>
-                <p>Date of Birth</p>
-                <h3 style="font-size: 20px;">@Model.DateOfBirth.ToString("dd MMM yyyy")</h3>
+                <div class="health-summary-icon">
+                    <i class="bi bi-person-workspace"></i>
+                </div>
+                <p>Account Role</p>
+                <h3 style="font-size: 20px;">
+                    @ViewBag.Role
+                </h3>
             </article>
+
         </div>
 
-        <div class="health-form-group full-width">
-            <label>Medical Notes</label>
-            <textarea readonly class="form-control bg-light" rows="3">@(string.IsNullOrEmpty(Model.MedicalNotes) ? "No medical notes provided." : Model.MedicalNotes)</textarea>
-        </div>
     </div>
 </section>
 
 <!-- EDIT PROFILE MODAL -->
 <div class="ca-modal" id="editProfileModal" hidden>
-    <div class="ca-modal-content" style="max-width: 600px; text-align: left;">
-        <button type="button" class="ca-modal-close" id="closeModalBtn" aria-label="Close">
+    <div class="ca-modal-content"
+         style="max-width: 600px; text-align: left;">
+
+        <button type="button"
+                class="ca-modal-close"
+                id="closeModalBtn"
+                aria-label="Close">
             &times;
         </button>
 
-        <h3 style="margin-bottom: 20px; text-align: center;">Edit Profile</h3>
+        <h3 style="margin-bottom: 20px; text-align: center;">
+            Edit Profile
+        </h3>
 
-        <form asp-action="UpdateProfile" asp-controller="TrainerDashboard" method="post">
+        <form asp-action="UpdateProfile"
+              asp-controller="TrainerDashboard"
+              method="post">
+
             @Html.AntiForgeryToken()
 
-            <div class="health-form-grid" style="grid-template-columns: repeat(2, 1fr);">
+            <div class="health-form-grid"
+                 style="grid-template-columns: repeat(2, 1fr);">
+
                 <div class="health-form-group">
-                    <label>Full Name</label>
-                    <input asp-for="FullName" class="form-control" required />
+                    <label asp-for="FullName">Full Name</label>
+                    <input asp-for="FullName"
+                           class="form-control"
+                           required />
+                    <span asp-validation-for="FullName"
+                          class="text-danger"></span>
                 </div>
 
                 <div class="health-form-group">
-                    <label>Phone Number</label>
-                    <input asp-for="PhoneNumber" class="form-control" placeholder="e.g. 0771234567" />
-                </div>
-
-                <div class="health-form-group">
-                    <label>Date of Birth</label>
-                    <input asp-for="DateOfBirth" type="date" class="form-control" required />
-                </div>
-
-                <div class="health-form-group">
-                    <label>Weight (kg)</label>
-                    <input asp-for="Weight" id="editWeight" type="number" step="0.1" class="form-control" required />
-                </div>
-
-                <div class="health-form-group">
-                    <label>Height (cm)</label>
-                    <input asp-for="Height" id="editHeight" type="number" step="0.1" class="form-control" required />
+                    <label asp-for="PhoneNumber">Phone Number</label>
+                    <input asp-for="PhoneNumber"
+                           class="form-control"
+                           placeholder="e.g. 0771234567" />
+                    <span asp-validation-for="PhoneNumber"
+                          class="text-danger"></span>
                 </div>
 
                 <div class="health-form-group">
                     <label>Email (Cannot be changed)</label>
-                    <input asp-for="Email" readonly class="form-control bg-light" />
+                    <input asp-for="Email"
+                           readonly
+                           class="form-control bg-light" />
                 </div>
-            </div>
 
-            <div class="health-form-group full-width" style="margin-top: 15px;">
-                <label>Medical Notes</label>
-                <textarea asp-for="MedicalNotes" class="form-control" rows="3" placeholder="Any allergies, conditions, etc..."></textarea>
             </div>
 
             <div style="margin-top: 25px; display: flex; justify-content: flex-end; gap: 10px;">
-                <button type="button" class="health-secondary-button" id="cancelModalBtn">Cancel</button>
-                <button type="submit" class="health-primary-button">Save Changes</button>
+                <button type="button"
+                        class="health-secondary-button"
+                        id="cancelModalBtn">
+                    Cancel
+                </button>
+
+                <button type="submit"
+                        class="health-primary-button">
+                    Save Changes
+                </button>
             </div>
+
         </form>
     </div>
 </div>
@@ -138,68 +209,129 @@
 <!-- UPLOAD PROFILE PICTURE MODAL -->
 <div class="ca-modal" id="uploadPicModal" hidden>
     <div class="ca-modal-content" style="max-width: 400px;">
-        <button type="button" class="ca-modal-close" id="closePicModalBtn" aria-label="Close">
+
+        <button type="button"
+                class="ca-modal-close"
+                id="closePicModalBtn"
+                aria-label="Close">
             &times;
         </button>
 
-        <h3 style="margin-bottom: 20px; text-align: center;">Update Profile Picture</h3>
+        <h3 style="margin-bottom: 20px; text-align: center;">
+            Update Profile Picture
+        </h3>
 
-        <form asp-action="UploadProfilePicture" asp-controller="TrainerDashboard" method="post" enctype="multipart/form-data">
+        <form asp-action="UploadProfilePicture"
+              asp-controller="TrainerDashboard"
+              method="post"
+              enctype="multipart/form-data">
+
             @Html.AntiForgeryToken()
 
             <div class="health-form-group" style="margin-bottom: 20px;">
                 <label>Select Image (JPG, PNG)</label>
-                <input type="file" name="profilePic" class="form-control" accept="image/*" required />
+                <input type="file"
+                       name="profilePic"
+                       class="form-control"
+                       accept=".jpg,.jpeg,.png"
+                       required />
             </div>
 
             <div style="display: flex; justify-content: flex-end; gap: 10px;">
-                <button type="button" class="health-secondary-button" id="cancelPicBtn">Cancel</button>
-                <button type="submit" class="health-primary-button">Upload</button>
+                <button type="button"
+                        class="health-secondary-button"
+                        id="cancelPicBtn">
+                    Cancel
+                </button>
+
+                <button type="submit"
+                        class="health-primary-button">
+                    Upload
+                </button>
             </div>
+
         </form>
     </div>
 </div>
 
 @section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+
     <script>
         document.addEventListener("DOMContentLoaded", function () {
-            // --- Edit Profile Modal Logic ---
-            const profileModal = document.getElementById("editProfileModal");
-            const editBtn = document.getElementById("editProfileBtn");
-            const closeBtn = document.getElementById("closeModalBtn");
-            const cancelBtn = document.getElementById("cancelModalBtn");
 
-            editBtn.addEventListener("click", () => { profileModal.hidden = false; });
+            // Edit profile modal
+            const profileModal =
+                document.getElementById("editProfileModal");
 
-            function closeProfileModal() { profileModal.hidden = true; }
+            const editBtn =
+                document.getElementById("editProfileBtn");
+
+            const closeBtn =
+                document.getElementById("closeModalBtn");
+
+            const cancelBtn =
+                document.getElementById("cancelModalBtn");
+
+            editBtn.addEventListener("click", function () {
+                profileModal.hidden = false;
+            });
+
+            function closeProfileModal() {
+                profileModal.hidden = true;
+            }
 
             closeBtn.addEventListener("click", closeProfileModal);
             cancelBtn.addEventListener("click", closeProfileModal);
 
-            profileModal.addEventListener("click", (e) => {
-                if (e.target === profileModal) closeProfileModal();
+            profileModal.addEventListener("click", function (event) {
+                if (event.target === profileModal) {
+                    closeProfileModal();
+                }
             });
 
-            // --- Upload Picture Modal Logic ---
-            const picModal = document.getElementById("uploadPicModal");
-            const editAvatarBtn = document.getElementById("editAvatarBtn");
-            const closePicModalBtn = document.getElementById("closePicModalBtn");
-            const cancelPicBtn = document.getElementById("cancelPicBtn");
+            // Profile picture modal
+            const picModal =
+                document.getElementById("uploadPicModal");
 
-            if (editAvatarBtn) {
-                editAvatarBtn.addEventListener("click", () => { picModal.hidden = false; });
+            const editAvatarBtn =
+                document.getElementById("editAvatarBtn");
+
+            const closePicModalBtn =
+                document.getElementById("closePicModalBtn");
+
+            const cancelPicBtn =
+                document.getElementById("cancelPicBtn");
+
+            editAvatarBtn.addEventListener("click", function () {
+                picModal.hidden = false;
+            });
+
+            function closePicModal() {
+                picModal.hidden = true;
             }
 
-            function closePicModal() { picModal.hidden = true; }
+            closePicModalBtn.addEventListener(
+                "click", closePicModal
+            );
 
-            if (closePicModalBtn) closePicModalBtn.addEventListener("click", closePicModal);
-            if (cancelPicBtn) cancelPicBtn.addEventListener("click", closePicModal);
+            cancelPicBtn.addEventListener(
+                "click", closePicModal
+            );
 
-            if (picModal) {
-                picModal.addEventListener("click", (e) => {
-                    if (e.target === picModal) closePicModal();
-                });
-            }
+            picModal.addEventListener("click", function (event) {
+                if (event.target === picModal) {
+                    closePicModal();
+                }
+            });
+
+            // Escape key closes open modals
+            document.addEventListener("keydown", function (event) {
+                if (event.key === "Escape") {
+                    closeProfileModal();
+                    closePicModal();
+                }
+            });
         });
     </script>
 }

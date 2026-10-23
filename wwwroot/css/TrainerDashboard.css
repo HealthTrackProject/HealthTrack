@@ -153,66 +153,171 @@ button {
     overflow: hidden;
 }
 
-/* TOPBAR */
 
+/* TRAINER TOPBAR */
 .topbar {
+    width: 100%;
     min-height: 83px;
     flex-shrink: 0;
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 20px;
+    gap: 24px;
     padding: 15px 30px;
-    background: white;
+    background: #fff;
     border-bottom: 1px solid var(--border);
+    box-sizing: border-box;
 }
 
-.topbar-left,
-.topbar-right {
+.topbar-left {
     display: flex;
     align-items: center;
-    gap: 17px;
+    flex: 1;
+    min-width: 0;
 }
 
-.topbar h1 {
+.topbar-heading h1 {
+    margin: 0;
     font-size: 21px;
     font-weight: 700;
+    line-height: 1.3;
+    color: var(--text, #17324d);
 }
 
 .topbar-subtitle {
-    margin-top: 5px;
-    color: var(--muted);
-    font-size: 12px;
+    margin: 5px 0 0;
+    color: var(--muted, #718096);
+    font-size: 13px;
 }
 
-.notification-button {
+.topbar-right {
     display: flex;
     align-items: center;
+    justify-content: flex-end;
+    gap: 16px;
+    flex-shrink: 0;
+}
+
+.topbar-greeting {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    white-space: nowrap;
+    color: var(--muted, #64748b);
+    font-size: 13px;
+}
+
+    .topbar-greeting i {
+        font-size: 17px;
+    }
+
+.notification-button,
+.user-avatar {
+    width: 42px;
+    height: 42px;
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
     justify-content: center;
-    width: 39px;
-    height: 39px;
-    border: 1px solid var(--border);
+    border: 1px solid var(--border, #dce5ed);
     border-radius: 50%;
-    background: white;
-    font-size: 18px;
+    background: #fff;
+    color: var(--primary, #1768b5);
+    font-size: 19px;
+    text-decoration: none;
 }
 
     .notification-button:hover {
-        color: var(--primary);
-        background: #e3f2fd;
+        background: #eaf4ff;
+        color: var(--primary, #1768b5);
     }
 
-.user-avatar {
-    display: flex;
+.trainer-profile-link {
+    display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 39px;
-    height: 39px;
+    flex-shrink: 0;
+    width: 42px;
+    height: 42px;
     border-radius: 50%;
-    background: #e3f2fd;
-    color: var(--primary-dark);
-    font-size: 21px;
+    overflow: hidden;
+    text-decoration: none;
 }
+
+.trainer-avatar-image {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 50%;
+}
+
+.trainer-identity {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    min-width: 100px;
+    max-width: 180px;
+}
+
+.trainer-name {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text, #17324d);
+    overflow-wrap: anywhere;
+}
+
+.trainer-role {
+    margin-top: 3px;
+    font-size: 12px;
+    color: var(--muted, #718096);
+}
+
+/* TABLET AND MOBILE */
+@media (max-width: 900px) {
+    .topbar {
+        padding: 12px 18px;
+        gap: 12px;
+    }
+
+    .topbar-right {
+        gap: 10px;
+    }
+
+    .topbar-greeting {
+        white-space: normal;
+        max-width: 150px;
+        font-size: 11px;
+    }
+
+    .trainer-identity {
+        max-width: 120px;
+        min-width: 0;
+    }
+}
+
+@media (max-width: 600px) {
+    .topbar {
+        align-items: flex-start;
+        flex-wrap: wrap;
+    }
+
+    .topbar-left {
+        flex-basis: 100%;
+    }
+
+    .topbar-right {
+        width: 100%;
+        justify-content: flex-start;
+        flex-wrap: wrap;
+    }
+
+    .topbar-greeting {
+        max-width: none;
+        white-space: normal;
+    }
+}
+
 
 /* PAGE CONTENT */
 
@@ -441,6 +546,487 @@ button {
         font-size: 12px;
         color: var(--muted);
     }
+/* =========================================
+   TRAINER APPOINTMENTS PAGE
+========================================= */
+
+.appointments-page {
+    width: 100%;
+    min-width: 0;
+    padding: 24px 28px;
+    box-sizing: border-box;
+}
+
+.appointments-heading {
+    margin-bottom: 24px;
+}
+
+    .appointments-heading h2 {
+        margin: 0 0 7px;
+        color: var(--text, #19354a);
+        font-size: 25px;
+        font-weight: 700;
+    }
+
+    .appointments-heading p {
+        margin: 0;
+        color: var(--muted, #718096);
+        font-size: 14px;
+        line-height: 1.5;
+    }
+
+/* Tabs */
+
+.trainer-tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 22px;
+}
+
+.trainer-tab {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 43px;
+    padding: 10px 19px;
+    border: 1px solid transparent;
+    border-radius: 9px;
+    background: transparent;
+    color: var(--muted, #718096);
+    font: inherit;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background .2s, color .2s, box-shadow .2s;
+}
+
+    .trainer-tab:hover {
+        background: #edf5ff;
+        color: var(--primary, #1976d2);
+    }
+
+    .trainer-tab.active {
+        border-color: #e5edf5;
+        background: #fff;
+        color: var(--primary, #1976d2);
+        box-shadow: 0 3px 10px rgba(19, 55, 72, .07);
+    }
+
+    .trainer-tab span {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 21px;
+        height: 21px;
+        padding: 0 5px;
+        border-radius: 20px;
+        background: #edf3f8;
+        color: inherit;
+        font-size: 11px;
+    }
+
+/* Table */
+
+.client-table-wrapper {
+    width: 100%;
+    overflow-x: auto;
+    border: 1px solid var(--border, #dce6ee);
+    border-radius: 12px;
+    background: #fff;
+    box-shadow: 0 4px 16px rgba(19, 55, 72, .045);
+}
+
+.appointment-table {
+    width: 100%;
+    min-width: 720px;
+    border-collapse: collapse;
+    text-align: left;
+}
+
+    .appointment-table[hidden] {
+        display: none !important;
+    }
+
+    .appointment-table th {
+        padding: 17px 22px;
+        border-bottom: 1px solid var(--border, #dce6ee);
+        background: #f5f9fc;
+        color: var(--muted, #718096);
+        font-size: 12px;
+        font-weight: 700;
+        white-space: nowrap;
+    }
+
+    .appointment-table td {
+        padding: 18px 22px;
+        border-bottom: 1px solid #e9eff4;
+        color: var(--text, #19354a);
+        font-size: 14px;
+        vertical-align: middle;
+    }
+
+    .appointment-table tbody tr:last-child td {
+        border-bottom: none;
+    }
+
+    .appointment-table tbody tr:hover {
+        background: #f9fcff;
+    }
+
+/* Status badges */
+
+.appointment-status {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 6px 13px;
+    border-radius: 30px;
+    font-size: 12px;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+    .appointment-status.pending {
+        background: #fff4d6;
+        color: #936200;
+    }
+
+    .appointment-status.approved {
+        background: #d9f3e1;
+        color: #176b3a;
+    }
+
+    .appointment-status.cancelled {
+        background: #fde2e2;
+        color: #a52828;
+    }
+
+/* Action buttons */
+
+.appointment-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 7px;
+}
+
+.btn-sm {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 36px;
+    padding: 8px 13px;
+    border: 1px solid #dce6ee;
+    border-radius: 7px;
+    background: #fff;
+    color: #19354a;
+    font-family: inherit;
+    font-size: 12px;
+    font-weight: 600;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: background .2s, color .2s, border-color .2s;
+}
+
+    .btn-sm:hover {
+        border-color: var(--primary, #1976d2);
+        background: #edf5ff;
+        color: var(--primary, #1976d2);
+    }
+
+    .btn-sm.btn-approve {
+        border-color: #b7e3c5;
+        background: #effaf3;
+        color: #176b3a;
+    }
+
+        .btn-sm.btn-approve:hover {
+            background: #d9f3e1;
+        }
+
+    .btn-sm.btn-cancel {
+        border-color: #f2c6c6;
+        color: #a52828;
+    }
+
+        .btn-sm.btn-cancel:hover {
+            background: #fff0f0;
+        }
+
+    .btn-sm.btn-view {
+        border-color: var(--primary, #1976d2);
+        color: var(--primary, #1976d2);
+    }
+
+        .btn-sm.btn-view:hover {
+            background: var(--primary, #1976d2);
+            color: #fff;
+        }
+
+/* =========================================
+   APPOINTMENT DETAILS POPUP
+========================================= */
+
+.appointment-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 99999;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+    padding: 20px;
+    background: rgba(15, 35, 55, .58);
+    -webkit-backdrop-filter: blur(4px);
+    backdrop-filter: blur(4px);
+    overflow-y: auto;
+}
+
+    .appointment-modal.is-open {
+        display: flex !important;
+    }
+
+.appointment-modal-dialog {
+    position: relative;
+    width: 100%;
+    max-width: 540px;
+    max-height: calc(100vh - 40px);
+    margin: auto;
+    overflow-y: auto;
+    box-sizing: border-box;
+    border: 1px solid rgba(255, 255, 255, .7);
+    border-radius: 18px;
+    background: #fff !important;
+    color: #19354a;
+    box-shadow: 0 24px 75px rgba(0, 0, 0, .24);
+    animation: appointmentModalEnter .22s ease-out;
+}
+
+@keyframes appointmentModalEnter {
+    from {
+        opacity: 0;
+        transform: translateY(12px) scale(.98);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+.appointment-modal-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 24px 26px;
+    border-bottom: 1px solid #e8eef4;
+    background: #fff;
+}
+
+.modal-title-group {
+    display: flex;
+    align-items: center;
+    gap: 13px;
+}
+
+.modal-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 46px;
+    height: 46px;
+    flex-shrink: 0;
+    border-radius: 13px;
+    background: #e8f3ff;
+    color: #1976d2;
+    font-size: 25px;
+}
+
+.appointment-modal-header h3 {
+    margin: 2px 0 6px;
+    color: #19354a;
+    font-size: 20px;
+    font-weight: 700;
+}
+
+.appointment-modal-header p {
+    margin: 0;
+    color: #718096;
+    font-size: 12px;
+    line-height: 1.5;
+}
+
+.modal-close {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    flex-shrink: 0;
+    border: 1px solid #e0e8ef;
+    border-radius: 9px;
+    background: #fff;
+    color: #526579;
+    font-size: 25px;
+    line-height: 1;
+    cursor: pointer;
+    transition: background .2s, color .2s;
+}
+
+    .modal-close:hover {
+        background: #fff0f0;
+        color: #b42318;
+    }
+
+.appointment-modal-body {
+    padding: 25px 26px;
+    background: #fff;
+}
+
+.modal-client-card {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 17px;
+    margin-bottom: 20px;
+    border: 1px solid #e6edf4;
+    border-radius: 12px;
+    background: #f7faff;
+}
+
+.modal-client-avatar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 52px;
+    height: 52px;
+    flex-shrink: 0;
+    border-radius: 50%;
+    background: #dceeff;
+    color: #1769aa;
+    font-size: 20px;
+    font-weight: 700;
+}
+
+.modal-label {
+    display: block;
+    margin-bottom: 7px;
+    color: #7b8a9b;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: .5px;
+}
+
+.modal-client-card h4 {
+    margin: 0 0 5px;
+    color: #19354a;
+    font-size: 16px;
+    font-weight: 700;
+}
+
+.modal-client-card p {
+    margin: 0;
+    color: #718096;
+    font-size: 12px;
+    overflow-wrap: anywhere;
+}
+
+.modal-details-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+}
+
+.modal-detail-item {
+    min-width: 0;
+    padding: 16px;
+    border: 1px solid #e6edf4;
+    border-radius: 11px;
+    background: #fff;
+}
+
+    .modal-detail-item strong {
+        color: #19354a;
+        font-size: 14px;
+        overflow-wrap: anywhere;
+    }
+
+.modal-detail-status {
+    grid-column: 1 / -1;
+}
+
+.appointment-modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    padding: 17px 26px 23px;
+    border-top: 1px solid #e8eef4;
+    background: #fff;
+}
+
+.modal-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 95px;
+    min-height: 40px;
+    padding: 9px 17px;
+    border: 1px solid transparent;
+    border-radius: 8px;
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.modal-button-secondary {
+    border-color: #dce6ee;
+    background: #fff;
+    color: #19354a;
+}
+
+    .modal-button-secondary:hover {
+        border-color: #1976d2;
+        background: #edf5ff;
+        color: #1976d2;
+    }
+
+/* Prevent page scrolling while popup is open */
+body.appointment-modal-open {
+    overflow: hidden !important;
+}
+
+/* Responsive */
+
+@media (max-width: 768px) {
+    .appointments-page {
+        padding: 18px 14px;
+    }
+
+    .appointment-modal {
+        padding: 12px;
+    }
+
+    .appointment-modal-header,
+    .appointment-modal-body {
+        padding: 19px;
+    }
+
+    .appointment-modal-footer {
+        padding: 15px 19px 19px;
+    }
+
+    .modal-details-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .modal-detail-status {
+        grid-column: auto;
+    }
+}
 
 /* =========================================
    TRAINER - MY CLIENTS PAGE
@@ -1795,3 +2381,801 @@ button {
         font-size: 11px;
         color: var(--muted);
     }
+
+/* Additive popup styles only. Existing theme and page layout remain unchanged. */
+.trainer-action-modal[hidden] {
+    display: none !important
+}
+
+.trainer-action-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 5000;
+    display: grid;
+    place-items: center;
+    padding: 20px
+}
+
+.trainer-action-backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(14,35,52,.42)
+}
+
+.trainer-action-dialog {
+    position: relative;
+    z-index: 1;
+    width: min(520px,100%);
+    max-height: min(80vh,720px);
+    overflow: auto;
+    background: #fff;
+    color: var(--text,#183447);
+    border: 1px solid var(--border,#e0eaf0);
+    border-radius: 14px;
+    padding: 24px;
+    box-shadow: 0 18px 55px rgba(20,50,75,.22)
+}
+
+    .trainer-action-dialog h3 {
+        margin: 0 36px 16px 0;
+        font-size: 20px;
+        color: var(--text,#183447)
+    }
+
+.trainer-action-x {
+    position: absolute;
+    right: 14px;
+    top: 10px;
+    border: 0;
+    background: transparent;
+    color: var(--muted,#718494);
+    font-size: 28px;
+    cursor: pointer
+}
+
+.trainer-action-footer {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 22px
+}
+
+.trainer-action-ok {
+    border: 0;
+    border-radius: 8px;
+    padding: 10px 16px;
+    cursor: pointer;
+    background: var(--primary,#1E88E5);
+    color: #fff;
+    font-weight: 600
+}
+
+.trainer-popup-details {
+    margin: 0;
+    display: grid;
+    gap: 10px
+}
+
+    .trainer-popup-details > div {
+        display: grid;
+        grid-template-columns: minmax(100px,.7fr) 1.3fr;
+        gap: 12px;
+        border-bottom: 1px solid var(--border,#e0eaf0);
+        padding: 8px 0
+    }
+
+    .trainer-popup-details dt {
+        color: var(--muted,#718494);
+        font-size: 13px
+    }
+
+    .trainer-popup-details dd {
+        margin: 0;
+        font-weight: 600;
+        overflow-wrap: anywhere
+    }
+
+.trainer-popup-form {
+    display: grid;
+    gap: 14px
+}
+
+    .trainer-popup-form label {
+        display: grid;
+        gap: 6px;
+        font-size: 13px;
+        font-weight: 600
+    }
+
+    .trainer-popup-form input {
+        width: 100%;
+        border: 1px solid var(--border,#e0eaf0);
+        border-radius: 8px;
+        padding: 10px 12px;
+        color: var(--text,#183447);
+        background: #fff;
+        font: inherit
+    }
+
+.trainer-initial-avatar {
+    display: grid;
+    place-items: center;
+    background: #e3f2fd;
+    color: var(--primary,#1E88E5);
+    font-weight: 700;
+    border-radius: 50%
+}
+
+body.trainer-modal-open {
+    overflow: hidden
+}
+
+/* My Clients additions: retains the existing HealthTrack blue theme. */
+.clients-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 20px
+}
+
+.clients-count {
+    font-size: 13px;
+    color: var(--muted,#718494);
+    white-space: nowrap
+}
+
+    .clients-count i {
+        color: var(--primary,#1e88e5);
+        margin-right: 5px
+    }
+
+.client-email {
+    font-size: 13px;
+    color: var(--muted,#718494)
+}
+
+.client-actions {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap
+}
+
+    .client-actions .health-secondary-button {
+        min-height: 36px;
+        padding: 8px 12px
+    }
+
+.client-table tbody tr[hidden] {
+    display: none !important
+}
+
+.trainer-action-modal[hidden] {
+    display: none !important
+}
+
+.trainer-action-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 5000;
+    display: grid;
+    place-items: center;
+    padding: 20px
+}
+
+.trainer-action-backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(14,35,52,.48);
+    backdrop-filter: blur(3px)
+}
+
+.trainer-action-dialog {
+    position: relative;
+    z-index: 1;
+    width: min(560px,100%);
+    max-height: min(84vh,760px);
+    overflow: auto;
+    background: #fff;
+    color: var(--text,#183447);
+    border: 1px solid var(--border,#e0eaf0);
+    border-radius: 16px;
+    padding: 26px;
+    box-shadow: 0 22px 65px rgba(20,50,75,.25);
+    animation: trainerPopupIn .18s ease-out
+}
+
+.trainer-popup-eyebrow {
+    margin-bottom: 8px;
+    color: var(--primary,#1e88e5);
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 1.3px
+}
+
+.trainer-action-dialog h3 {
+    margin: 0 38px 18px 0;
+    font-size: 22px;
+    color: var(--text,#183447)
+}
+
+.trainer-action-x {
+    position: absolute;
+    right: 15px;
+    top: 14px;
+    display: grid;
+    place-items: center;
+    width: 34px;
+    height: 34px;
+    border: 1px solid var(--border,#e0eaf0);
+    border-radius: 9px;
+    background: #fff;
+    color: var(--muted,#718494);
+    font-size: 24px;
+    cursor: pointer
+}
+
+    .trainer-action-x:hover {
+        background: #f5f9fc;
+        color: var(--primary,#1e88e5)
+    }
+
+.trainer-action-footer {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 20px;
+    padding-top: 15px;
+    border-top: 1px solid var(--border,#e0eaf0)
+}
+
+.trainer-client-profile {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 16px;
+    margin-bottom: 18px;
+    background: #f2f8fd;
+    border: 1px solid #e0edf7;
+    border-radius: 12px
+}
+
+.trainer-profile-avatar {
+    display: grid;
+    place-items: center;
+    flex: 0 0 58px;
+    width: 58px;
+    height: 58px;
+    border-radius: 50%;
+    background: #dceeff;
+    color: var(--primary,#1e88e5);
+    font-size: 26px
+}
+
+.trainer-client-profile h4 {
+    margin: 0 0 5px;
+    font-size: 16px;
+    color: var(--text,#183447)
+}
+
+.trainer-client-profile p {
+    margin: 0 0 7px;
+    color: var(--muted,#718494);
+    font-size: 13px;
+    overflow-wrap: anywhere
+}
+
+.trainer-progress-pill {
+    display: inline-block;
+    padding: 4px 9px;
+    border-radius: 20px;
+    background: #e1f4e9;
+    color: #197344;
+    font-size: 11px;
+    font-weight: 700
+}
+
+.trainer-popup-detail-grid {
+    display: grid;
+    grid-template-columns: repeat(2,minmax(0,1fr));
+    gap: 10px
+}
+
+    .trainer-popup-detail-grid > div {
+        padding: 13px;
+        border: 1px solid var(--border,#e0eaf0);
+        border-radius: 10px;
+        min-width: 0
+    }
+
+    .trainer-popup-detail-grid span {
+        display: block;
+        margin-bottom: 6px;
+        color: var(--muted,#718494);
+        font-size: 11px
+    }
+
+    .trainer-popup-detail-grid strong {
+        display: block;
+        font-size: 13px;
+        overflow-wrap: anywhere
+    }
+
+.trainer-popup-section {
+    margin-top: 18px;
+    padding: 15px;
+    border-radius: 10px;
+    background: #f8fafc
+}
+
+    .trainer-popup-section h4 {
+        margin: 0 0 8px;
+        font-size: 14px
+    }
+
+        .trainer-popup-section h4 i {
+            color: var(--primary,#1e88e5);
+            margin-right: 5px
+        }
+
+    .trainer-popup-section p, .trainer-popup-intro {
+        margin: 0;
+        color: var(--muted,#718494);
+        font-size: 13px;
+        line-height: 1.6
+    }
+
+.trainer-popup-form {
+    display: grid;
+    gap: 13px
+}
+
+    .trainer-popup-form .client-form-group {
+        margin: 0
+    }
+
+    .trainer-popup-form label {
+        display: block;
+        margin-bottom: 7px;
+        color: var(--text,#183447);
+        font-size: 13px;
+        font-weight: 650
+    }
+
+    .trainer-popup-form input, .trainer-popup-form select, .trainer-popup-form textarea {
+        box-sizing: border-box;
+        width: 100%;
+        min-height: 42px;
+        padding: 10px 12px;
+        border: 1px solid var(--border,#e0eaf0);
+        border-radius: 8px;
+        background: #fff;
+        color: var(--text,#183447);
+        font: inherit;
+        font-size: 13px
+    }
+
+    .trainer-popup-form textarea {
+        min-height: 90px;
+        resize: vertical
+    }
+
+    .trainer-popup-form small {
+        display: block;
+        margin-top: 7px;
+        color: var(--muted,#718494);
+        font-size: 11px;
+        line-height: 1.5
+    }
+
+.trainer-popup-form-actions {
+    display: flex;
+    gap: 9px;
+    flex-wrap: wrap;
+    margin-top: 17px
+}
+
+.trainer-popup-disclaimer {
+    margin: 15px 0 0;
+    padding: 10px 12px;
+    border-radius: 8px;
+    background: #f5f9fc;
+    color: var(--muted,#718494);
+    font-size: 11px;
+    line-height: 1.5
+}
+
+.trainer-initial-avatar {
+    display: grid;
+    place-items: center;
+    background: #e3f2fd;
+    color: var(--primary,#1e88e5);
+    font-weight: 700;
+    border-radius: 50%
+}
+
+body.trainer-modal-open {
+    overflow: hidden
+}
+
+@keyframes trainerPopupIn {
+    from {
+        opacity: 0;
+        transform: translateY(8px) scale(.99)
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1)
+    }
+}
+
+@media(max-width:768px) {
+    .clients-toolbar {
+        align-items: stretch;
+        flex-direction: column
+    }
+
+    .trainer-action-modal {
+        padding: 10px
+    }
+
+    .trainer-action-dialog {
+        padding: 20px;
+        max-height: calc(100vh - 20px)
+    }
+
+    .trainer-popup-detail-grid {
+        grid-template-columns: 1fr
+    }
+
+    .client-actions {
+        min-width: 190px
+    }
+}
+/* Popup overlay */
+.trainer-modal {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 99999;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+    .trainer-modal.is-open {
+        display: flex;
+    }
+
+body.trainer-modal-open {
+    overflow: hidden;
+}
+
+.trainer-modal-backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.60);
+    backdrop-filter: blur(4px);
+}
+
+.trainer-modal-card {
+    position: relative;
+    z-index: 1;
+    width: 100%;
+    max-width: 600px;
+    max-height: 90vh;
+    overflow-y: auto;
+    background: #fff;
+    border-radius: 18px;
+    box-shadow: 0 24px 70px rgba(0, 0, 0, 0.22);
+    animation: trainerModalEnter 0.2s ease-out;
+}
+
+@keyframes trainerModalEnter {
+    from {
+        opacity: 0;
+        transform: translateY(12px) scale(0.98);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+.trainer-modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 15px;
+    padding: 22px 26px;
+    border-bottom: 1px solid #e8edf4;
+}
+
+    .trainer-modal-header h2 {
+        margin: 0;
+        font-size: 22px;
+        font-weight: 700;
+        color: #172033;
+    }
+
+.trainer-modal-close {
+    width: 38px;
+    height: 38px;
+    border: none;
+    border-radius: 10px;
+    background: #f1f5f9;
+    color: #475569;
+    font-size: 27px;
+    cursor: pointer;
+}
+
+    .trainer-modal-close:hover {
+        background: #e2e8f0;
+    }
+
+.trainer-modal-content {
+    padding: 25px 26px;
+}
+
+.trainer-client-profile {
+    text-align: center;
+    padding-bottom: 22px;
+}
+
+.trainer-client-avatar {
+    width: 66px;
+    height: 66px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 12px;
+    border-radius: 50%;
+    background: #eaf2ff;
+    color: #1769d2;
+    font-size: 30px;
+}
+
+.trainer-client-profile h3 {
+    margin: 0 0 5px;
+    color: #172033;
+    font-size: 21px;
+}
+
+.trainer-client-profile p {
+    margin: 0;
+    color: #64748b;
+    font-size: 14px;
+}
+
+.trainer-detail-list {
+    border: 1px solid #e5eaf1;
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.trainer-detail-row {
+    display: grid;
+    grid-template-columns: minmax(120px, 0.8fr) minmax(0, 1.2fr);
+    gap: 16px;
+    padding: 14px 16px;
+    border-bottom: 1px solid #edf0f5;
+}
+
+    .trainer-detail-row:last-child {
+        border-bottom: none;
+    }
+
+    .trainer-detail-row span {
+        color: #64748b;
+        font-size: 14px;
+    }
+
+    .trainer-detail-row strong {
+        color: #1e293b;
+        font-size: 14px;
+        font-weight: 600;
+        overflow-wrap: anywhere;
+    }
+
+.trainer-modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 24px;
+}
+
+.trainer-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-height: 43px;
+    padding: 10px 17px;
+    border: 1px solid transparent;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.15s, transform 0.15s;
+}
+
+    .trainer-btn:disabled {
+        opacity: 0.65;
+        cursor: not-allowed;
+    }
+
+.trainer-btn-primary {
+    background: #1677ed;
+    color: #fff;
+}
+
+    .trainer-btn-primary:hover:not(:disabled) {
+        background: #0d62cc;
+    }
+
+.trainer-btn-secondary {
+    background: #fff;
+    border-color: #d9e2ee;
+    color: #334155;
+}
+
+    .trainer-btn-secondary:hover {
+        background: #f8fafc;
+    }
+
+.trainer-selected-client {
+    display: flex;
+    align-items: center;
+    gap: 13px;
+    padding: 14px;
+    margin-bottom: 22px;
+    background: #f4f8ff;
+    border: 1px solid #e0ebff;
+    border-radius: 12px;
+}
+
+    .trainer-selected-client > i {
+        font-size: 32px;
+        color: #1677ed;
+    }
+
+    .trainer-selected-client div {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        min-width: 0;
+    }
+
+    .trainer-selected-client strong {
+        color: #172033;
+    }
+
+    .trainer-selected-client span {
+        color: #64748b;
+        font-size: 13px;
+        overflow-wrap: anywhere;
+    }
+
+.trainer-form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 18px;
+}
+
+    .trainer-form-group label {
+        color: #334155;
+        font-size: 14px;
+        font-weight: 600;
+    }
+
+    .trainer-form-group input,
+    .trainer-form-group textarea {
+        width: 100%;
+        box-sizing: border-box;
+        padding: 12px 13px;
+        border: 1px solid #d8e0eb;
+        border-radius: 9px;
+        background: #fff;
+        color: #172033;
+        font: inherit;
+        outline: none;
+    }
+
+        .trainer-form-group input:focus,
+        .trainer-form-group textarea:focus {
+            border-color: #1677ed;
+            box-shadow: 0 0 0 3px rgba(22, 119, 237, 0.12);
+        }
+
+    .trainer-form-group textarea {
+        resize: vertical;
+    }
+
+.trainer-form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+}
+
+.trainer-message {
+    margin: 0 26px 22px;
+    padding: 12px 14px;
+    border-radius: 9px;
+    font-size: 14px;
+}
+
+    .trainer-message:empty {
+        display: none;
+    }
+
+    .trainer-message.success {
+        color: #166534;
+        background: #dcfce7;
+    }
+
+    .trainer-message.error {
+        color: #b91c1c;
+        background: #fee2e2;
+    }
+
+.trainer-error-text {
+    color: #b91c1c;
+    line-height: 1.6;
+}
+
+.trainer-spinner {
+    display: inline-block;
+    width: 15px;
+    height: 15px;
+    border: 2px solid rgba(255, 255, 255, 0.5);
+    border-top-color: #fff;
+    border-radius: 50%;
+    animation: trainerSpin 0.7s linear infinite;
+}
+
+@keyframes trainerSpin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+@media (max-width: 560px) {
+    .trainer-modal {
+        padding: 10px;
+    }
+
+    .trainer-modal-card {
+        max-height: 95vh;
+        border-radius: 14px;
+    }
+
+    .trainer-modal-header,
+    .trainer-modal-content {
+        padding: 18px;
+    }
+
+    .trainer-detail-row {
+        grid-template-columns: 1fr;
+        gap: 5px;
+    }
+
+    .trainer-form-grid {
+        grid-template-columns: 1fr;
+        gap: 0;
+    }
+
+    .trainer-modal-actions {
+        flex-direction: column;
+    }
+
+        .trainer-modal-actions .trainer-btn {
+            width: 100%;
+        }
+
+    .trainer-message {
+        margin: 0 18px 18px;
+    }
+}
