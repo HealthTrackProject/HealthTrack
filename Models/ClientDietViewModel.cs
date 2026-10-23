@@ -2,7 +2,7 @@
 
 namespace HealthTrack.Models
 {
-    public class DietViewModel
+    public class ClientDietViewModel
     {
         //  Meal History came from db
         public List<DietLog> MealHistory { get; set; } = new List<DietLog>();

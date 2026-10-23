@@ -294,7 +294,7 @@ namespace HealthTrack.Controllers
                 new MockMeal { Name = "Snacks", Time = "4:00 PM", Food = "Greek Yogurt, Nuts", Calories = 200, ImageUrl = "https://images.unsplash.com/photo-1488477181946-6428a0291777?w=200&h=200&fit=crop" }
             };
 
-            var model = new DietViewModel
+            var model = new ClientDietViewModel
             {
                 MealHistory = mealHistory,
                 TodayPlan = todayPlan
