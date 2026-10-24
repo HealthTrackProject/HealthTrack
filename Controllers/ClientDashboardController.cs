@@ -23,41 +23,66 @@ namespace HealthTrack.Controllers
             _userManager = userManager;
             _context = context;
         }
+
         public async Task<IActionResult> Index()
         {
             var user = await _userManager.GetUserAsync(User);
             if (user == null) return RedirectToPage("/Account/Login", new { area = "Identity" });
 
-            var healthProfile = await _context.HealthProfiles.FirstOrDefaultAsync(h => h.UserId == user.Id);
+            var today = DateTime.Today;
+            var now = DateTime.Now;
 
-            var startOfWeek = DateTime.Now.AddDays(-7);
-            var weeklyLogs = await _context.WorkoutLogs
-                .Where(w => w.ClientId == user.Id && w.WorkoutDate >= startOfWeek)
+            int daysSinceMonday = ((int)today.DayOfWeek + 6) % 7;
+            DateTime monday = today.AddDays(-daysSinceMonday);
+            DateTime nextMonday = monday.AddDays(7);
+
+            var weeklyWorkoutLogs = await _context.WorkoutLogs
+                .AsNoTracking()
+                .Where(w => w.ClientId == user.Id && w.WorkoutDate >= monday && w.WorkoutDate < nextMonday)
                 .ToListAsync();
 
+            decimal totalCalories = weeklyWorkoutLogs.Sum(w => Convert.ToDecimal(w.CaloriesBurned));
+            int weeklyCalories = (int)Math.Round(totalCalories);
+            int weeklyWorkouts = weeklyWorkoutLogs.Count;
+
+            var healthRecords = await _context.HealthRecords
+                .AsNoTracking()
+                .Where(h => h.ClientId == user.Id)
+                .OrderByDescending(h => h.RecordDate)
+                .ToListAsync();
+
+            var latestHealth = healthRecords.FirstOrDefault();
+
+            var healthProfile = await _context.HealthProfiles
+                .AsNoTracking()
+                .FirstOrDefaultAsync(h => h.UserId == user.Id);
+
+            decimal currentWeight = latestHealth?.Weight ?? healthProfile?.Weight ?? 0m;
+            decimal currentBMI = latestHealth?.BMI ?? healthProfile?.BMI ?? 0m;
+
             var upcomingAppointments = await _context.Appointments
+                .AsNoTracking()
                 .Include(a => a.Trainer)
-                .Where(a => a.ClientId == user.Id && a.AppointmentDate >= DateTime.Now && a.Status == "Approved")
+                .Where(a => a.ClientId == user.Id && a.AppointmentDate >= now && (a.Status == "Pending" || a.Status == "Approved" || a.Status == "Confirmed"))
                 .OrderBy(a => a.AppointmentDate)
                 .Take(3)
                 .ToListAsync();
 
-            var weightHistory = await _context.HealthRecords
-                .Where(h => h.ClientId == user.Id)
+            var weightHistory = healthRecords
                 .OrderByDescending(h => h.RecordDate)
                 .Take(6)
-                .ToListAsync();
+                .OrderBy(h => h.RecordDate)
+                .ToList();
 
-            weightHistory.Reverse();
+            var caloriesChartData = GetWeeklyCaloriesChartData(weeklyWorkoutLogs, monday);
 
             var model = new ClientDashboardViewModel
             {
-                FullName = user.FullName,
-                CurrentWeight = healthProfile?.Weight ?? 0,
-                CurrentBMI = healthProfile?.BMI ?? 0,
-                WeeklyCalories = weeklyLogs.Sum(w => w.CaloriesBurned),
-                WeeklyWorkouts = weeklyLogs.Count,
-
+                FullName = string.IsNullOrWhiteSpace(user.FullName) ? (user.UserName ?? "Client") : user.FullName,
+                CurrentWeight = currentWeight,
+                CurrentBMI = currentBMI,
+                WeeklyCalories = weeklyCalories,
+                WeeklyWorkouts = weeklyWorkouts,
                 UpcomingActivities = upcomingAppointments.Select(a => new UpcomingActivity
                 {
                     Title = $"Appointment with {a.Trainer?.FullName ?? "Trainer"}",
@@ -65,43 +90,25 @@ namespace HealthTrack.Controllers
                     Icon = "bi-calendar-event",
                     Color = "purple"
                 }).ToList(),
-
                 WeightChartData = weightHistory.Select(h => new ChartDataPoint
                 {
-                    Label = h.RecordDate.ToString("MMM"),
+                    Label = h.RecordDate.ToString("dd MMM"),
                     Value = (double)h.Weight
                 }).ToList(),
-
-                CaloriesChartData = GetWeeklyCaloriesChartData(weeklyLogs)
+                CaloriesChartData = caloriesChartData
             };
-
-            if (!model.WeightChartData.Any())
-            {
-                model.WeightChartData = new List<ChartDataPoint>
-                {
-                    new ChartDataPoint { Label = "Jan", Value = 70 },
-                    new ChartDataPoint { Label = "Feb", Value = 69 }
-                };
-            }
 
             return View(model);
         }
 
-        private List<ChartDataPoint> GetWeeklyCaloriesChartData(List<WorkoutLog> logs)
+        private List<ChartDataPoint> GetWeeklyCaloriesChartData(List<WorkoutLog> logs, DateTime monday)
         {
             var chartData = new List<ChartDataPoint>();
-            for (int i = 6; i >= 0; i--)
+            for (int i = 0; i < 7; i++)
             {
-                var date = DateTime.Now.AddDays(-i).Date;
-                var dayName = date.ToString("ddd");
-
-                var calories = logs.Where(w => w.WorkoutDate.Date == date).Sum(w => w.CaloriesBurned);
-
-                chartData.Add(new ChartDataPoint
-                {
-                    Label = dayName,
-                    Value = calories
-                });
+                DateTime date = monday.Date.AddDays(i);
+                decimal dailyCalories = logs.Where(w => w.WorkoutDate.Date == date).Sum(w => Convert.ToDecimal(w.CaloriesBurned));
+                chartData.Add(new ChartDataPoint { Label = date.ToString("ddd"), Value = (double)dailyCalories });
             }
             return chartData;
         }
@@ -113,19 +120,14 @@ namespace HealthTrack.Controllers
             if (user == null) return RedirectToPage("/Account/Login", new { area = "Identity" });
 
             var profile = await _context.HealthProfiles.FirstOrDefaultAsync(p => p.UserId == user.Id);
-
-            var records = await _context.HealthRecords
-                .Where(r => r.ClientId == user.Id)
-                .OrderByDescending(r => r.RecordDate)
-                .ToListAsync();
-
+            var records = await _context.HealthRecords.Where(r => r.ClientId == user.Id).OrderByDescending(r => r.RecordDate).ToListAsync();
             var latestRecord = records.FirstOrDefault();
 
             var model = new HealthRecordsViewModel
             {
-                CurrentWeight = profile?.Weight ?? 0,
-                CurrentHeight = profile?.Height ?? 0,
-                CurrentBMI = profile?.BMI ?? 0,
+                CurrentWeight = latestRecord?.Weight ?? profile?.Weight ?? 0,
+                CurrentHeight = latestRecord?.Height ?? profile?.Height ?? 0,
+                CurrentBMI = latestRecord?.BMI ?? profile?.BMI ?? 0,
                 LastHeartRate = latestRecord?.HeartRate ?? 0,
                 Records = records
             };
@@ -143,7 +145,7 @@ namespace HealthTrack.Controllers
             decimal bmi = 0;
             if (height > 0)
             {
-                decimal heightInMeters = height / 100;
+                var heightInMeters = height > 3 ? height / 100 : height;
                 bmi = weight / (heightInMeters * heightInMeters);
             }
 
@@ -181,6 +183,10 @@ namespace HealthTrack.Controllers
             }
 
             await _context.SaveChangesAsync();
+
+            TempData["ToastMessage"] = "Health record added successfully!";
+            TempData["ToastType"] = "success";
+
             return RedirectToAction("HealthRecords");
         }
 
@@ -196,6 +202,14 @@ namespace HealthTrack.Controllers
             {
                 _context.HealthRecords.Remove(record);
                 await _context.SaveChangesAsync();
+
+                TempData["ToastMessage"] = "Health record deleted successfully.";
+                TempData["ToastType"] = "success";
+            }
+            else
+            {
+                TempData["ToastMessage"] = "Record not found.";
+                TempData["ToastType"] = "error";
             }
 
             return RedirectToAction("HealthRecords");
@@ -207,19 +221,29 @@ namespace HealthTrack.Controllers
             var user = await _userManager.GetUserAsync(User);
             if (user == null) return RedirectToPage("/Account/Login", new { area = "Identity" });
 
+            var today = DateTime.Today;
+            var tomorrow = today.AddDays(1);
+
             var workoutHistory = await _context.WorkoutLogs
+                .AsNoTracking()
                 .Where(w => w.ClientId == user.Id)
                 .OrderByDescending(w => w.WorkoutDate)
                 .ToListAsync();
 
-            var currentPlan = new List<WorkoutDay>
+            var assignedPlans = await _context.WorkoutPlans
+                .AsNoTracking()
+                .Where(p => p.ClientId == user.Id && p.StartDate < tomorrow && p.EndDate >= today)
+                .OrderBy(p => p.StartDate)
+                .ToListAsync();
+
+            var currentPlan = assignedPlans.Select(plan => new WorkoutDay
             {
-                new WorkoutDay { Day = "Monday", MuscleGroup = "Chest & Arms", Exercises = "Push-ups, Bench Press, Bicep Curls" },
-                new WorkoutDay { Day = "Tuesday", MuscleGroup = "Legs", Exercises = "Squats, Lunges, Leg Press" },
-                new WorkoutDay { Day = "Wednesday", MuscleGroup = "Cardio", Exercises = "Running, Cycling, HIIT" },
-                new WorkoutDay { Day = "Thursday", MuscleGroup = "Back & Shoulders", Exercises = "Deadlifts, Shoulder Press" },
-                new WorkoutDay { Day = "Friday", MuscleGroup = "Full Body", Exercises = "Circuit Training" }
-            };
+                Day = today.ToString("dddd"),
+                MuscleGroup = plan.PlanName,
+                Exercises = string.IsNullOrWhiteSpace(plan.Description)
+                    ? "Please follow the instructions provided by your trainer."
+                    : plan.Description
+            }).ToList();
 
             var model = new WorkoutViewModel
             {
@@ -270,6 +294,9 @@ namespace HealthTrack.Controllers
             _context.WorkoutLogs.Add(newLog);
             await _context.SaveChangesAsync();
 
+            TempData["ToastMessage"] = "Workout logged successfully!";
+            TempData["ToastType"] = "success";
+
             return RedirectToAction("Workout");
         }
 
@@ -279,26 +306,39 @@ namespace HealthTrack.Controllers
             var user = await _userManager.GetUserAsync(User);
             if (user == null) return RedirectToPage("/Account/Login", new { area = "Identity" });
 
-            var mealHistory = await _context.DietLogs
+            var today = DateTime.Today;
+            var mealHistory = await _context.DietLogs.AsNoTracking()
                 .Where(d => d.ClientId == user.Id)
                 .OrderByDescending(d => d.MealDate)
                 .ToListAsync();
 
-            var todayPlan = new List<MockMeal>
+            var assignedPlans = await _context.DietPlans.AsNoTracking()
+                .Where(p => p.ClientId == user.Id && p.StartDate < today.AddDays(1) && p.EndDate >= today)
+                .OrderBy(p => p.StartDate)
+                .ToListAsync();
+
+            var foodImages = new[]
             {
-                new MockMeal { Name = "Breakfast", Time = "7:00 AM", Food = "Oatmeal, Banana, Almonds", Calories = 350, ImageUrl = "https://images.unsplash.com/photo-1517673132405-a56a62b18caf?w=200&h=200&fit=crop" },
-                new MockMeal { Name = "Lunch", Time = "12:00 PM", Food = "Grilled Chicken, Brown Rice, Salad", Calories = 550, ImageUrl = "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=200&h=200&fit=crop" },
-                new MockMeal { Name = "Dinner", Time = "7:00 PM", Food = "Fish, Vegetables, Quinoa", Calories = 450, ImageUrl = "https://images.unsplash.com/photo-1467003909585-2f8a72700288?w=200&h=200&fit=crop" },
-                new MockMeal { Name = "Snacks", Time = "4:00 PM", Food = "Greek Yogurt, Nuts", Calories = 200, ImageUrl = "https://images.unsplash.com/photo-1488477181946-6428a0291777?w=200&h=200&fit=crop" }
+                "https://images.unsplash.com/photo-1512621776951-a57141f2eefd?auto=format&fit=crop&w=480&q=80",
+                "https://images.unsplash.com/photo-1547592180-85f173990554?auto=format&fit=crop&w=480&q=80",
+                "https://images.unsplash.com/photo-1490645935967-10de6ba17061?auto=format&fit=crop&w=480&q=80",
+                "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=480&q=80"
             };
 
-            var model = new ClientDietViewModel
+            var todayPlan = assignedPlans.Select((plan, index) => new MockMeal
+            {
+                Name = plan.PlanName,
+                Time = $"Assigned plan • {plan.StartDate:dd MMM} – {plan.EndDate:dd MMM}",
+                Food = string.IsNullOrWhiteSpace(plan.Description) ? "No description was added by your trainer." : plan.Description,
+                Calories = 0,
+                ImageUrl = foodImages[index % foodImages.Length]
+            }).ToList();
+
+            return View(new ClientDietViewModel
             {
                 MealHistory = mealHistory,
                 TodayPlan = todayPlan
-            };
-
-            return View(model);
+            });
         }
 
         [HttpPost]
@@ -338,6 +378,9 @@ namespace HealthTrack.Controllers
 
             _context.DietLogs.Add(newLog);
             await _context.SaveChangesAsync();
+
+            TempData["ToastMessage"] = "Meal logged successfully!";
+            TempData["ToastType"] = "success";
 
             return RedirectToAction("Diet");
         }
@@ -383,7 +426,12 @@ namespace HealthTrack.Controllers
                 var trainers = await _userManager.GetUsersInRoleAsync("Trainer");
                 preferredTrainerId = trainers.FirstOrDefault()?.Id;
 
-                if (preferredTrainerId == null) return RedirectToAction("Appointments");
+                if (preferredTrainerId == null)
+                {
+                    TempData["ToastMessage"] = "No trainers are currently available.";
+                    TempData["ToastType"] = "error";
+                    return RedirectToAction("Appointments");
+                }
             }
 
             var newAppointment = new Appointment
@@ -398,7 +446,6 @@ namespace HealthTrack.Controllers
             _context.Appointments.Add(newAppointment);
             await _context.SaveChangesAsync();
 
-            // --- NEW NOTIFICATION LOGIC ADDED HERE ---
             var newNotification = new Notification
             {
                 UserId = user.Id,
@@ -409,7 +456,9 @@ namespace HealthTrack.Controllers
             };
             _context.Notifications.Add(newNotification);
             await _context.SaveChangesAsync();
-            // -----------------------------------------
+
+            TempData["ToastMessage"] = "Appointment requested successfully! Pending approval.";
+            TempData["ToastType"] = "success";
 
             return RedirectToAction("Appointments");
         }
@@ -427,6 +476,14 @@ namespace HealthTrack.Controllers
             {
                 appointment.Status = "Cancelled";
                 await _context.SaveChangesAsync();
+
+                TempData["ToastMessage"] = "Appointment cancelled successfully.";
+                TempData["ToastType"] = "success";
+            }
+            else
+            {
+                TempData["ToastMessage"] = "Appointment not found.";
+                TempData["ToastType"] = "error";
             }
 
             return RedirectToAction("Appointments");
@@ -438,53 +495,48 @@ namespace HealthTrack.Controllers
             var user = await _userManager.GetUserAsync(User);
             if (user == null) return RedirectToPage("/Account/Login", new { area = "Identity" });
 
-            var progressRecords = await _context.ProgressRecords
-                .Where(p => p.ClientId == user.Id)
-                .OrderBy(p => p.RecordDate)
-                .ToListAsync();
-
-            var healthRecords = await _context.HealthRecords
-                .Where(h => h.ClientId == user.Id)
-                .OrderBy(h => h.RecordDate)
-                .ToListAsync();
-
-            var workoutLogs = await _context.WorkoutLogs
-                .Where(w => w.ClientId == user.Id)
-                .OrderBy(w => w.WorkoutDate)
-                .ToListAsync();
+            var progressRecords = await _context.ProgressRecords.AsNoTracking()
+                .Where(p => p.ClientId == user.Id).OrderBy(p => p.RecordDate).ToListAsync();
+            var healthRecords = await _context.HealthRecords.AsNoTracking()
+                .Where(h => h.ClientId == user.Id).OrderBy(h => h.RecordDate).ToListAsync();
+            var workoutLogs = await _context.WorkoutLogs.AsNoTracking()
+                .Where(w => w.ClientId == user.Id).OrderBy(w => w.WorkoutDate).ToListAsync();
+            var profile = await _context.HealthProfiles.AsNoTracking()
+                .FirstOrDefaultAsync(p => p.UserId == user.Id);
 
             var latestHealth = healthRecords.LastOrDefault();
             var model = new ProgressViewModel
             {
-                CurrentWeight = latestHealth?.Weight ?? 0,
-                CurrentBMI = latestHealth?.BMI ?? 0,
-                TotalCaloriesBurned = workoutLogs.Sum(w => w.CaloriesBurned),
-                TotalWorkouts = workoutLogs.Count,
+                CurrentWeight = latestHealth?.Weight ?? profile?.Weight ?? 0,
+                CurrentBMI = latestHealth?.BMI ?? profile?.BMI ?? 0,
+                TotalCaloriesBurned = workoutLogs.Count > 0 ? workoutLogs.Sum(w => w.CaloriesBurned) : progressRecords.Sum(p => p.CaloriesBurned),
+                TotalWorkouts = workoutLogs.Count > 0 ? workoutLogs.Count : progressRecords.Sum(p => p.WorkoutsCompleted)
             };
 
             if (healthRecords.Count > 1)
             {
-                var first = healthRecords.First().Weight;
-                var last = healthRecords.Last().Weight;
-                var change = last - first;
-                model.WeightChange = change > 0 ? $"+{change.ToString("0.0")} kg" : $"{change.ToString("0.0")} kg";
+                var change = healthRecords.Last().Weight - healthRecords.First().Weight;
+                model.WeightChange = change > 0 ? $"+{change:0.0} kg" : $"{change:0.0} kg";
             }
+            else model.WeightChange = "0.0 kg";
 
-            var now = DateTime.Now;
-            var last12Months = Enumerable.Range(0, 12).Select(i => now.AddMonths(-i)).OrderBy(d => d).ToList();
-
-            foreach (var month in last12Months)
+            var firstMonth = new DateTime(DateTime.Today.Year, DateTime.Today.Month, 1).AddMonths(-11);
+            for (int i = 0; i < 12; i++)
             {
-                model.Labels.Add(month.ToString("MMM"));
+                var monthStart = firstMonth.AddMonths(i);
+                var nextMonth = monthStart.AddMonths(1);
+                model.Labels.Add(monthStart.ToString("MMM"));
 
-                var hRecord = healthRecords.FirstOrDefault(h => h.RecordDate.Month == month.Month && h.RecordDate.Year == month.Year);
-                var wRecords = workoutLogs.Where(w => w.WorkoutDate.Month == month.Month && w.WorkoutDate.Year == month.Year).ToList();
-                var pRecord = progressRecords.FirstOrDefault(p => p.RecordDate.Month == month.Month && p.RecordDate.Year == month.Year);
+                var monthHealth = healthRecords.Where(h => h.RecordDate >= monthStart && h.RecordDate < nextMonth).OrderByDescending(h => h.RecordDate).FirstOrDefault();
+                var monthProgress = progressRecords.Where(p => p.RecordDate >= monthStart && p.RecordDate < nextMonth).OrderByDescending(p => p.RecordDate).FirstOrDefault();
+                var monthWorkouts = workoutLogs.Where(w => w.WorkoutDate >= monthStart && w.WorkoutDate < nextMonth).ToList();
 
-                model.WeightData.Add((double)(hRecord?.Weight ?? pRecord?.Weight ?? 0));
-                model.BMIData.Add((double)(hRecord?.BMI ?? pRecord?.BMI ?? 0));
-                model.CaloriesData.Add(wRecords.Sum(w => w.CaloriesBurned) > 0 ? wRecords.Sum(w => w.CaloriesBurned) : (pRecord?.CaloriesBurned ?? 0));
-                model.WorkoutsData.Add(wRecords.Count > 0 ? wRecords.Count : (pRecord?.WorkoutsCompleted ?? 0));
+                model.WeightData.Add((double)(monthHealth?.Weight ?? monthProgress?.Weight ?? 0));
+                model.BMIData.Add((double)(monthHealth?.BMI ?? monthProgress?.BMI ?? 0));
+                var monthProgressRecords = progressRecords.Where(p => p.RecordDate >= monthStart && p.RecordDate < nextMonth).ToList();
+
+                model.CaloriesData.Add(monthWorkouts.Count > 0 ? monthWorkouts.Sum(w => w.CaloriesBurned) : monthProgressRecords.Sum(p => p.CaloriesBurned));
+                model.WorkoutsData.Add(monthWorkouts.Count > 0 ? monthWorkouts.Count : monthProgressRecords.Sum(p => p.WorkoutsCompleted));
             }
 
             return View(model);
@@ -506,14 +558,8 @@ namespace HealthTrack.Controllers
                 Title = n.Title,
                 Message = n.Message,
                 Time = GetRelativeTime(n.CreatedAt),
-
-                Icon = n.Title.ToLower().Contains("workout") ? "bi-activity" :
-                       n.Title.ToLower().Contains("appointment") ? "bi-calendar-check" :
-                       n.Title.ToLower().Contains("diet") || n.Title.ToLower().Contains("meal") ? "bi-egg-fried" : "bi-bell",
-
-                Color = n.Title.ToLower().Contains("workout") ? "blue" :
-                        n.Title.ToLower().Contains("appointment") ? "green" :
-                        n.Title.ToLower().Contains("diet") || n.Title.ToLower().Contains("meal") ? "orange" : "purple"
+                Icon = n.Title.ToLower().Contains("workout") ? "bi-activity" : n.Title.ToLower().Contains("appointment") ? "bi-calendar-check" : n.Title.ToLower().Contains("diet") || n.Title.ToLower().Contains("meal") ? "bi-egg-fried" : "bi-bell",
+                Color = n.Title.ToLower().Contains("workout") ? "blue" : n.Title.ToLower().Contains("appointment") ? "green" : n.Title.ToLower().Contains("diet") || n.Title.ToLower().Contains("meal") ? "orange" : "purple"
             }).ToList();
 
             return View(notifications);
@@ -522,42 +568,53 @@ namespace HealthTrack.Controllers
         private string GetRelativeTime(DateTime dateTime)
         {
             var timeSpan = DateTime.Now.Subtract(dateTime);
-
             if (timeSpan <= TimeSpan.FromSeconds(60)) return "just now";
             if (timeSpan <= TimeSpan.FromMinutes(60)) return timeSpan.Minutes > 1 ? $"{timeSpan.Minutes} minutes ago" : "1 minute ago";
             if (timeSpan <= TimeSpan.FromHours(24)) return timeSpan.Hours > 1 ? $"{timeSpan.Hours} hours ago" : "1 hour ago";
             if (timeSpan <= TimeSpan.FromDays(30)) return timeSpan.Days > 1 ? $"{timeSpan.Days} days ago" : "1 day ago";
-
             return dateTime.ToString("dd MMM yyyy");
         }
 
         // ---- Profile Actions ----
+        [HttpGet]
         public async Task<IActionResult> ManageProfile()
         {
             var user = await _userManager.GetUserAsync(User);
             if (user == null) return RedirectToPage("/Account/Login", new { area = "Identity" });
 
             var roles = await _userManager.GetRolesAsync(user);
-            ViewBag.Role = roles.Count > 0 ? roles[0] : "Client";
+            ViewBag.Role = roles.FirstOrDefault() ?? "Client";
 
-            var healthProfile = await _context.HealthProfiles.FirstOrDefaultAsync(p => p.UserId == user.Id);
+            var healthProfile = await _context.HealthProfiles.AsNoTracking().FirstOrDefaultAsync(p => p.UserId == user.Id);
+            var healthRecords = await _context.HealthRecords.AsNoTracking().Where(r => r.ClientId == user.Id).OrderByDescending(r => r.RecordDate).ToListAsync();
 
-            if (healthProfile == null)
+            var latestValidRecord = healthRecords.FirstOrDefault(r => r.Weight > 0 && r.Height > 0 && ((r.Height >= 0.5m && r.Height <= 2.5m) || (r.Height >= 100m && r.Height <= 250m)));
+
+            decimal weight = latestValidRecord?.Weight ?? 0m;
+            decimal heightCm = 0m;
+            decimal bmi = 0m;
+
+            if (latestValidRecord != null)
             {
-                healthProfile = new HealthProfile { UserId = user.Id, Weight = 0, Height = 0, DateOfBirth = DateTime.Now.AddYears(-20) };
+                heightCm = latestValidRecord.Height <= 2.5m ? latestValidRecord.Height * 100m : latestValidRecord.Height;
+                if (heightCm > 0)
+                {
+                    var heightMetres = heightCm / 100m;
+                    bmi = weight / (heightMetres * heightMetres);
+                }
             }
 
             var model = new ManageProfileViewModel
             {
-                FullName = user.FullName,
-                Email = user.Email,
+                FullName = user.FullName ?? string.Empty,
+                Email = user.Email ?? string.Empty,
                 PhoneNumber = user.PhoneNumber,
                 ProfilePictureUrl = user.ProfilePictureUrl,
-                DateOfBirth = healthProfile.DateOfBirth == default ? DateTime.Now.AddYears(-20) : healthProfile.DateOfBirth,
-                Weight = healthProfile.Weight,
-                Height = healthProfile.Height,
-                BMI = healthProfile.BMI,
-                MedicalNotes = healthProfile.MedicalNotes
+                DateOfBirth = healthProfile?.DateOfBirth ?? DateTime.Now.AddYears(-20),
+                MedicalNotes = healthProfile?.MedicalNotes,
+                Weight = weight,
+                Height = heightCm,
+                BMI = bmi
             };
 
             return View(model);
@@ -577,6 +634,8 @@ namespace HealthTrack.Controllers
 
                 if (!allowedExtensions.Contains(extension))
                 {
+                    TempData["ToastMessage"] = "Invalid image format. Please upload JPG or PNG.";
+                    TempData["ToastType"] = "error";
                     return RedirectToAction("ManageProfile");
                 }
 
@@ -597,6 +656,9 @@ namespace HealthTrack.Controllers
 
                 user.ProfilePictureUrl = fileName;
                 await _userManager.UpdateAsync(user);
+
+                TempData["ToastMessage"] = "Profile picture updated successfully!";
+                TempData["ToastType"] = "success";
             }
 
             return RedirectToAction("ManageProfile");
@@ -608,6 +670,8 @@ namespace HealthTrack.Controllers
         {
             if (!ModelState.IsValid)
             {
+                TempData["ToastMessage"] = "Please check your input and try again.";
+                TempData["ToastType"] = "error";
                 return RedirectToAction("ManageProfile");
             }
 
@@ -628,11 +692,11 @@ namespace HealthTrack.Controllers
 
             healthProfile.DateOfBirth = model.DateOfBirth;
             healthProfile.Weight = model.Weight;
-            healthProfile.Height = model.Height;
+            healthProfile.Height = model.Height > 3 ? model.Height / 100 : model.Height;
 
             if (model.Height > 0)
             {
-                decimal heightInMeters = model.Height / 100;
+                decimal heightInMeters = model.Height > 3 ? model.Height / 100 : model.Height;
                 healthProfile.BMI = model.Weight / (heightInMeters * heightInMeters);
             }
             else
@@ -644,11 +708,13 @@ namespace HealthTrack.Controllers
 
             await _context.SaveChangesAsync();
 
+            TempData["ToastMessage"] = "Profile updated successfully!";
+            TempData["ToastType"] = "success";
+
             return RedirectToAction("ManageProfile");
         }
     }
 
-    // Simple model class for Notifications
     public class NotificationItem
     {
         public string Title { get; set; } = string.Empty;

@@ -1,4 +1,16 @@
-﻿<!DOCTYPE html>
+﻿@using Microsoft.AspNetCore.Identity
+@using HealthTrack.Models
+@inject UserManager<ApplicationUser> UserManager
+
+@{
+    var currentUser = await UserManager.GetUserAsync(User);
+    var displayName = currentUser?.FullName?.Split(' ')[0] ?? "Admin";
+    var profilePic = string.IsNullOrEmpty(currentUser?.ProfilePictureUrl)
+        ? "https://ui-avatars.com/api/?name=" + displayName + "&background=random"
+        : Url.Content("~/uploads/profiles/" + currentUser.ProfilePictureUrl);
+}
+
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="utf-8" />
@@ -10,6 +22,74 @@
     <link rel="stylesheet" href="~/css/AdminDashboard.css" />
     <link rel="stylesheet" href="~/css/site.css" />
 
+    <style>
+            /* Custom Topbar Styles to match the Client Dashboard */
+            .topbar-custom {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                padding: 20px 30px;
+                background-color: #fff;
+                border-bottom: 1px solid #edf2f5;
+            }
+
+            .topbar-left-custom h1 {
+                font-size: 24px;
+                font-weight: 700;
+                color: #1a1a1a;
+                margin: 0;
+                display: flex;
+                align-items: center;
+                gap: 8px;
+            }
+
+            .topbar-left-custom p {
+                font-size: 14px;
+                color: #6c757d;
+                margin: 4px 0 0 0;
+            }
+
+            .topbar-right-custom {
+                display: flex;
+                align-items: center;
+                gap: 20px;
+            }
+
+            .datetime-text {
+                font-size: 13px;
+                color: #6c757d;
+                font-weight: 500;
+            }
+
+            .icon-btn {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                width: 40px;
+                height: 40px;
+                border-radius: 50%;
+                background-color: #fff;
+                border: 1px solid #e5e7eb;
+                color: #6c757d;
+                text-decoration: none;
+                transition: all 0.2s;
+            }
+
+                .icon-btn:hover {
+                    background-color: #f3f4f6;
+                    color: #1a1a1a;
+                }
+
+            .profile-avatar-img {
+                width: 40px;
+                height: 40px;
+                border-radius: 50%;
+                object-fit: cover;
+                border: 2px solid #e5e7eb;
+                cursor: pointer;
+            }
+    </style>
+
     @await RenderSectionAsync("Styles", required: false)
 </head>
 <body>
@@ -17,7 +97,6 @@
 
         <!-- SIDEBAR -->
         <aside class="sidebar" id="sidebar">
-            <!-- Fixed: Changed logo icon to heart-pulse and linked to Home -->
             <a asp-controller="Home" asp-action="Index" class="brand">
                 <span class="brand-icon">
                     <i class="bi bi-heart-pulse-fill"></i>
@@ -33,12 +112,6 @@
                 </a>
                 <a asp-controller="AdminDashboard" asp-action="ManageUser" class="side-link @(ViewData["ActivePage"]?.ToString() == "ManageUser" ? "active" : "")">
                     <i class="bi bi-people-fill"></i> <span>Manage Users</span>
-                </a>
-                <a asp-controller="AdminDashboard" asp-action="ManageClient" class="side-link @(ViewData["ActivePage"]?.ToString() == "ManageClient" ? "active" : "")">
-                    <i class="bi bi-person-badge-fill"></i> <span>Manage Clients</span>
-                </a>
-                <a asp-controller="AdminDashboard" asp-action="ManageTrainers" class="side-link @(ViewData["ActivePage"]?.ToString() == "ManageTrainers" ? "active" : "")">
-                    <i class="bi bi-person-video3"></i> <span>Manage Trainers</span>
                 </a>
                 <a asp-controller="AdminDashboard" asp-action="Appointments" class="side-link @(ViewData["ActivePage"]?.ToString() == "Appointments" ? "active" : "")">
                     <i class="bi bi-calendar-check-fill"></i> <span>Appointments</span>
@@ -68,21 +141,26 @@
 
         <!-- MAIN CONTENT -->
         <div class="main-panel">
-            <header class="topbar">
-                <div class="topbar-left">
-                    <div>
-                        <h1>@(ViewData["Heading"] ?? "Admin Panel")</h1>
-                        <p class="topbar-subtitle">System Management</p>
-                    </div>
+
+            <!-- NEW TOPBAR -->
+            <header class="topbar-custom">
+                <div class="topbar-left-custom">
+                    <h1>Welcome Back @displayName <span style="font-size: 20px;">👋</span></h1>
+                    <p>Your system management space</p>
                 </div>
 
-                <div class="topbar-right">
-                    <a asp-controller="AdminDashboard" asp-action="Notifications" class="notification-button">
-                        <i class="bi bi-bell"></i>
+                <div class="topbar-right-custom">
+                    <!-- Live Date & Time -->
+                    <div class="datetime-text" id="live-datetime"></div>
+
+                    <!-- Notification Bell -->
+                    <a asp-controller="AdminDashboard" asp-action="Notifications" class="icon-btn">
+                        <i class="bi bi-bell" style="font-size: 18px;"></i>
                     </a>
-                    <!-- Fixed: Changed top right icon to User Profile -->
-                    <a asp-controller="AdminDashboard" asp-action="MyProfile" class="user-avatar">
-                        <i class="bi bi-person-fill"></i>
+
+                    <!-- User Profile Image -->
+                    <a asp-controller="AdminDashboard" asp-action="MyProfile">
+                        <img src="@profilePic" alt="Profile" class="profile-avatar-img" onerror="this.src='https://ui-avatars.com/api/?name=Admin&background=random'" />
                     </a>
                 </div>
             </header>
@@ -90,22 +168,44 @@
             <main class="page-content">
                 @RenderBody()
             </main>
-
             <partial name="_Footer" />
         </div>
     </div>
 
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <partial name="_ToastifyMessages" />
+
     <script>
-        // Optional: Add the mobile sidebar toggle if needed
-        const menuToggle = document.getElementById("menuToggle");
-        const sidebar = document.getElementById("sidebar");
-        if (menuToggle && sidebar) {
-        menuToggle.addEventListener("click", function () {
-        sidebar.classList.toggle("sidebar-open");
-        });
-        }
+            // Sidebar toggle logic
+            const menuToggle = document.getElementById("menuToggle");
+            const sidebar = document.getElementById("sidebar");
+            if (menuToggle && sidebar) {
+                menuToggle.addEventListener("click", function () {
+                    sidebar.classList.toggle("sidebar-open");
+                });
+            }
+
+            // Live Date and Time logic (updates every second)
+            function updateClock() {
+                const now = new Date();
+
+                // Format: Sat, Oct 24, 2026 • 07:58 PM
+                const options = { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' };
+                const datePart = now.toLocaleDateString('en-US', options);
+
+                let hours = now.getHours();
+                const minutes = now.getMinutes().toString().padStart(2, '0');
+                const ampm = hours >= 12 ? 'PM' : 'AM';
+                hours = hours % 12;
+                hours = hours ? hours : 12; // the hour '0' should be '12'
+                const timePart = hours + ':' + minutes + ' ' + ampm;
+
+                document.getElementById('live-datetime').textContent = datePart + ' • ' + timePart;
+            }
+
+            setInterval(updateClock, 1000);
+            updateClock(); // Run immediately on load
     </script>
     @await RenderSectionAsync("Scripts", required: false)
 </body>

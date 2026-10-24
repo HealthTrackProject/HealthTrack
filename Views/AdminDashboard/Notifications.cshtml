@@ -1,78 +1,140 @@
-﻿@{
+﻿@model IEnumerable<HealthTrack.Models.Notification>
+@{
     Layout = "~/Views/Shared/_AdminLayout.cshtml";
     ViewData["Title"] = "Notifications";
     ViewData["Heading"] = "Notifications";
     ViewData["ActivePage"] = "Notifications";
+
+    // Helper function to format dates like "10 minutes ago"
+    string GetRelativeTime(DateTime dateTime)
+    {
+        var timeSpan = DateTime.Now.Subtract(dateTime);
+        if (timeSpan <= TimeSpan.FromSeconds(60)) return "just now";
+        if (timeSpan <= TimeSpan.FromMinutes(60)) return timeSpan.Minutes > 1 ? $"{timeSpan.Minutes} minutes ago" : "1 minute ago";
+        if (timeSpan <= TimeSpan.FromHours(24)) return timeSpan.Hours > 1 ? $"{timeSpan.Hours} hours ago" : "1 hour ago";
+        if (timeSpan <= TimeSpan.FromDays(30)) return timeSpan.Days > 1 ? $"{timeSpan.Days} days ago" : "1 day ago";
+        return dateTime.ToString("dd MMM yyyy");
+    }
 }
 
-<div class="health-page-header">
+<style>
+    /* Add a subtle grey background for unread notifications */
+    .notification-item.unread {
+        background-color: #fcfcfc;
+        border-left: 4px solid #a855f7; /* Purple accent */
+    }
+
+    .notification-item {
+        transition: background-color 0.2s;
+        position: relative;
+    }
+
+        .notification-item:hover {
+            background-color: #f8f9fa;
+        }
+
+    .mark-read-btn {
+        position: absolute;
+        top: 15px;
+        right: 15px;
+        background: none;
+        border: none;
+        color: #6b7280;
+        cursor: pointer;
+        opacity: 0;
+        transition: opacity 0.2s;
+        font-size: 1.2rem;
+    }
+
+    .notification-item:hover .mark-read-btn {
+        opacity: 1;
+    }
+
+    .mark-read-btn:hover {
+        color: #10b981;
+    }
+</style>
+
+<div class="trainer-page-header">
     <div>
         <h2>System Notifications</h2>
-        <p>Stay updated with system activities, new registrations, and alerts.</p>
     </div>
-    <button class="health-primary-button" style="font-size: 12px; padding: 8px 14px;">
-        <i class="bi bi-check2-all"></i> Mark all as read
-    </button>
+
+    @if (Model != null && Model.Any(n => !n.IsRead))
+    {
+        <form asp-action="MarkAllNotificationsRead" asp-controller="AdminDashboard" method="post">
+            @Html.AntiForgeryToken()
+            <button type="submit" class="health-primary-button" style="font-size: 12px; padding: 8px 14px;">
+                <i class="bi bi-check2-all"></i> Mark all as read
+            </button>
+        </form>
+    }
 </div>
 
 <div class="client-table-wrapper" style="padding: 20px;">
     <div class="notification-list">
+        @if (Model != null && Model.Any())
+        {
+            foreach (var notification in Model)
+            {
+                // Determine colors and icons based on keywords in the title
+                var titleLower = notification.Title.ToLower();
+                var iconClass = "bi-bell-fill";
+                var colorClass = "purple";
 
-        <!-- Notification 1 -->
-        <div class="notification-item">
-            <div class="notification-icon purple">
-                <i class="bi bi-person-plus-fill"></i>
-            </div>
-            <div class="notification-content">
-                <div class="notification-title-row">
-                    <h4>New Trainer Registered</h4>
-                    <span>10 minutes ago</span>
+                if (titleLower.Contains("registered") || titleLower.Contains("user"))
+                {
+                    iconClass = "bi-person-plus-fill";
+                    colorClass = "purple";
+                }
+                else if (titleLower.Contains("backup") || titleLower.Contains("system"))
+                {
+                    iconClass = "bi-server";
+                    colorClass = "green";
+                }
+                else if (titleLower.Contains("load") || titleLower.Contains("alert") || titleLower.Contains("error"))
+                {
+                    iconClass = "bi-exclamation-triangle-fill";
+                    colorClass = "orange";
+                }
+                else if (titleLower.Contains("report") || titleLower.Contains("analytics"))
+                {
+                    iconClass = "bi-calendar-check-fill";
+                    colorClass = "blue";
+                }
+
+                <div class="notification-item @(notification.IsRead ? "" : "unread")">
+                    <div class="notification-icon @colorClass">
+                        <i class="bi @iconClass"></i>
+                    </div>
+                    <div class="notification-content">
+                        <div class="notification-title-row">
+                            <h4>@notification.Title</h4>
+                            <span>@GetRelativeTime(notification.CreatedAt)</span>
+                        </div>
+                        <p>@notification.Message</p>
+                    </div>
+
+                    @if (!notification.IsRead)
+                    {
+                        <form asp-action="MarkNotificationRead" asp-controller="AdminDashboard" method="post" style="display:inline;">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="id" value="@notification.NotificationId" />
+                            <button type="submit" class="mark-read-btn" title="Mark as read">
+                                <i class="bi bi-check-circle"></i>
+                            </button>
+                        </form>
+                    }
                 </div>
-                <p>A new trainer, <strong>John Silva</strong>, has registered and is awaiting your approval.</p>
+            }
+        }
+        else
+        {
+            <div style="text-align: center; padding: 40px 20px; color: #6b7280;">
+                <i class="bi bi-bell-slash" style="font-size: 3rem; margin-bottom: 10px; display: block; color: #d1d5db;"></i>
+                <h4>No notifications yet</h4>
+                <p>When something happens, you'll see it here.</p>
             </div>
-        </div>
-
-        <!-- Notification 2 -->
-        <div class="notification-item">
-            <div class="notification-icon green">
-                <i class="bi bi-server"></i>
-            </div>
-            <div class="notification-content">
-                <div class="notification-title-row">
-                    <h4>System Backup Successful</h4>
-                    <span>2 hours ago</span>
-                </div>
-                <p>The weekly database backup has been completed successfully without any errors.</p>
-            </div>
-        </div>
-
-        <!-- Notification 3 -->
-        <div class="notification-item">
-            <div class="notification-icon orange">
-                <i class="bi bi-exclamation-triangle-fill"></i>
-            </div>
-            <div class="notification-content">
-                <div class="notification-title-row">
-                    <h4>High Server Load Detected</h4>
-                    <span>1 day ago</span>
-                </div>
-                <p>Server CPU usage exceeded 80% for 15 minutes. Please check server resources.</p>
-            </div>
-        </div>
-
-        <!-- Notification 4 -->
-        <div class="notification-item">
-            <div class="notification-icon blue">
-                <i class="bi bi-calendar-check-fill"></i>
-            </div>
-            <div class="notification-content">
-                <div class="notification-title-row">
-                    <h4>Monthly Report Generated</h4>
-                    <span>2 days ago</span>
-                </div>
-                <p>The analytics report for September 2026 is ready. You can now download it from the Reports section.</p>
-            </div>
-        </div>
-
+        }
     </div>
 </div>

@@ -1,30 +1,63 @@
-﻿@{
+﻿@model HealthTrack.ViewModels.ManageUsersViewModel
+
+@{
     Layout = "~/Views/Shared/_AdminLayout.cshtml";
     ViewData["Title"] = "Manage Users";
     ViewData["Heading"] = "Manage Users";
     ViewData["ActivePage"] = "ManageUser";
+
+    // FIXED HELPER: Correctly handles bare filenames from the database
+    string ProfileImageUrl(string? path)
+    {
+        // If no image, return an inline SVG placeholder (a grey user icon)
+        if (string.IsNullOrWhiteSpace(path))
+        {
+            return "data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23ccc'%3E%3Cpath d='M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z'/%3E%3C/svg%3E";
+        }
+
+        if (path.StartsWith("https://", StringComparison.OrdinalIgnoreCase) ||
+            path.StartsWith("http://", StringComparison.OrdinalIgnoreCase))
+        {
+            return path;
+        }
+
+        // If the database only has the file name, prepend the uploads folder
+        if (!path.Contains("/") && !path.Contains("\\"))
+        {
+            return Url.Content("~/uploads/profiles/" + path);
+        }
+
+        return Url.Content(path.StartsWith("~/")
+            ? path
+            : "~/" + path.TrimStart('/'));
+    }
 }
 
 <div class="trainer-page-header">
     <h2>Manage Users</h2>
-    <button class="health-primary-button" id="addUserBtn">
-        <i class="bi bi-plus-lg"></i> Add User
-    </button>
+
+    @if (User.IsInRole("Admin"))
+    {
+        <button type="button"
+                class="health-primary-button"
+                id="addUserBtn">
+            <i class="bi bi-plus-lg"></i> Add User
+        </button>
+    }
 </div>
 
-<!-- TABS & SEARCH BAR -->
+<!-- TABS & SEARCH -->
 <div class="manage-users-controls">
     <div class="admin-tabs">
-        <!-- Added data-filter attributes for JavaScript -->
-        <button class="admin-tab active" data-filter="all">All Users</button>
-        <button class="admin-tab" data-filter="client">Clients</button>
-        <button class="admin-tab" data-filter="trainer">Trainers</button>
-        <button class="admin-tab" data-filter="admin">Admins</button>
+        <button type="button" class="admin-tab active" data-filter="all">All Users</button>
+        <button type="button" class="admin-tab" data-filter="client">Clients</button>
+        <button type="button" class="admin-tab" data-filter="trainer">Trainers</button>
+        <button type="button" class="admin-tab" data-filter="admin">Admins</button>
     </div>
 
     <div class="search-box">
         <i class="bi bi-search"></i>
-        <input type="text" placeholder="Search users..." />
+        <input type="text" id="userSearch" placeholder="Search users..." />
     </div>
 </div>
 
@@ -40,200 +73,361 @@
                 <th>Actions</th>
             </tr>
         </thead>
+
         <tbody id="usersTableBody">
-            <!-- Added data-role attributes to each row -->
-            <tr data-role="client">
-                <td>
-                    <div class="table-user-info">
-                        <img src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100&h=100&fit=crop" class="table-avatar" alt="Kamal" />
-                        <h4>Kamal Perera</h4>
-                    </div>
-                </td>
-                <td>kamal@gmail.com</td>
-                <td><span class="badge badge-client">Client</span></td>
-                <td><span class="badge badge-active">Active</span></td>
-                <td>
-                    <div class="action-buttons">
-                        <button class="btn-edit">Edit</button>
-                        <button class="btn-delete">Delete</button>
-                    </div>
-                </td>
-            </tr>
+            @if (Model.Users.Any())
+            {
+                foreach (var user in Model.Users)
+                {
+                    var role = (user.Role ?? "Client").ToLowerInvariant();
 
-            <tr data-role="client">
-                <td>
-                    <div class="table-user-info">
-                        <img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&fit=crop" class="table-avatar" alt="Nimali" />
-                        <h4>Nimali Silva</h4>
-                    </div>
-                </td>
-                <td>nimali@gmail.com</td>
-                <td><span class="badge badge-client">Client</span></td>
-                <td><span class="badge badge-active">Active</span></td>
-                <td>
-                    <div class="action-buttons">
-                        <button class="btn-edit">Edit</button>
-                        <button class="btn-delete">Delete</button>
-                    </div>
-                </td>
-            </tr>
+                    <tr data-role="@role">
+                        <td>
+                            <div class="table-user-info">
+                                <img src="@ProfileImageUrl(user.ProfileImage)"
+                                     class="table-avatar"
+                                     alt="Profile picture"
+                                     onerror="this.onerror=null;this.src='/images/default-profile.png';" />
 
-            <tr data-role="trainer">
-                <td>
-                    <div class="table-user-info">
-                        <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop" class="table-avatar" alt="John" />
-                        <h4>John Silva</h4>
-                    </div>
-                </td>
-                <td>john@gmail.com</td>
-                <td><span class="badge badge-trainer">Trainer</span></td>
-                <td><span class="badge badge-active">Active</span></td>
-                <td>
-                    <div class="action-buttons">
-                        <button class="btn-edit">Edit</button>
-                        <button class="btn-delete">Delete</button>
-                    </div>
-                </td>
-            </tr>
+                                <h4>@user.FullName</h4>
+                            </div>
+                        </td>
 
-            <tr data-role="trainer">
-                <td>
-                    <div class="table-user-info">
-                        <img src="https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=100&h=100&fit=crop" class="table-avatar" alt="Sarah" />
-                        <h4>Sarah Perera</h4>
-                    </div>
-                </td>
-                <td>sarah@gmail.com</td>
-                <td><span class="badge badge-trainer">Trainer</span></td>
-                <td><span class="badge badge-active">Active</span></td>
-                <td>
-                    <div class="action-buttons">
-                        <button class="btn-edit">Edit</button>
-                        <button class="btn-delete">Delete</button>
-                    </div>
-                </td>
-            </tr>
+                        <td>@user.Email</td>
 
-            <tr data-role="admin">
-                <td>
-                    <div class="table-user-info">
-                        <img src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&h=100&fit=crop" class="table-avatar" alt="Admin" />
-                        <h4>Admin User</h4>
-                    </div>
-                </td>
-                <td>admin@healthtrack.com</td>
-                <td><span class="badge badge-admin">Admin</span></td>
-                <td><span class="badge badge-active">Active</span></td>
-                <td>
-                    <div class="action-buttons">
-                        <button class="btn-edit">Edit</button>
-                        <button class="btn-delete">Delete</button>
-                    </div>
-                </td>
-            </tr>
+                        <td>
+                            <span class="badge badge-@role">
+                                @user.Role
+                            </span>
+                        </td>
+
+                        <td>
+                            <span class="badge badge-active">Active</span>
+                        </td>
+
+                        <td>
+                            <div class="action-buttons">
+                                @if (User.IsInRole("Admin"))
+                                {
+                                    <button type="button"
+                                            class="btn-edit"
+                                            data-user-id="@user.Id"
+                                            data-user-name="@user.FullName"
+                                            data-user-email="@user.Email"
+                                            data-user-image="@ProfileImageUrl(user.ProfileImage)">
+                                        Edit
+                                    </button>
+
+                                    <form asp-controller="AdminDashboard"
+                                          asp-action="DeleteUser"
+                                          method="post"
+                                          onsubmit="return confirm('Are you sure you want to delete this user?');">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="id" value="@user.Id" />
+                                        <button type="submit" class="btn-delete">
+                                            Delete
+                                        </button>
+                                    </form>
+                                }
+                                else
+                                {
+                                    <span>View only</span>
+                                }
+                            </div>
+                        </td>
+                    </tr>
+                }
+            }
+            else
+            {
+                <tr>
+                    <td colspan="5">No users found.</td>
+                </tr>
+            }
         </tbody>
     </table>
 </div>
 
-<!-- ADD USER MODAL (POP-UP) -->
-<div class="ca-modal" id="addUserModal" hidden>
-    <div class="ca-modal-content">
-        <button type="button" class="ca-modal-close" id="closeModalBtn">&times;</button>
-        <h3>Add New User</h3>
+<!-- ADD USER MODAL -->
+@if (User.IsInRole("Admin"))
+{
+    <div class="ca-modal" id="addUserModal" hidden>
+        <div class="ca-modal-content">
+            <button type="button" class="ca-modal-close" id="closeModalBtn">
+                &times;
+            </button>
 
-        <form id="addUserForm">
-            <div class="form-group">
-                <label>Full Name</label>
-                <input type="text" placeholder="e.g. John Doe" required />
-            </div>
+            <h3>Add New User</h3>
 
-            <div class="form-group">
-                <label>Email Address</label>
-                <input type="email" placeholder="e.g. john@example.com" required />
-            </div>
+            <!-- Note: No enctype="multipart/form-data" needed here since there's no image upload -->
+            <form asp-controller="AdminDashboard"
+                  asp-action="ManageUser"
+                  method="post"
+                  id="addUserForm">
 
-            <div class="form-group">
-                <label>Password</label>
-                <input type="password" placeholder="Enter a strong password" required />
-            </div>
+                @Html.AntiForgeryToken()
 
-            <div class="form-group">
-                <label>Select Role</label>
-                <select required>
-                    <option value="">-- Choose Role --</option>
-                    <option value="Client">Client</option>
-                    <option value="Trainer">Trainer</option>
-                    <option value="Admin">Admin</option>
-                </select>
-            </div>
+                <div class="form-group">
+                    <label>Full Name</label>
+                    <input name="NewUser.FullName" type="text" placeholder="Full Name" maxlength="100" required />
+                </div>
 
-            <div class="modal-actions">
-                <button type="button" class="btn-view-outline" id="cancelBtn">Cancel</button>
-                <button type="submit" class="health-primary-button">Save User</button>
-            </div>
-        </form>
+                <div class="form-group">
+                    <label>Email Address</label>
+                    <input name="NewUser.Email" type="email" placeholder="Email Address" maxlength="256" required />
+                </div>
+
+                <div class="form-group">
+                    <label>Password</label>
+                    <input name="NewUser.Password" type="password" placeholder="Password" minlength="8" required />
+                </div>
+
+                <div class="form-group">
+                    <label>Select Role</label>
+                    <select name="NewUser.Role" required>
+                        <option value="">-- Choose Role --</option>
+                        <option value="Trainer">Trainer</option>
+                        <option value="Admin">Admin</option>
+                    </select>
+                </div>
+
+                <div class="modal-actions">
+                    <button type="button" class="btn-view-outline" id="cancelBtn">
+                        Cancel
+                    </button>
+                    <button type="submit" class="health-primary-button">
+                        Save User
+                    </button>
+                </div>
+            </form>
+        </div>
     </div>
-</div>
+    <!-- EDIT USER MODAL -->
+    <div class="ca-modal" id="editUserModal" hidden>
+        <div class="ca-modal-content">
+            <button type="button"
+                    class="ca-modal-close"
+                    id="closeEditModalBtn">
+                &times;
+            </button>
+
+            <h3>Edit User</h3>
+
+            <form asp-controller="AdminDashboard"
+                  asp-action="EditUser"
+                  method="post"
+                  enctype="multipart/form-data"
+                  id="editUserForm">
+
+                @Html.AntiForgeryToken()
+
+                <input type="hidden" name="EditUser.Id" id="editUserId" />
+
+                <div class="form-group">
+                    <label>Profile Image</label>
+
+                    <div style="margin-bottom:12px;">
+                        <img id="editProfilePreview"
+                             src="@Url.Content("~/images/default-profile.png")"
+                             class="table-avatar"
+                             alt="Profile preview"
+                             onerror="this.onerror=null;this.src='/images/default-profile.png';" />
+                    </div>
+
+                    <input type="file"
+                           name="editProfileImage"
+                           id="editProfileImage"
+                           accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp" />
+                </div>
+
+                <div class="form-group">
+                    <label for="editFullName">Full Name</label>
+                    <input type="text"
+                           name="EditUser.FullName"
+                           id="editFullName"
+                           maxlength="100"
+                           required />
+                </div>
+
+                <div class="form-group">
+                    <label for="editEmail">Email Address</label>
+                    <input type="email"
+                           name="EditUser.Email"
+                           id="editEmail"
+                           maxlength="256"
+                           required />
+                </div>
+
+                <div class="modal-actions">
+                    <button type="button"
+                            class="btn-view-outline"
+                            id="cancelEditBtn">
+                        Cancel
+                    </button>
+
+                    <button type="submit" class="health-primary-button">
+                        Save Changes
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+}
 
 @section Scripts {
     <script>
         document.addEventListener("DOMContentLoaded", function () {
-            // --- 1. Tab Filtering Logic ---
+            // Search and role filtering
             const tabs = document.querySelectorAll(".admin-tab");
-            const tableRows = document.querySelectorAll("#usersTableBody tr");
+            const searchInput = document.getElementById("userSearch");
+            const rows = Array.from(
+                document.querySelectorAll("#usersTableBody tr[data-role]")
+            );
 
-            tabs.forEach(tab => {
+            let activeFilter = "all";
+
+            function filterUsers() {
+                const query = searchInput
+                    ? searchInput.value.trim().toLowerCase()
+                    : "";
+
+                rows.forEach(function (row) {
+                    const role = (row.dataset.role || "").toLowerCase();
+                    const content = row.textContent.toLowerCase();
+
+                    const roleMatches =
+                        activeFilter === "all" || role === activeFilter;
+
+                    const searchMatches = content.includes(query);
+
+                    row.style.display =
+                        roleMatches && searchMatches ? "" : "none";
+                });
+            }
+
+            tabs.forEach(function (tab) {
                 tab.addEventListener("click", function () {
-                    // Update active tab styling
-                    tabs.forEach(t => t.classList.remove("active"));
-                    this.classList.add("active");
-
-                    const filterValue = this.getAttribute("data-filter");
-
-                    // Show/hide table rows based on data-role
-                    tableRows.forEach(row => {
-                        if (filterValue === "all" || row.getAttribute("data-role") === filterValue) {
-                            row.style.display = ""; // Show row
-                        } else {
-                            row.style.display = "none"; // Hide row
-                        }
+                    tabs.forEach(function (item) {
+                        item.classList.remove("active");
                     });
+
+                    this.classList.add("active");
+                    activeFilter = this.dataset.filter || "all";
+                    filterUsers();
                 });
             });
 
-            // --- 2. Add User Modal Logic ---
-            const modal = document.getElementById("addUserModal");
-            const addUserBtn = document.getElementById("addUserBtn");
-            const closeModalBtn = document.getElementById("closeModalBtn");
-            const cancelBtn = document.getElementById("cancelBtn");
-            const addUserForm = document.getElementById("addUserForm");
-
-            function openModal() {
-                modal.hidden = false;
+            if (searchInput) {
+                searchInput.addEventListener("input", filterUsers);
             }
 
-            function closeModal() {
-                modal.hidden = true;
-                addUserForm.reset(); // Clear form fields
+            // Add modal
+            const addModal = document.getElementById("addUserModal");
+            const addBtn = document.getElementById("addUserBtn");
+            const closeAddBtn = document.getElementById("closeModalBtn");
+            const cancelAddBtn = document.getElementById("cancelBtn");
+            const addForm = document.getElementById("addUserForm");
+
+            function closeAddModal() {
+                if (addModal) addModal.hidden = true;
+                if (addForm) addForm.reset();
             }
 
-            addUserBtn.addEventListener("click", openModal);
-            closeModalBtn.addEventListener("click", closeModal);
-            cancelBtn.addEventListener("click", closeModal);
+            if (addBtn && addModal) {
+                addBtn.addEventListener("click", function () {
+                    addModal.hidden = false;
+                });
+            }
 
-            // Close when clicking outside the modal content
-            modal.addEventListener("click", (e) => {
-                if (e.target === modal) {
-                    closeModal();
+            if (closeAddBtn) {
+                closeAddBtn.addEventListener("click", closeAddModal);
+            }
+
+            if (cancelAddBtn) {
+                cancelAddBtn.addEventListener("click", closeAddModal);
+            }
+
+            if (addModal) {
+                addModal.addEventListener("click", function (event) {
+                    if (event.target === addModal) closeAddModal();
+                });
+            }
+
+            // Edit modal: load the selected row's details
+            const editModal = document.getElementById("editUserModal");
+            const editForm = document.getElementById("editUserForm");
+            const closeEditBtn = document.getElementById("closeEditModalBtn");
+            const cancelEditBtn = document.getElementById("cancelEditBtn");
+            const imageInput = document.getElementById("editProfileImage");
+            const imagePreview = document.getElementById("editProfilePreview");
+            const defaultImagePath = "/images/default-profile.png";
+
+            document.querySelectorAll(".btn-edit").forEach(function (button) {
+                button.addEventListener("click", function () {
+                    if (!editModal) return;
+
+                    document.getElementById("editUserId").value =
+                        this.dataset.userId || "";
+
+                    document.getElementById("editFullName").value =
+                        this.dataset.userName || "";
+
+                    document.getElementById("editEmail").value =
+                        this.dataset.userEmail || "";
+
+                    if (imagePreview) {
+                        // The dataset already contains the corrected URL from the C# helper
+                        const imgUrl = this.dataset.userImage;
+                        imagePreview.src = (imgUrl && imgUrl.trim() !== "")
+                            ? imgUrl
+                            : defaultImagePath;
+                    }
+
+                    if (imageInput) imageInput.value = "";
+
+                    editModal.hidden = false;
+                });
+            });
+
+            function closeEditModal() {
+                if (editModal) editModal.hidden = true;
+                if (editForm) editForm.reset();
+
+                if (imagePreview) {
+                    imagePreview.src = defaultImagePath;
                 }
-            });
+            }
 
-            // Handle form submission (Demo only - prevents page reload)
-            addUserForm.addEventListener("submit", function (e) {
-                e.preventDefault(); // Prevent actual form submission
-                alert("User added successfully! (UI Demo)");
-                closeModal();
-            });
+            if (closeEditBtn) {
+                closeEditBtn.addEventListener("click", closeEditModal);
+            }
+
+            if (cancelEditBtn) {
+                cancelEditBtn.addEventListener("click", closeEditModal);
+            }
+
+            if (editModal) {
+                editModal.addEventListener("click", function (event) {
+                    if (event.target === editModal) closeEditModal();
+                });
+            }
+
+            // Preview a newly selected profile image
+            if (imageInput && imagePreview) {
+                imageInput.addEventListener("change", function () {
+                    const file = this.files && this.files[0];
+
+                    if (!file) return;
+
+                    if (!file.type.startsWith("image/")) {
+                        alert("Please select an image file.");
+                        this.value = "";
+                        return;
+                    }
+
+                    imagePreview.src = URL.createObjectURL(file);
+                });
+            }
         });
     </script>
 }

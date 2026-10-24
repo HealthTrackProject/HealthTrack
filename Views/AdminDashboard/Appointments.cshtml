@@ -1,22 +1,35 @@
-﻿@{
+﻿@model IEnumerable<HealthTrack.Models.Appointment>
+@using HealthTrack.Models
+@{
     Layout = "~/Views/Shared/_AdminLayout.cshtml";
     ViewData["Title"] = "Appointments";
     ViewData["Heading"] = "Appointments";
     ViewData["ActivePage"] = "Appointments";
+
+    var clients = ViewBag.Clients as List<ApplicationUser> ?? new List<ApplicationUser>();
+    var trainers = ViewBag.Trainers as List<ApplicationUser> ?? new List<ApplicationUser>();
 }
+
+<!-- Add custom styles for Confirmed badge -->
+<style>
+    .badge-confirmed {
+        background-color: #dcfce7 !important; /* Light green */
+        color: #166534 !important; /* Dark green */
+    }
+</style>
 
 <div class="trainer-page-header">
     <h2>All Appointments</h2>
-    <button class="health-primary-button">
+    <button type="button" class="health-primary-button" id="newAppointmentBtn">
         <i class="bi bi-calendar-plus"></i> New Appointment
     </button>
 </div>
 
-<!-- FILTER TABS -->
+<!-- FILTER TABS (Fixed the broken < tag) -->
 <div class="appointment-tabs">
     <button class="appointment-tab active" data-filter="all">All</button>
     <button class="appointment-tab" data-filter="pending">Pending</button>
-    <button class="appointment-tab" data-filter="approved">Approved</button>
+    <button class="appointment-tab" data-filter="confirmed">Confirmed</button>
     <button class="appointment-tab" data-filter="cancelled">Cancelled</button>
 </div>
 
@@ -33,109 +46,220 @@
             </tr>
         </thead>
         <tbody id="appointmentsTableBody">
+            @if (Model != null && Model.Any())
+            {
+                foreach (var appt in Model)
+                {
+                    // Fallback in case DB has null
+                    var currentStatus = string.IsNullOrEmpty(appt.Status) ? "Pending" : appt.Status;
+                    var statusLower = currentStatus.ToLower();
 
-            <!-- Row 1: Pending -->
-            <tr data-status="pending">
-                <td>
-                    <div class="table-user-info">
-                        <img src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100&h=100&fit=crop" class="table-avatar" alt="Kamal" />
-                        <h4>Kamal Perera</h4>
-                    </div>
-                </td>
-                <td>John Silva</td>
-                <td>10 Apr 2025, 10:00 AM</td>
-                <td><span class="badge badge-pending">Pending</span></td>
-                <td>
-                    <div class="action-buttons">
-                        <button class="btn-approve">Approve</button>
-                        <button class="btn-cancel">Cancel</button>
-                    </div>
-                </td>
-            </tr>
-
-            <!-- Row 2: Approved -->
-            <tr data-status="approved">
-                <td>
-                    <div class="table-user-info">
-                        <img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&fit=crop" class="table-avatar" alt="Nimali" />
-                        <h4>Nimali Silva</h4>
-                    </div>
-                </td>
-                <td>Sarah Perera</td>
-                <td>12 Apr 2025, 2:00 PM</td>
-                <td><span class="badge badge-approved">Approved</span></td>
-                <td>
-                    <div class="action-buttons">
-                        <button class="btn-view-outline">View</button>
-                    </div>
-                </td>
-            </tr>
-
-            <!-- Row 3: Cancelled -->
-            <tr data-status="cancelled">
-                <td>
-                    <div class="table-user-info">
-                        <img src="https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?w=100&h=100&fit=crop" class="table-avatar" alt="Tharushi" />
-                        <h4>Tharushi Dias</h4>
-                    </div>
-                </td>
-                <td>Mike Johnson</td>
-                <td>15 Apr 2025, 11:00 AM</td>
-                <td><span class="badge badge-cancelled">Cancelled</span></td>
-                <td>
-                    <div class="action-buttons">
-                        <button class="btn-view-outline">View</button>
-                    </div>
-                </td>
-            </tr>
-
-            <!-- Row 4: Pending -->
-            <tr data-status="pending">
-                <td>
-                    <div class="table-user-info">
-                        <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop" class="table-avatar" alt="Sahan" />
-                        <h4>Sahan Fernando</h4>
-                    </div>
-                </td>
-                <td>Sarah Perera</td>
-                <td>18 Apr 2025, 9:00 AM</td>
-                <td><span class="badge badge-pending">Pending</span></td>
-                <td>
-                    <div class="action-buttons">
-                        <button class="btn-approve">Approve</button>
-                        <button class="btn-cancel">Cancel</button>
-                    </div>
-                </td>
-            </tr>
-
+                    <tr data-status="@statusLower">
+                        <td>
+                            <div class="table-user-info">
+                                @if (!string.IsNullOrEmpty(appt.Client?.ProfilePictureUrl))
+                                {
+                                    <img src="~/uploads/profiles/@appt.Client.ProfilePictureUrl" class="table-avatar" alt="@appt.Client.FullName" onerror="this.src='https://ui-avatars.com/api/?name=@(appt.Client.FullName)&background=random'" />
+                                }
+                                else
+                                {
+                                    <img src="https://ui-avatars.com/api/?name=@(appt.Client?.FullName ?? "Unknown")&background=random" class="table-avatar" alt="Avatar" />
+                                }
+                                <h4>@(appt.Client?.FullName ?? "Unknown Client")</h4>
+                            </div>
+                        </td>
+                        <td>@(appt.Trainer?.FullName ?? "Unassigned")</td>
+                        <td>@appt.AppointmentDate.ToString("dd MMM yyyy, h:mm tt")</td>
+                        <td>
+                            <span class="badge badge-@statusLower">@currentStatus</span>
+                        </td>
+                        <td>
+                            <div class="action-buttons">
+                                @if (currentStatus == "Pending")
+                                {
+                                    <form asp-action="UpdateAppointmentStatus" method="post" style="display:inline;">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="id" value="@appt.AppointmentId" />
+                                        <input type="hidden" name="status" value="Approved" />
+                                        <button type="submit" class="btn-approve">Approve</button>
+                                    </form>
+                                    <form asp-action="UpdateAppointmentStatus" method="post" style="display:inline;">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="id" value="@appt.AppointmentId" />
+                                        <input type="hidden" name="status" value="Cancelled" />
+                                        <button type="submit" class="btn-cancel">Cancel</button>
+                                    </form>
+                                }
+                                else
+                                {
+                                    <!-- Attach data attributes for the View Modal -->
+                                    <button type="button"
+                                            class="btn-view-outline btn-view-appointment"
+                                            data-client="@(appt.Client?.FullName ?? "Unknown")"
+                                            data-trainer="@(appt.Trainer?.FullName ?? "Unassigned")"
+                                            data-date="@appt.AppointmentDate.ToString("dd MMM yyyy, h:mm tt")"
+                                            data-status="@currentStatus"
+                                            data-reason="@(appt.Reason ?? "No reason provided")">
+                                        View
+                                    </button>
+                                }
+                            </div>
+                        </td>
+                    </tr>
+                }
+            }
+            else
+            {
+                <tr>
+                    <td colspan="5" style="text-align: center;">No appointments found.</td>
+                </tr>
+            }
         </tbody>
     </table>
+</div>
+
+<!-- NEW APPOINTMENT MODAL -->
+<div class="ca-modal" id="newAppointmentModal" hidden>
+    <div class="ca-modal-content" style="max-width: 500px;">
+        <button type="button" class="ca-modal-close" id="closeModalBtn" aria-label="Close">
+            &times;
+        </button>
+
+        <h3 style="margin-bottom: 20px; text-align: center;">Schedule Appointment</h3>
+
+        <form asp-action="CreateAppointment" asp-controller="AdminDashboard" method="post">
+            @Html.AntiForgeryToken()
+
+            <div class="form-group">
+                <label>Client</label>
+                <select name="clientId" class="form-control" required>
+                    <option value="">-- Select Client --</option>
+                    @foreach (var client in clients)
+                    {
+                        <option value="@client.Id">@client.FullName (@client.Email)</option>
+                    }
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>Trainer</label>
+                <select name="trainerId" class="form-control" required>
+                    <option value="">-- Select Trainer --</option>
+                    @foreach (var trainer in trainers)
+                    {
+                        <option value="@trainer.Id">@trainer.FullName</option>
+                    }
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>Date & Time</label>
+                <input type="datetime-local" name="appointmentDate" class="form-control" required />
+            </div>
+
+            <div class="form-group">
+                <label>Reason for Visit</label>
+                <textarea name="reason" class="form-control" rows="3" placeholder="e.g., Initial consultation..." required></textarea>
+            </div>
+
+            <div style="margin-top: 25px; display: flex; justify-content: flex-end; gap: 10px;">
+                <button type="button" class="btn-view-outline" id="cancelModalBtn">Cancel</button>
+                <button type="submit" class="health-primary-button">Book Appointment</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- VIEW DETAILS MODAL -->
+<div class="ca-modal" id="viewAppointmentModal" hidden>
+    <div class="ca-modal-content" style="max-width: 450px;">
+        <button type="button" class="ca-modal-close" id="closeViewModalBtn" aria-label="Close">
+            &times;
+        </button>
+
+        <h3 style="margin-bottom: 20px; text-align: center;">Appointment Details</h3>
+
+        <div style="margin-bottom: 15px;">
+            <strong>Client:</strong> <span id="viewClient"></span>
+        </div>
+        <div style="margin-bottom: 15px;">
+            <strong>Trainer:</strong> <span id="viewTrainer"></span>
+        </div>
+        <div style="margin-bottom: 15px;">
+            <strong>Date & Time:</strong> <span id="viewDate"></span>
+        </div>
+        <div style="margin-bottom: 15px;">
+            <strong>Status:</strong> <span id="viewStatus"></span>
+        </div>
+        <div style="margin-bottom: 15px;">
+            <strong>Reason:</strong>
+            <p id="viewReason" style="background: #f8f9fa; padding: 10px; border-radius: 5px; margin-top: 5px; border: 1px solid #e9ecef;"></p>
+        </div>
+
+        <div style="margin-top: 25px; display: flex; justify-content: flex-end;">
+            <button type="button" class="health-primary-button" id="closeViewModalBtn2">Close</button>
+        </div>
+    </div>
 </div>
 
 @section Scripts {
     <script>
         document.addEventListener("DOMContentLoaded", function () {
+            // --- Tab Filtering Logic ---
             const tabs = document.querySelectorAll(".appointment-tab");
             const tableRows = document.querySelectorAll("#appointmentsTableBody tr");
 
-            // Tab Filtering Logic
             tabs.forEach(tab => {
                 tab.addEventListener("click", function () {
-                    // Update active tab styling
                     tabs.forEach(t => t.classList.remove("active"));
                     this.classList.add("active");
 
                     const filterValue = this.getAttribute("data-filter");
 
-                    // Show/hide rows based on data-status
                     tableRows.forEach(row => {
                         if (filterValue === "all" || row.getAttribute("data-status") === filterValue) {
-                            row.style.display = ""; // Show
+                            row.style.display = "";
                         } else {
-                            row.style.display = "none"; // Hide
+                            row.style.display = "none";
                         }
                     });
                 });
+            });
+
+            // --- New Appointment Modal ---
+            const newModal = document.getElementById("newAppointmentModal");
+            const openBtn = document.getElementById("newAppointmentBtn");
+            const closeBtn = document.getElementById("closeModalBtn");
+            const cancelBtn = document.getElementById("cancelModalBtn");
+
+            if (openBtn) openBtn.addEventListener("click", () => newModal.hidden = false);
+            if (closeBtn) closeBtn.addEventListener("click", () => newModal.hidden = true);
+            if (cancelBtn) cancelBtn.addEventListener("click", () => newModal.hidden = true);
+
+            // --- View Details Modal Logic ---
+            const viewModal = document.getElementById("viewAppointmentModal");
+            const closeViewBtn = document.getElementById("closeViewModalBtn");
+            const closeViewBtn2 = document.getElementById("closeViewModalBtn2");
+
+            document.querySelectorAll(".btn-view-appointment").forEach(btn => {
+                btn.addEventListener("click", function () {
+                    document.getElementById("viewClient").innerText = this.dataset.client;
+                    document.getElementById("viewTrainer").innerText = this.dataset.trainer;
+                    document.getElementById("viewDate").innerText = this.dataset.date;
+                    document.getElementById("viewStatus").innerText = this.dataset.status;
+                    document.getElementById("viewReason").innerText = this.dataset.reason;
+
+                    viewModal.hidden = false;
+                });
+            });
+
+            if (closeViewBtn) closeViewBtn.addEventListener("click", () => viewModal.hidden = true);
+            if (closeViewBtn2) closeViewBtn2.addEventListener("click", () => viewModal.hidden = true);
+
+            // Close when clicking outside
+            window.addEventListener("click", (e) => {
+                if (e.target === newModal) newModal.hidden = true;
+                if (e.target === viewModal) viewModal.hidden = true;
             });
         });
     </script>

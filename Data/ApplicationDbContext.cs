@@ -24,6 +24,7 @@ namespace HealthTrack.Data
         public DbSet<ProgressRecord> ProgressRecords { get; set; }
         public DbSet<Notification> Notifications { get; set; }
         public DbSet<ClientFeedback> ClientFeedbacks { get; set; }
+        public DbSet<SystemSetting> SystemSettings { get; set; }
         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder);
