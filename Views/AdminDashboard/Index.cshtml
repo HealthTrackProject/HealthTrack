@@ -1,4 +1,7 @@
-﻿@{
+﻿@using System.Linq
+@model HealthTrack.ViewModels.AdminDashboardViewModel
+
+@{
     Layout = "~/Views/Shared/_AdminLayout.cshtml";
     ViewData["Title"] = "Admin Dashboard";
     ViewData["Heading"] = "Welcome, Administrator";
@@ -7,26 +10,39 @@
 
 <!-- STAT CARDS -->
 <div class="stats-grid">
+
     <div class="stat-card blue">
-        <div class="stat-icon"><i class="bi bi-people-fill"></i></div>
-        <h3>120</h3>
+        <div class="stat-icon">
+            <i class="bi bi-people-fill"></i>
+        </div>
+        <h3>@Model.TotalUsers</h3>
         <p>Total Users</p>
     </div>
+
     <div class="stat-card green">
-        <div class="stat-icon"><i class="bi bi-person-badge-fill"></i></div>
-        <h3>105</h3>
+        <div class="stat-icon">
+            <i class="bi bi-person-badge-fill"></i>
+        </div>
+        <h3>@Model.TotalClients</h3>
         <p>Clients</p>
     </div>
+
     <div class="stat-card orange">
-        <div class="stat-icon"><i class="bi bi-person-video3"></i></div>
-        <h3>15</h3>
+        <div class="stat-icon">
+            <i class="bi bi-person-video3"></i>
+        </div>
+        <h3>@Model.TotalTrainers</h3>
         <p>Trainers</p>
     </div>
+
     <div class="stat-card purple">
-        <div class="stat-icon"><i class="bi bi-calendar-check-fill"></i></div>
-        <h3>25</h3>
+        <div class="stat-icon">
+            <i class="bi bi-calendar-check-fill"></i>
+        </div>
+        <h3>@Model.TotalAppointments</h3>
         <p>Appointments</p>
     </div>
+
 </div>
 
 <!-- DASHBOARD MAIN GRID -->
@@ -34,127 +50,209 @@
 
     <!-- LEFT: RECENT ACTIVITY -->
     <div class="admin-card">
+
         <div class="admin-card-header">
             <h3>Recent Activity</h3>
-            <a href="#" class="view-all-link">View All</a>
+
+            <a asp-controller="AdminDashboard"
+               asp-action="Appointments"
+               class="view-all-link">
+                View All
+            </a>
         </div>
 
-        <div class="activity-list">
-            <div class="activity-item">
-                <div class="activity-icon red"><i class="bi bi-person-plus-fill"></i></div>
-                <div class="activity-content">
-                    <h4>New user registered - <span>Kamal Perera</span></h4>
-                    <p>10 Apr 2025, 9:30 AM</p>
-                </div>
-            </div>
-            <div class="activity-item">
-                <div class="activity-icon orange"><i class="bi bi-calendar-event-fill"></i></div>
-                <div class="activity-content">
-                    <h4>Appointment requested - <span>Nimali Silva</span></h4>
-                    <p>10 Apr 2025, 10:00 AM</p>
-                </div>
-            </div>
-            <div class="activity-item">
-                <div class="activity-icon purple"><i class="bi bi-activity"></i></div>
-                <div class="activity-content">
-                    <h4>New workout plan created - <span>Sahan Fernando</span></h4>
-                    <p>9 Apr 2025, 2:30 PM</p>
-                </div>
-            </div>
+        <div class="activity-list activity-scroll">
+
+            @if (Model.RecentActivities != null &&
+                 Model.RecentActivities.Count > 0)
+            {
+                foreach (var activity in Model.RecentActivities)
+                {
+                    var iconClass = activity.Type == "appointment"
+                        ? "orange"
+                        : "purple";
+
+                    var iconName = activity.Type == "appointment"
+                        ? "bi-calendar-event-fill"
+                        : "bi-activity";
+
+                    <div class="activity-item">
+
+                        <div class="activity-icon @iconClass">
+                            <i class="bi @iconName"></i>
+                        </div>
+
+                        <div class="activity-content">
+                            <h4>
+                                @activity.Title -
+                                <span>@activity.Name</span>
+                            </h4>
+
+                            <p>
+                                @activity.Date.ToString("dd MMM yyyy, h:mm tt")
+                            </p>
+                        </div>
+
+                    </div>
+                }
+            }
+            else
+            {
+                <p>No recent appointments or workout plans found.</p>
+            }
+
         </div>
     </div>
 
     <!-- RIGHT: USER DISTRIBUTION CHART -->
     <div class="admin-card">
+
         <div class="admin-card-header">
             <h3>User Distribution</h3>
         </div>
 
         <div class="chart-wrapper">
+
             <div class="chart-canvas-container">
                 <canvas id="userDistributionChart"></canvas>
             </div>
+
             <div class="chart-legend">
+
                 <div class="legend-item">
-                    <span class="legend-dot" style="background: #14ad6d;"></span>
-                    <span class="legend-label">Clients (70%)</span>
+                    <span class="legend-dot"
+                          style="background:#14ad6d;"></span>
+                    <span class="legend-label">
+                        Clients (@Model.ClientPercentage%)
+                    </span>
                 </div>
+
                 <div class="legend-item">
-                    <span class="legend-dot" style="background: #fa9419;"></span>
-                    <span class="legend-label">Trainers (20%)</span>
+                    <span class="legend-dot"
+                          style="background:#fa9419;"></span>
+                    <span class="legend-label">
+                        Trainers (@Model.TrainerPercentage%)
+                    </span>
                 </div>
+
                 <div class="legend-item">
-                    <span class="legend-dot" style="background: #8E24AA;"></span>
-                    <span class="legend-label">Admins (10%)</span>
+                    <span class="legend-dot"
+                          style="background:#8E24AA;"></span>
+                    <span class="legend-label">
+                        Admins (@Model.AdminPercentage%)
+                    </span>
                 </div>
+
             </div>
         </div>
     </div>
+
 </div>
 
-<!-- NEW SYSTEM STATUS WIDGET -->
+<!-- SYSTEM STATUS -->
 <div class="admin-card mt-4">
+
     <div class="admin-card-header">
         <h3>System Status</h3>
-        <a href="#" class="view-all-link">Manage Settings</a>
+
+        <a asp-controller="AdminDashboard"
+           asp-action="SystemSettings"
+           class="view-all-link">
+            Manage Settings
+        </a>
     </div>
+
     <div class="system-status-grid">
+
         <div class="status-item">
             <div class="status-info">
                 <span>CPU Usage</span>
                 <strong>45%</strong>
             </div>
+
             <div class="progress-bar-bg">
-                <div class="progress-bar-fill blue-fill" style="width: 45%;"></div>
+                <div class="progress-bar-fill blue-fill"
+                     style="width:45%;"></div>
             </div>
         </div>
+
         <div class="status-item">
             <div class="status-info">
                 <span>Memory Usage</span>
                 <strong>62%</strong>
             </div>
+
             <div class="progress-bar-bg">
-                <div class="progress-bar-fill orange-fill" style="width: 62%;"></div>
+                <div class="progress-bar-fill orange-fill"
+                     style="width:62%;"></div>
             </div>
         </div>
+
         <div class="status-item">
             <div class="status-info">
                 <span>Database Space</span>
                 <strong>28%</strong>
             </div>
+
             <div class="progress-bar-bg">
-                <div class="progress-bar-fill green-fill" style="width: 28%;"></div>
+                <div class="progress-bar-fill green-fill"
+                     style="width:28%;"></div>
             </div>
         </div>
+
     </div>
 </div>
 
 @section Scripts {
-    <!-- Include Chart.js -->
+
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     <script>
         document.addEventListener("DOMContentLoaded", function () {
-        const ctx = document.getElementById('userDistributionChart').getContext('2d');
 
-        new Chart(ctx, {
-        type: 'doughnut',
-        data: {
-        labels: ['Clients', 'Trainers', 'Admins'],
-        datasets: [{
-        data: [70, 20, 10],
-        backgroundColor: ['#14ad6d', '#fa9419', '#8E24AA'],
-        borderWidth: 0,
-        hoverOffset: 4
-        }]
-        },
-        options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        cutout: '65%',
-        plugins: { legend: { display: false } }
-        }
-        });
+            const canvas =
+                document.getElementById("userDistributionChart");
+
+            if (!canvas) {
+                return;
+            }
+
+            const clients = @Model.TotalClients;
+            const trainers = @Model.TotalTrainers;
+            const admins = @Model.TotalAdmins;
+
+            new Chart(canvas, {
+                type: "doughnut",
+
+                data: {
+                    labels: ["Clients", "Trainers", "Admins"],
+
+                    datasets: [{
+                        data: [clients, trainers, admins],
+
+                        backgroundColor: [
+                            "#14ad6d",
+                            "#fa9419",
+                            "#8E24AA"
+                        ],
+
+                        borderWidth: 0,
+                        hoverOffset: 4
+                    }]
+                },
+
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    cutout: "65%",
+
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    }
+                }
+            });
         });
     </script>
 }

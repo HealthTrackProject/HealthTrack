@@ -85,13 +85,14 @@
             <main class="page-content">
                 @RenderBody()
             </main>
-
             <partial name="_Footer" />
         </div>
     </div>
 
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+<partial name="_ToastifyMessages" />
+
     <script>
         // Optional: Add the mobile sidebar toggle if needed
         const menuToggle = document.getElementById("menuToggle");
