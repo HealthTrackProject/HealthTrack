@@ -88,22 +88,26 @@ namespace HealthTrack.Areas.Identity.Pages.Account
                 {
                     _logger.LogInformation("User logged in.");
 
-                    // --- NEW ROLE-BASED REDIRECTION LOGIC ---
-                    // Find the user by their email
-                    var user = await _userManager.FindByEmailAsync(Input.Email);
+                    // 1. Set the Toast Message BEFORE redirecting
+                    TempData["ToastMessage"] = "Successfully logged in! Welcome back.";
+                    TempData["ToastType"] = "success";
 
+                    // 2. Find the user to check their role
+                    var user = await _userManager.FindByEmailAsync(Input.Email);
                     if (user != null)
                     {
-                        // Check roles and redirect accordingly
-                        if (await _userManager.IsInRoleAsync(user, "Admin"))
+                        var roles = await _userManager.GetRolesAsync(user);
+
+                        // 3. Redirect to the correct Dashboard based on Role
+                        if (roles.Contains("Admin"))
                         {
                             return RedirectToAction("Index", "AdminDashboard");
                         }
-                        else if (await _userManager.IsInRoleAsync(user, "Trainer"))
+                        else if (roles.Contains("Trainer"))
                         {
                             return RedirectToAction("Index", "TrainerDashboard");
                         }
-                        else if (await _userManager.IsInRoleAsync(user, "Client"))
+                        else if (roles.Contains("Client"))
                         {
                             return RedirectToAction("Index", "ClientDashboard");
                         }
@@ -111,7 +115,6 @@ namespace HealthTrack.Areas.Identity.Pages.Account
 
                     // Fallback if no specific role is found
                     return LocalRedirect(returnUrl);
-                    // -----------------------------------------
                 }
 
                 if (result.RequiresTwoFactor)
@@ -125,6 +128,10 @@ namespace HealthTrack.Areas.Identity.Pages.Account
                 }
                 else
                 {
+                    // Set the Error Toast Message
+                    TempData["ToastMessage"] = "Invalid email or password. Please try again.";
+                    TempData["ToastType"] = "error";
+
                     ModelState.AddModelError(string.Empty, "Invalid login attempt.");
                     return Page();
                 }
