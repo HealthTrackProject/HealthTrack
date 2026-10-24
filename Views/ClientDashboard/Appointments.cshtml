@@ -52,23 +52,29 @@
                                     </span>
                                 </td>
                                 <td>
-                                    @if (appt.Status == "Pending")
-                                    {
-                                        <!-- Cancel Form -->
-                                        <form asp-action="CancelAppointment" asp-controller="ClientDashboard" asp-route-id="@appt.AppointmentId" method="post" style="display:inline;">
-                                            @Html.AntiForgeryToken()
-                                            <button type="submit" class="ca-action cancel" onclick="return confirm('Are you sure you want to cancel this appointment?');">
-                                                Cancel
-                                            </button>
-                                        </form>
-                                    }
-                                    else
-                                    {
-                                        <button type="button" class="ca-action view"
-                                                data-view="@appt.Trainer?.FullName | @appt.AppointmentDate.ToString("dd MMM yyyy") | @appt.AppointmentDate.ToString("hh:mm tt") | @appt.Status | @appt.Reason">
+                                    <div style="display: flex; gap: 5px;">
+                                        <!-- Direct Cancel Button in Table -->
+                                        @if (appt.Status == "Pending" || appt.Status == "Confirmed")
+                                        {
+                                            <form asp-action="CancelAppointment" asp-controller="ClientDashboard" asp-route-id="@appt.AppointmentId" method="post" style="display:inline;">
+                                                @Html.AntiForgeryToken()
+                                                <button type="submit" class="ca-action cancel" onclick="return confirm('Are you sure you want to cancel this appointment?');">
+                                                    Cancel
+                                                </button>
+                                            </form>
+                                        }
+                                        
+                                        <!-- View Button (Opens Modal) -->
+                                        <button type="button" class="ca-action view btn-view-appt"
+                                                data-id="@appt.AppointmentId"
+                                                data-trainer="@(appt.Trainer?.FullName ?? "Any Available")"
+                                                data-date="@appt.AppointmentDate.ToString("dd MMM yyyy")"
+                                                data-time="@appt.AppointmentDate.ToString("hh:mm tt")"
+                                                data-status="@appt.Status"
+                                                data-reason="@appt.Reason">
                                             View
                                         </button>
-                                    }
+                                    </div>
                                 </td>
                             </tr>
                         }
@@ -95,8 +101,13 @@
                                     </span>
                                 </td>
                                 <td>
-                                    <button type="button" class="ca-action view"
-                                            data-view="@appt.Trainer?.FullName | @appt.AppointmentDate.ToString("dd MMM yyyy") | @appt.AppointmentDate.ToString("hh:mm tt") | @appt.Status | @appt.Reason">
+                                    <button type="button" class="ca-action view btn-view-appt"
+                                            data-id="@appt.AppointmentId"
+                                            data-trainer="@(appt.Trainer?.FullName ?? "Any Available")"
+                                            data-date="@appt.AppointmentDate.ToString("dd MMM yyyy")"
+                                            data-time="@appt.AppointmentDate.ToString("hh:mm tt")"
+                                            data-status="@appt.Status"
+                                            data-reason="@appt.Reason">
                                         View
                                     </button>
                                 </td>
@@ -118,19 +129,18 @@
     </div>
 </div>
 
-<!-- REQUEST APPOINTMENT MODAL -->
-<div class="ca-modal" id="caModal" hidden>
+<!-- 1. REQUEST APPOINTMENT MODAL -->
+<div class="ca-modal" id="caRequestModal" hidden>
     <div class="ca-modal-content">
-        <button type="button" class="ca-modal-close" id="caModalClose" aria-label="Close">&times;</button>
+        <button type="button" class="ca-modal-close" id="caRequestClose" aria-label="Close">&times;</button>
 
         <div class="ca-modal-icon">
             <i class="bi bi-calendar-check"></i>
         </div>
 
-        <h3 id="caModalTitle">Request Appointment</h3>
-        <p id="caModalText" class="text-muted small mb-3">Choose a preferred date and time for your appointment.</p>
+        <h3>Request Appointment</h3>
+        <p class="text-muted small mb-3">Choose a preferred date and time for your appointment.</p>
 
-        <!-- FORM: Submits to Controller -->
         <form asp-action="RequestAppointment" asp-controller="ClientDashboard" method="post" style="text-align: left;">
             @Html.AntiForgeryToken()
 
@@ -162,9 +172,39 @@
             </div>
 
             <div style="display: flex; justify-content: flex-end; gap: 10px;">
-                <button type="button" class="health-secondary-button" id="cancelAppointmentForm">Cancel</button>
+                <button type="button" class="health-secondary-button" id="cancelRequestBtn">Cancel</button>
                 <button type="submit" class="ca-request-btn">Submit Request</button>
             </div>
+        </form>
+    </div>
+</div>
+
+<!-- 2. VIEW APPOINTMENT DETAILS MODAL -->
+<div class="ca-modal" id="caViewModal" hidden>
+    <div class="ca-modal-content">
+        <button type="button" class="ca-modal-close" id="caViewClose" aria-label="Close">&times;</button>
+
+        <div class="ca-modal-icon">
+            <i class="bi bi-info-circle"></i>
+        </div>
+
+        <h3>Appointment Details</h3>
+        
+        <div style="text-align: left; margin-bottom: 20px; background: #f8f9fa; padding: 15px; border-radius: 8px;">
+            <p style="margin-bottom: 8px;"><strong>Trainer:</strong> <span id="viewTrainer"></span></p>
+            <p style="margin-bottom: 8px;"><strong>Date:</strong> <span id="viewDate"></span></p>
+            <p style="margin-bottom: 8px;"><strong>Time:</strong> <span id="viewTime"></span></p>
+            <p style="margin-bottom: 8px;"><strong>Status:</strong> <span id="viewStatus" class="ca-status"></span></p>
+            <p style="margin-bottom: 0;"><strong>Reason:</strong> <br/> <span id="viewReason" class="text-muted"></span></p>
+        </div>
+
+        <!-- Cancel Form inside the View Modal -->
+        <form asp-action="CancelAppointment" asp-controller="ClientDashboard" method="post" id="modalCancelForm" style="display: none;">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="id" id="modalAppointmentId" />
+            <button type="submit" class="health-secondary-button w-100" style="color: #dc3545; border-color: #dc3545;" onclick="return confirm('Are you sure you want to cancel this appointment?');">
+                Cancel This Appointment
+            </button>
         </form>
     </div>
 </div>
@@ -172,13 +212,11 @@
 @section Scripts {
     <script>
         (() => {
+            // Tab Logic
             const upcoming = document.getElementById("caUpcoming");
             const past = document.getElementById("caPast");
             const tabs = document.querySelectorAll(".ca-tab");
             const summary = document.getElementById("caSummary");
-            const modal = document.getElementById("caModal");
-            const modalTitle = document.getElementById("caModalTitle");
-            const modalText = document.getElementById("caModalText");
 
             let activeTab = "upcoming";
 
@@ -192,78 +230,61 @@
                 past.hidden = tab !== "past";
 
                 if (tab === "upcoming") {
-                    summary.textContent = `Showing ${upcoming.querySelectorAll("tr").length} upcoming appointments`;
+                    summary.textContent = `Showing ${upcoming.querySelectorAll("tr[data-id], tr:not([hidden])").length} upcoming appointments`;
                 } else {
                     summary.textContent = `Showing ${past.querySelectorAll("tr").length} past appointments`;
                 }
-            }
-
-            function openDetailsModal(text) {
-                modalTitle.textContent = "Appointment Details";
-                modalText.textContent = text;
-                document.getElementById("appointmentFormHost").innerHTML = ""; // Clear form if any
-
-                // Hide form, show text
-                document.querySelector(".ca-modal form").style.display = "none";
-                document.querySelector(".ca-modal-content > p#caModalText").style.display = "block";
-                document.getElementById("cancelAppointmentForm").style.display = "none";
-                // We need an OK button or let the X close it. Let's just use the X.
-
-                modal.hidden = false;
-            }
-
-            function openRequestForm() {
-                modalTitle.textContent = "Request Appointment";
-                modalText.textContent = "Choose a preferred date and time for your appointment.";
-
-                // Show form, hide text
-                document.querySelector(".ca-modal form").style.display = "block";
-                document.querySelector(".ca-modal-content > p#caModalText").style.display = "block"; // Actually we want this text
-
-                // Set min date to today
-                const today = new Date().toISOString().split('T')[0];
-                document.getElementById("appointmentDate").min = today;
-
-                modal.hidden = false;
-            }
-
-            function closeModal() {
-                modal.hidden = true;
             }
 
             tabs.forEach(button => {
                 button.addEventListener("click", () => showTab(button.dataset.tab));
             });
 
-            // View Button Click
-            document.addEventListener("click", event => {
-                const viewButton = event.target.closest("[data-view]");
-                if (viewButton) {
-                    // Show simple text details instead of form
-                    modalTitle.textContent = "Appointment Details";
-                    modalText.textContent = viewButton.dataset.view;
+            // Modals Logic
+            const requestModal = document.getElementById("caRequestModal");
+            const viewModal = document.getElementById("caViewModal");
 
-                    // Hide the form if it's there
-                    const form = document.querySelector(".ca-modal form");
-                    if(form) form.style.display = "none";
-
-                    // Change close button logic to just close
-                    document.getElementById("caModalClose").style.display = "block";
-
-                    modal.hidden = false;
-                }
-            });
-
-            // Request Button Click
+            // Request Modal Handlers
             document.getElementById("caRequestBtn").addEventListener("click", () => {
-                openRequestForm();
+                const today = new Date().toISOString().split('T')[0];
+                document.getElementById("appointmentDate").min = today;
+                requestModal.hidden = false;
             });
+            document.getElementById("caRequestClose").addEventListener("click", () => requestModal.hidden = true);
+            document.getElementById("cancelRequestBtn").addEventListener("click", () => requestModal.hidden = true);
 
-            // Close Modal
-            document.getElementById("caModalClose").addEventListener("click", closeModal);
-            document.getElementById("cancelAppointmentForm").addEventListener("click", closeModal);
-            modal.addEventListener("click", event => {
-                if (event.target === modal) closeModal();
+            // View Modal Handlers
+            document.querySelectorAll(".btn-view-appt").forEach(btn => {
+                btn.addEventListener("click", function() {
+                    document.getElementById("viewTrainer").textContent = this.dataset.trainer;
+                    document.getElementById("viewDate").textContent = this.dataset.date;
+                    document.getElementById("viewTime").textContent = this.dataset.time;
+                    
+                    const status = this.dataset.status;
+                    const statusEl = document.getElementById("viewStatus");
+                    statusEl.textContent = status;
+                    statusEl.className = "ca-status " + status.toLowerCase();
+                    
+                    document.getElementById("viewReason").textContent = this.dataset.reason;
+
+                    // Show Cancel button if status is Pending or Confirmed
+                    const cancelForm = document.getElementById("modalCancelForm");
+                    if (status.toLowerCase() === "pending" || status.toLowerCase() === "confirmed") {
+                        cancelForm.style.display = "block";
+                        document.getElementById("modalAppointmentId").value = this.dataset.id;
+                    } else {
+                        cancelForm.style.display = "none";
+                    }
+
+                    viewModal.hidden = false;
+                });
+            });
+            document.getElementById("caViewClose").addEventListener("click", () => viewModal.hidden = true);
+
+            // Close modals on outside click
+            window.addEventListener("click", (e) => {
+                if (e.target === requestModal) requestModal.hidden = true;
+                if (e.target === viewModal) viewModal.hidden = true;
             });
 
             showTab("upcoming");

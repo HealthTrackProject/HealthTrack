@@ -59,7 +59,6 @@ namespace HealthTrack.Areas.Identity.Pages.Account
 
         public class InputModel
         {
-            // Added: Full Name property
             [Required]
             [Display(Name = "Full Name")]
             public string FullName { get; set; }
@@ -80,7 +79,6 @@ namespace HealthTrack.Areas.Identity.Pages.Account
             [Compare("Password", ErrorMessage = "The password and confirmation password do not match.")]
             public string ConfirmPassword { get; set; }
 
-            // Added: Role property
             [Required]
             [Display(Name = "Select Role")]
             public string Role { get; set; }
@@ -91,7 +89,7 @@ namespace HealthTrack.Areas.Identity.Pages.Account
             ReturnUrl = returnUrl;
             ExternalLogins = (await _signInManager.GetExternalAuthenticationSchemesAsync()).ToList();
 
-            // Added: Populate the Role dropdown list
+            // Populate the Role dropdown list
             RoleList = new List<SelectListItem>
             {
                 new SelectListItem { Value = "Client", Text = "Client" },
@@ -109,7 +107,6 @@ namespace HealthTrack.Areas.Identity.Pages.Account
             {
                 var user = CreateUser();
 
-                // Added: Save the Full Name to the custom ApplicationUser property
                 user.FullName = Input.FullName;
 
                 await _userStore.SetUserNameAsync(user, Input.Email, CancellationToken.None);
@@ -120,7 +117,6 @@ namespace HealthTrack.Areas.Identity.Pages.Account
                 {
                     _logger.LogInformation("User created a new account with password.");
 
-                    // Added: Assign the selected Role to the new user
                     await _userManager.AddToRoleAsync(user, Input.Role);
 
                     var userId = await _userManager.GetUserIdAsync(user);
@@ -135,6 +131,10 @@ namespace HealthTrack.Areas.Identity.Pages.Account
                     await _emailSender.SendEmailAsync(Input.Email, "Confirm your email",
                         $"Please confirm your account by <a href='{HtmlEncoder.Default.Encode(callbackUrl)}'>clicking here</a>.");
 
+                    // ADDED: Success Toast Message
+                    TempData["ToastMessage"] = "Registration successful! Welcome to HealthTrack.";
+                    TempData["ToastType"] = "success";
+
                     if (_userManager.Options.SignIn.RequireConfirmedAccount)
                     {
                         return RedirectToPage("RegisterConfirmation", new { email = Input.Email, returnUrl = returnUrl });
@@ -145,14 +145,24 @@ namespace HealthTrack.Areas.Identity.Pages.Account
                         return LocalRedirect(returnUrl);
                     }
                 }
+
+                // ADDED: Error Toast Message for Failed Creation (e.g., email already exists)
                 foreach (var error in result.Errors)
                 {
                     ModelState.AddModelError(string.Empty, error.Description);
                 }
+
+                TempData["ToastMessage"] = "Registration failed. Please check the details and try again.";
+                TempData["ToastType"] = "error";
+            }
+            else
+            {
+                // ADDED: Error Toast Message for Invalid Format (Validation errors)
+                TempData["ToastMessage"] = "Please fix the highlighted errors in the form.";
+                TempData["ToastType"] = "error";
             }
 
             // If we got this far, something failed, redisplay form
-            // Make sure to repopulate the RoleList if validation fails!
             RoleList = new List<SelectListItem>
             {
                 new SelectListItem { Value = "Client", Text = "Client" },

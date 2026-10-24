@@ -17,6 +17,9 @@
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="/css/home.css" />
     <link rel="stylesheet" href="~/css/site.css" />
+
+    <!-- ADDED: Toastify CSS -->
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
 </head>
 <body style="background-color: #ffffff;">
 
@@ -115,24 +118,30 @@
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
 
-    <script>
-        function togglePassword() {
-        var passwordInput = document.getElementById("passwordInput");
-        var toggleIcon = document.getElementById("toggleIcon");
-        if (passwordInput.type === "password") {
-        passwordInput.type = "text";
-        toggleIcon.classList.remove("bi-eye-slash");
-        toggleIcon.classList.add("bi-eye");
-        } else {
-        passwordInput.type = "password";
-        toggleIcon.classList.remove("bi-eye");
-        toggleIcon.classList.add("bi-eye-slash");
-        }
-        }
+    <!-- ADDED: Toastify JS -->
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
 
-        document.getElementById('passwordInput').addEventListener('input', function() {
-        document.getElementById('confirmPasswordInput').value = this.value;
-        });
+    <!-- ADDED: Toastify Partial -->
+    <partial name="_ToastifyMessages" />
+
+    <script>
+            function togglePassword() {
+                var passwordInput = document.getElementById("passwordInput");
+            var toggleIcon = document.getElementById("toggleIcon");
+                if (passwordInput.type === "password") {
+                    passwordInput.type = "text";
+                    toggleIcon.classList.remove("bi-eye-slash");
+                    toggleIcon.classList.add("bi-eye");
+                } else {
+                    passwordInput.type = "password";
+                    toggleIcon.classList.remove("bi-eye");
+                    toggleIcon.classList.add("bi -eye-slash");
+                }
+            }
+
+            document.getElementById('passwordInput').addEventListener('input', function() {
+                document.getElementById('confirmPasswordInput').value = this.value;
+            });
     </script>
 </body>
 </html>
