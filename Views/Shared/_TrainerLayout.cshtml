@@ -1,5 +1,4 @@
-﻿
-@using Microsoft.AspNetCore.Identity
+﻿@using Microsoft.AspNetCore.Identity
 @using HealthTrack.Models
 @inject UserManager<ApplicationUser> UserManager
 
@@ -146,8 +145,7 @@
             <header class="topbar">
                 <div class="topbar-left">
                     <div class="topbar-heading">
-                        <h1>Welcome @trainerName Traineer</h1>
-                      
+                        <h1>Welcome @trainerName Trainer</h1>
                     </div>
                 </div>
 
@@ -208,39 +206,42 @@
         </div>
     </div>
 
+    <!-- ADDED: TOAST MESSAGES PARTIAL -->
+    <partial name="_ToastifyMessages" />
+
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
 
     <script>
-        // Live date and time in the browser's local timezone.
-        (function () {
-            const dateTimeElement =
-                document.getElementById("trainerDateTime");
+            // Live date and time in the browser's local timezone.
+            (function () {
+                const dateTimeElement =
+                    document.getElementById("trainerDateTime");
 
-            function updateTrainerDateTime() {
-                if (!dateTimeElement) return;
+                function updateTrainerDateTime() {
+                    if (!dateTimeElement) return;
 
-                const now = new Date();
+                    const now = new Date();
 
-                const date = now.toLocaleDateString(undefined, {
-                    weekday: "short",
-                    year: "numeric",
-                    month: "short",
-                    day: "numeric"
-                });
+                    const date = now.toLocaleDateString(undefined, {
+                        weekday: "short",
+                        year: "numeric",
+                        month: "short",
+                        day: "numeric"
+                    });
 
-                const time = now.toLocaleTimeString(undefined, {
-                    hour: "2-digit",
-                    minute: "2-digit",
-                    second: "2-digit"
-                });
+                    const time = now.toLocaleTimeString(undefined, {
+                        hour: "2-digit",
+                        minute: "2-digit",
+                        second: "2-digit"
+                    });
 
-                dateTimeElement.textContent = date + " · " + time;
-            }
+                    dateTimeElement.textContent = date + " · " + time;
+                }
 
-            updateTrainerDateTime();
-            window.setInterval(updateTrainerDateTime, 1000);
-        })();
+                updateTrainerDateTime();
+                window.setInterval(updateTrainerDateTime, 1000);
+            })();
     </script>
 
     @await RenderSectionAsync("Scripts", required: false)
