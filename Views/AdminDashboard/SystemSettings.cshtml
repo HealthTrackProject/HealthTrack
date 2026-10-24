@@ -1,4 +1,5 @@
-﻿@{
+﻿@model HealthTrack.Models.SystemSetting
+@{
     Layout = "~/Views/Shared/_AdminLayout.cshtml";
     ViewData["Title"] = "System Settings";
     ViewData["Heading"] = "System Settings";
@@ -9,7 +10,11 @@
     <h2>System Configuration</h2>
 </div>
 
-<form id="settingsForm">
+<!-- Note: Added method="post" and asp-controller to make it submit properly -->
+<form asp-controller="AdminDashboard" asp-action="SystemSettings" method="post" id="settingsForm">
+
+    @Html.AntiForgeryToken()
+
     <div class="settings-grid">
 
         <!-- 1. GENERAL SETTINGS -->
@@ -18,19 +23,19 @@
 
             <div class="settings-form-group">
                 <label>System Name</label>
-                <input type="text" value="HealthTrack System" required />
+                <input asp-for="SystemName" type="text" required />
             </div>
 
             <div class="settings-form-group">
                 <label>Support Email</label>
-                <input type="email" value="support@healthtrack.com" required />
+                <input asp-for="SupportEmail" type="email" required />
             </div>
 
             <div class="settings-form-group">
                 <label>Default Timezone</label>
-                <select>
+                <select asp-for="DefaultTimezone">
                     <option value="UTC">UTC (Coordinated Universal Time)</option>
-                    <option value="IST" selected>IST (India Standard Time / Sri Lanka)</option>
+                    <option value="IST">IST (India Standard Time / Sri Lanka)</option>
                     <option value="EST">EST (Eastern Standard Time)</option>
                 </select>
             </div>
@@ -46,7 +51,7 @@
                     <p>Require 2FA for all Admin accounts.</p>
                 </div>
                 <div class="form-check form-switch">
-                    <input class="form-check-input" type="checkbox" role="switch" checked>
+                    <input asp-for="TwoFactorAuth" class="form-check-input" type="checkbox" role="switch">
                 </div>
             </div>
 
@@ -56,7 +61,7 @@
                     <p>Prevent users from accessing the system temporarily.</p>
                 </div>
                 <div class="form-check form-switch">
-                    <input class="form-check-input" type="checkbox" role="switch">
+                    <input asp-for="MaintenanceMode" class="form-check-input" type="checkbox" role="switch">
                 </div>
             </div>
 
@@ -66,7 +71,7 @@
                     <p>Prompt all users to update their passwords every 90 days.</p>
                 </div>
                 <div class="form-check form-switch">
-                    <input class="form-check-input" type="checkbox" role="switch">
+                    <input asp-for="ForcePasswordReset" class="form-check-input" type="checkbox" role="switch">
                 </div>
             </div>
         </div>
@@ -81,7 +86,7 @@
                     <p>Send automatic emails for appointments and updates.</p>
                 </div>
                 <div class="form-check form-switch">
-                    <input class="form-check-input" type="checkbox" role="switch" checked>
+                    <input asp-for="EmailNotifications" class="form-check-input" type="checkbox" role="switch">
                 </div>
             </div>
 
@@ -91,18 +96,18 @@
                     <p>Send SMS alerts to clients and trainers for reminders.</p>
                 </div>
                 <div class="form-check form-switch">
-                    <input class="form-check-input" type="checkbox" role="switch">
+                    <input asp-for="SmsAlerts" class="form-check-input" type="checkbox" role="switch">
                 </div>
             </div>
         </div>
 
-        <!-- 4. SYSTEM PREFERENCES (Placeholder for extra feature) -->
+        <!-- 4. SYSTEM PREFERENCES -->
         <div class="settings-card">
             <h3><i class="bi bi-sliders"></i> System Preferences</h3>
 
             <div class="settings-form-group">
                 <label>Max Upload Size (MB)</label>
-                <input type="number" value="10" min="1" max="100" required />
+                <input asp-for="MaxUploadSize" type="number" min="1" max="100" required />
             </div>
 
             <div class="settings-toggle-row">
@@ -111,7 +116,7 @@
                     <p>Allow new users to create accounts.</p>
                 </div>
                 <div class="form-check form-switch">
-                    <input class="form-check-input" type="checkbox" role="switch" checked>
+                    <input asp-for="AllowUserRegistration" class="form-check-input" type="checkbox" role="switch">
                 </div>
             </div>
         </div>
@@ -127,26 +132,5 @@
 </form>
 
 @section Scripts {
-    <script>
-        document.addEventListener("DOMContentLoaded", function () {
-            const form = document.getElementById("settingsForm");
-
-            form.addEventListener("submit", function (e) {
-                e.preventDefault(); // Prevent page reload
-
-                // Simulate saving to database
-                const saveBtn = form.querySelector('button[type="submit"]');
-                const originalText = saveBtn.innerHTML;
-
-                saveBtn.innerHTML = '<i class="bi bi-hourglass-split"></i> Saving...';
-                saveBtn.disabled = true;
-
-                setTimeout(() => {
-                    saveBtn.innerHTML = originalText;
-                    saveBtn.disabled = false;
-                    alert("System settings updated successfully! (UI Demo)");
-                }, 1000);
-            });
-        });
-    </script>
+    <!-- No fake JavaScript needed anymore, the form submits naturally to the database -->
 }

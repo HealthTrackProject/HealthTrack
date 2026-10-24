@@ -7,6 +7,7 @@ public class AdminDashboardViewModel
     public int TotalTrainers { get; set; }
     public int TotalAdmins { get; set; }
     public int TotalAppointments { get; set; }
+    public int TotalWorkoutPlans { get; set; }
 
     public int ClientPercentage =>
         TotalUsers == 0 ? 0 : (int)Math.Round(TotalClients * 100.0 / TotalUsers);

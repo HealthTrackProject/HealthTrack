@@ -1,30 +1,35 @@
-﻿@{
+﻿@model HealthTrack.ViewModels.AdminDashboardViewModel
+@{
     Layout = "~/Views/Shared/_AdminLayout.cshtml";
     ViewData["Title"] = "Reports";
     ViewData["Heading"] = "Reports & Analytics";
     ViewData["ActivePage"] = "Reports";
+
+    int selectedMonths = ViewBag.SelectedMonths ?? 6;
 }
 
 <div class="reports-header">
     <h2>Reports & Analytics</h2>
 
     <div class="header-controls">
-        <!-- Export Buttons -->
+        <!-- Export Buttons (Added months parameter) -->
         <div class="export-actions">
-            <a asp-action="ExportPdf" asp-controller="AdminDashboard" class="btn-export btn-pdf">
+            <a asp-action="ExportPdf" asp-controller="AdminDashboard" asp-route-months="@selectedMonths" class="btn-export btn-pdf">
                 <i class="bi bi-file-earmark-pdf-fill"></i> Export PDF
             </a>
-            <a asp-action="ExportExcel" asp-controller="AdminDashboard" class="btn-export btn-excel">
+            <a asp-action="ExportExcel" asp-controller="AdminDashboard" asp-route-months="@selectedMonths" class="btn-export btn-excel">
                 <i class="bi bi-file-earmark-excel-fill"></i> Export Excel
             </a>
         </div>
 
-        <!-- Time Period Dropdown -->
-        <select class="period-select">
-            <option value="6" selected>Last 6 Months</option>
-            <option value="3">Last 3 Months</option>
-            <option value="12">Last 12 Months</option>
-        </select>
+        <!-- Time Period Dropdown (Wrapped in a form to submit to server) -->
+        <form method="get" asp-action="Reports" id="filterForm">
+            <select class="period-select" name="months" onchange="document.getElementById('filterForm').submit();">
+                <option value="3" selected="@(selectedMonths == 3 ? "selected" : null)">Last 3 Months</option>
+                <option value="6" selected="@(selectedMonths == 6 ? "selected" : null)">Last 6 Months</option>
+                <option value="12" selected="@(selectedMonths == 12 ? "selected" : null)">Last 12 Months</option>
+            </select>
+        </form>
     </div>
 </div>
 
@@ -32,22 +37,22 @@
 <div class="stats-grid">
     <div class="stat-card blue">
         <div class="stat-icon"><i class="bi bi-person-plus-fill"></i></div>
-        <h3>35</h3>
-        <p>New Users</p>
+        <h3>@Model.TotalUsers</h3>
+        <p>Total Users</p>
     </div>
     <div class="stat-card green">
         <div class="stat-icon"><i class="bi bi-calendar-check-fill"></i></div>
-        <h3>120</h3>
+        <h3>@Model.TotalAppointments</h3>
         <p>Appointments</p>
     </div>
     <div class="stat-card orange">
         <div class="stat-icon"><i class="bi bi-clipboard-check-fill"></i></div>
-        <h3>85</h3>
-        <p>Completed Plans</p>
+        <h3>@Model.TotalWorkoutPlans</h3>
+        <p>Workout Plans</p>
     </div>
     <div class="stat-card purple">
         <div class="stat-icon"><i class="bi bi-people-fill"></i></div>
-        <h3>105</h3>
+        <h3>@Model.TotalClients</h3>
         <p>Active Clients</p>
     </div>
 </div>
@@ -72,59 +77,66 @@
 </div>
 
 @section Scripts {
-    <!-- Include Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     <script>
         document.addEventListener("DOMContentLoaded", function () {
-        // Common Chart Options
-        const commonOptions = {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: { legend: { display: false } },
-        scales: {
-        x: { grid: { display: false } },
-        y: { border: { display: false }, grid: { color: '#edf2f5' } }
-        }
-        };
 
-        // 1. User Growth Line Chart
-        const ctxLine = document.getElementById('userGrowthChart').getContext('2d');
-        new Chart(ctxLine, {
-        type: 'line',
-        data: {
-        labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
-        datasets: [{
-        label: 'New Users',
-        data: [10, 15, 22, 28, 35, 45], // Mock Data
-        borderColor: '#1E88E5', // Blue Line
-        backgroundColor: 'rgba(30, 136, 229, 0.1)', // Light Blue Fill
-        borderWidth: 2,
-        pointBackgroundColor: '#1E88E5',
-        pointRadius: 3,
-        fill: true,
-        tension: 0.4 // Smooth curve
-        }]
-        },
-        options: commonOptions
-        });
+            // Get data from C# Controller
+            const chartLabels = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(ViewBag.ChartLabels));
+                  const userGrowthData = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(ViewBag.UserGrowthData));
+                    const appointmentData = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(ViewBag.AppointmentData));
 
-        // 2. Appointments Bar Chart
-        const ctxBar = document.getElementById('appointmentsChart').getContext('2d');
-        new Chart(ctxBar, {
-        type: 'bar',
-        data: {
-        labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
-        datasets: [{
-        label: 'Appointments',
-        data: [8, 12, 18, 25, 30, 22], // Mock Data
-        backgroundColor: '#14ad6d', // Green Bars
-        borderRadius: 4,
-        barThickness: 20
-        }]
-        },
-        options: commonOptions
-        });
-        });
+                 // Common Chart Options
+                    const commonOptions = {
+                      responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                        scales: {
+                        x: { grid: { display: false } },
+                       y: {
+                            border: { display: false },                       grid: { color: '#edf2f5' },
+                                beginAtZero: true,
+                            ticks: { precision: 0 } // Prevents decimals like 1.5 users
+                        }
+                    }
+                    };
+
+                    // 1. User Growth Line Chart
+                    const ctxLine = document.getElementById('userGrowthChart').getContext('2d');
+                new Chart(ctxLine, {
+                  type: 'line',
+                    data: {
+                        labels: chartLabels,
+                        datasets: [{
+                      label: 'New Users',                  data: userGrowthData,
+                                borderColor: '#1E88E5',
+                            backgroundColor: 'rgba(30, 136, 229, 0.1)',
+                                    borderWidth: 2,
+                             pointBackgroundColor:   '#1E88E5',
+                            pointRadius: 3,
+                            fill: true,
+                            tension: 0.4
+                        }]
+                   },
+                       options: commonOptions
+                    });
+
+                    // 2. Appointments Bar Chart
+               const ctxBar = document.getElementById('appointmentsChart').getContext('2d');            new Chart(ctxBar, {
+                        type: 'bar',
+                    data: {
+                        labels: chartLabels,
+                        datasets: [{
+                              label: 'Appointments',
+                               data: appointmentData,
+                            backgroundColor: '#14ad6d',
+                            borderRadius: 4,
+                          barThickness: 20
+               }]
+                    },
+                        options: commonOptions
+                    });
+                });
     </script>
 }
